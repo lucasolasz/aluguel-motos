@@ -29,7 +29,9 @@ public class CategoriaController {
             .map(categoria -> new CategoriaDTO(
                 categoria.getId(),
                 categoria.getNome(),
-                categoria.getDescricao()
+                categoria.getDescricao(),
+                categoria.getSlug(),
+                categoria.getImageUrl()
             ))
             .toList();
         return ResponseEntity.ok(categorias);
@@ -41,7 +43,9 @@ public class CategoriaController {
         var dto = new CategoriaDTO(
             categoria.getId(),
             categoria.getNome(),
-            categoria.getDescricao()
+            categoria.getDescricao(),
+            categoria.getSlug(),
+            categoria.getImageUrl()
         );
         return ResponseEntity.ok(dto);
     }

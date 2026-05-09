@@ -47,7 +47,9 @@ public class MotoController {
                 moto.getCategoria() != null ? new CategoriaDTO(
                     moto.getCategoria().getId(),
                     moto.getCategoria().getNome(),
-                    moto.getCategoria().getDescricao()
+                    moto.getCategoria().getDescricao(),
+                    moto.getCategoria().getSlug(),
+                    moto.getCategoria().getImageUrl()
                 ) : null
             ))
             .toList();
@@ -77,7 +79,9 @@ public class MotoController {
             moto.getCategoria() != null ? new CategoriaDTO(
                 moto.getCategoria().getId(),
                 moto.getCategoria().getNome(),
-                moto.getCategoria().getDescricao()
+                moto.getCategoria().getDescricao(),
+                moto.getCategoria().getSlug(),
+                moto.getCategoria().getImageUrl()
             ) : null
         );
         return ResponseEntity.ok(dto);
