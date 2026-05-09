@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Clock, Headphones, MapPin, Shield } from "lucide-react";
-import Link from "next/link";
-import { getCategorias } from "@/services/categorias.service";
-import { getMotos } from "@/services/motos.service";
 import { CategoriaCard } from "@/components/categoria-card";
 import { MotoCard } from "@/components/moto-card";
+import { Button } from "@/components/ui/button";
+import { getCategorias } from "@/services/categorias.service";
+import { getMotos } from "@/services/motos.service";
+import Link from "next/link";
 import { Features } from "./_components/features";
+import { SearchForm } from "./_components/search-form";
 
 export default async function HomePage() {
   const featuredCategories = await getCategorias();
@@ -15,7 +15,7 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         {/* Hero Section */}
-        {/* <section className="relative bg-primary py-20 lg:py-32">
+        <section className="relative bg-primary py-20 lg:py-32">
           <div className="absolute inset-0 bg-[url('/images/hero-pattern.svg')] opacity-5" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
@@ -28,10 +28,10 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="mx-auto mt-10 max-w-4xl">
-              <SearchForm />
+              <SearchForm categories={featuredCategories} />
             </div>
           </div>
-        </section> */}
+        </section>
 
         {/* Features Section */}
         <section className="border-b border-border bg-card py-12">
