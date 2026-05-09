@@ -5,6 +5,7 @@ import { getCategorias } from "@/services/categorias.service";
 import { getMotos } from "@/services/motos.service";
 import { CategoriaCard } from "@/components/categoria-card";
 import { MotoCard } from "@/components/moto-card";
+import { Features } from "./_components/features";
 
 export default async function HomePage() {
   const featuredCategories = await getCategorias();
@@ -33,27 +34,11 @@ export default async function HomePage() {
         </section> */}
 
         {/* Features Section */}
-        {/* <section className="border-b border-border bg-card py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-              {features.map((feature) => (
-                <div key={feature.title} className="text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                    <feature.icon className="h-6 w-6 text-foreground" />
-                  </div>
-                  <h3 className="mt-4 text-sm font-semibold text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section> */}
+        <section className="border-b border-border bg-card py-12">
+         <Features />
+        </section>
 
-        Featured Motorcycles Section
+        {/* Featured Motorcycles Section */}
         <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between">
