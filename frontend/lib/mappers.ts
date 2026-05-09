@@ -1,4 +1,4 @@
-import { Categoria, Moto } from "./types";
+import { Categoria, Moto, MotoFoto } from "./types";
 
 
 // DTOs para tipagem do parâmetro de entrada
@@ -10,13 +10,19 @@ export interface CategoriaDTO {
   imageUrl: string;
 }
 
+export interface MotoFotoDTO {
+  id: string;
+  url: string;
+  ordem: number;
+  principal: boolean;
+}
+
 export interface MotoDTO {
   id: string;
   nome: string;
   marca: string;
   modelo: string;
   ano: number;
-  imagemUrl: string;
   precoPorDia: number;
   caucao: number;
   motor: string;
@@ -27,6 +33,7 @@ export interface MotoDTO {
   peso: string;
   itens: string;
   disponivel: boolean;
+  fotos: MotoFotoDTO[];
   categoria: CategoriaDTO;
 }
 
@@ -45,6 +52,16 @@ export function mapCategorias(dtos: CategoriaDTO[]): Categoria[] {
   return dtos.map(mapCategoria);
 }
 
+// Mapeamento de MotoFoto
+export function mapMotoFoto(dto: MotoFotoDTO): MotoFoto {
+  return {
+    id: dto.id,
+    url: dto.url,
+    ordem: dto.ordem,
+    principal: dto.principal,
+  };
+}
+
 // Mapeamento de Moto
 export function mapMoto(dto: MotoDTO): Moto {
   return {
@@ -53,7 +70,6 @@ export function mapMoto(dto: MotoDTO): Moto {
     marca: dto.marca,
     modelo: dto.modelo,
     ano: dto.ano,
-    imagemUrl: dto.imagemUrl,
     precoPorDia: dto.precoPorDia,
     caucao: dto.caucao,
     motor: dto.motor,
@@ -65,6 +81,7 @@ export function mapMoto(dto: MotoDTO): Moto {
     // Converte a string separada por vírgula em array
     itens: dto.itens ? dto.itens.split(",").map((i) => i.trim()) : [],
     disponivel: dto.disponivel,
+    fotos: dto.fotos.map(mapMotoFoto),
     categoria: mapCategoria(dto.categoria),
   };
 }

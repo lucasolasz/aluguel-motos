@@ -1,6 +1,7 @@
 package com.ltech.backend.domain.dtos;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record MotoDTO(
@@ -9,7 +10,6 @@ public record MotoDTO(
     String marca,
     String modelo,
     Integer ano,
-    String imagemUrl,
     BigDecimal precoPorDia,
     BigDecimal caucao,
     String motor,
@@ -20,6 +20,7 @@ public record MotoDTO(
     String peso,
     String itens,
     Boolean disponivel,
-    CategoriaDTO categoria  
+    List<MotoFotoDTO> fotos,
+    CategoriaDTO categoria
 ) {
 }

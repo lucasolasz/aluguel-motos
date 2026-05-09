@@ -2,10 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Clock, Headphones, MapPin, Shield } from "lucide-react";
 import Link from "next/link";
 import { getCategorias } from "@/services/categorias.service";
+import { getMotos } from "@/services/motos.service";
 import { CategoriaCard } from "@/components/categoria-card";
+import { MotoCard } from "@/components/moto-card";
 
 export default async function HomePage() {
   const featuredCategories = await getCategorias();
+  const featuredMotorcycles = await getMotos();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -50,7 +53,7 @@ export default async function HomePage() {
           </div>
         </section> */}
 
-        {/* Featured Motorcycles Section
+        Featured Motorcycles Section
         <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between">
@@ -68,7 +71,7 @@ export default async function HomePage() {
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {featuredMotorcycles.map((moto) => (
-                <MotorcycleCard key={moto.id} motorcycle={moto} />
+                <MotoCard key={moto.id} moto={moto} />
               ))}
             </div>
             <div className="mt-8 text-center sm:hidden">
@@ -77,7 +80,7 @@ export default async function HomePage() {
               </Button>
             </div>
           </div>
-        </section> */}
+        </section>
 
         {/* Categories Section */}
         <section className="bg-muted/50 py-16 lg:py-24">
