@@ -1,8 +1,8 @@
 import { apiFetch } from "./api";
-import { Motorcycle } from "@/lib/types";
+import { Moto } from "@/lib/types";
 import { mapMotos, type MotoDTO } from "@/lib/mappers";
 
-export async function getMotos(): Promise<Motorcycle[]> {
+export async function getMotos(): Promise<Moto[]> {
   const dtos = await apiFetch<MotoDTO[]>("/motos");
   return mapMotos(dtos);
 }

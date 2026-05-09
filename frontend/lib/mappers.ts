@@ -1,67 +1,74 @@
-import { Category, Motorcycle } from "./types";
+import { Categoria, Moto } from "./types";
 
-// Backend DTOs (from API)
+
+// DTOs para tipagem do parâmetro de entrada
 export interface CategoriaDTO {
   id: string;
-  descricao: string;
   nome: string;
+  descricao: string;
+  slug: string;
+  imageUrl: string;
 }
 
 export interface MotoDTO {
   id: string;
   nome: string;
+  marca: string;
+  modelo: string;
+  ano: number;
+  imagemUrl: string;
   precoPorDia: number;
+  caucao: number;
+  motor: string;
+  potencia: string;
+  transmissao: string;
+  capacidadeTanque: string;
+  alturaAssento: string;
+  peso: string;
+  itens: string;
+  disponivel: boolean;
+  categoria: CategoriaDTO;
 }
 
-// Mappers: Backend DTO → Frontend Types
-
-export function mapCategoria(dto: CategoriaDTO): Category {
+// Mapeamento de Categoria
+export function mapCategoria(dto: CategoriaDTO): Categoria {
   return {
     id: dto.id,
-    name: dto.nome,
-    slug: dto.nome.toLowerCase().replace(/\s+/g, "-"),
-    description: "", // TODO: adicionar ao backend
-    image: "", // TODO: adicionar ao backend
-    examples: [], // TODO: adicionar ao backend
+    nome: dto.nome,
+    descricao: dto.descricao,
+    slug: dto.slug,
+    imageUrl: dto.imageUrl,
   };
 }
 
-export function mapCategorias(dtos: CategoriaDTO[]): Category[] {
+export function mapCategorias(dtos: CategoriaDTO[]): Categoria[] {
   return dtos.map(mapCategoria);
 }
 
-export function mapMoto(dto: MotoDTO): Motorcycle {
+// Mapeamento de Moto
+export function mapMoto(dto: MotoDTO): Moto {
   return {
     id: dto.id,
-    name: dto.nome,
-    brand: "", // TODO: adicionar ao backend
-    model: "", // TODO: adicionar ao backend
-    year: new Date().getFullYear(), // TODO: adicionar ao backend
-    categoryId: "", // TODO: adicionar ao backend
-    category: {
-      id: "",
-      name: "",
-      slug: "",
-      description: "",
-      image: "",
-      examples: [],
-    }, // TODO: adicionar ao backend
-    images: [], // TODO: adicionar ao backend
-    pricePerDay: dto.precoPorDia,
-    securityDeposit: 0, // TODO: adicionar ao backend
-    specifications: {
-      engine: "",
-      power: "",
-      transmission: "",
-      fuelCapacity: "",
-      seatHeight: "",
-      weight: "",
-    },
-    features: [],
-    available: true,
+    nome: dto.nome,
+    marca: dto.marca,
+    modelo: dto.modelo,
+    ano: dto.ano,
+    imagemUrl: dto.imagemUrl,
+    precoPorDia: dto.precoPorDia,
+    caucao: dto.caucao,
+    motor: dto.motor,
+    potencia: dto.potencia,
+    transmissao: dto.transmissao,
+    capacidadeTanque: dto.capacidadeTanque,
+    alturaAssento: dto.alturaAssento,
+    peso: dto.peso,
+    // Converte a string separada por vírgula em array
+    itens: dto.itens ? dto.itens.split(",").map((i) => i.trim()) : [],
+    disponivel: dto.disponivel,
+    categoria: mapCategoria(dto.categoria),
   };
 }
 
-export function mapMotos(dtos: MotoDTO[]): Motorcycle[] {
+export function mapMotos(dtos: MotoDTO[]): Moto[] {
   return dtos.map(mapMoto);
 }

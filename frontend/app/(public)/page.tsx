@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Headphones, MapPin, Shield } from "lucide-react";
 import Link from "next/link";
 import { getCategorias } from "@/services/categorias.service";
-import { CategoryCard } from "@/components/category-card";
+import { CategoriaCard } from "@/components/categoria-card";
 
 export default async function HomePage() {
   const featuredCategories = await getCategorias();
@@ -96,8 +96,8 @@ export default async function HomePage() {
               </Button>
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredCategories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
+              {featuredCategories.slice(0, 4).map((categoria) => (
+                <CategoriaCard key={categoria.id} categoria={categoria} />
               ))}
             </div>
             <div className="mt-8 text-center sm:hidden">
