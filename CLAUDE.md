@@ -1,63 +1,76 @@
-# Aluguel Motos - Project Documentation
+# Aluguel Motos
 
-## Project Overview
-Full-stack application for motorcycle rental management. Monorepo with Spring Boot backend and Next.js frontend.
+## Stack
+- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL (localhost:5432, user: postgres, pwd: lucas123)
+- **Frontend**: Next.js, TypeScript, Tailwind CSS, shadcn/ui
 
-## Tech Stack
+## Setup
+```bash
+# Backend: ensure PostgreSQL running
+docker run --name postgres-aluguel -e POSTGRES_PASSWORD=lucas123 -p 5432:5432 postgres
+cd backend && mvn spring-boot:run  # localhost:8080
 
-### Backend
-- **Framework**: Spring Boot 3.5.14
-- **Language**: Java 21
-- **Database**: PostgreSQL (running in Docker)
-  - Host: localhost:5432
-  - Database: aluguel-moto
-  - User: postgres
-  - Password: lucas123
-- **ORM**: Spring Data JPA + Hibernate
-- **Build**: Maven
-- **Dev Tools**: Lombok, Spring Boot DevTools
-
-### Frontend
-- **Framework**: Next.js (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Node Version**: Compatible with current LTS
-
-## Project Structure
-```
-.
-├── backend/              # Spring Boot API
-│   ├── src/main/java/com/ltech/
-│   └── pom.xml
-├── frontend/             # Next.js application
-│   ├── app/             # App router pages
-│   ├── components/      # Reusable React components
-│   ├── lib/             # Utilities & helpers
-│   └── package.json
-├── CLAUDE.md            # This file
-└── AGENTS.md            # Next.js agent rules
+# Frontend
+cd frontend && npm install && npm run dev  # localhost:3000
 ```
 
-## Setup Instructions
+## Frontend Structure
+```
+app/
+  (public)/page.tsx        # Home, browse
+  (admin)/                 # Admin panel (auth protected)
+  layout.tsx
+services/
+  api.ts                   # Base fetch + env var API_URL
+  categorias.service.ts    # getCategorias() → Categoria[]
+  motos.service.ts         # getMotos() → Moto[]
+lib/
+  types.ts                 # Categoria, Moto (source of truth)
+  mappers.ts               # DTOs → types
+```
 
-### Backend
-1. Ensure PostgreSQL is running: `docker run --name postgres-aluguel -e POSTGRES_PASSWORD=lucas123 -p 5432:5432 postgres`
-2. Database configuration is in `backend/src/main/resources/application.properties`
-3. Run: `cd backend && mvn spring-boot:run`
-4. API runs on: http://localhost:8080
+## Data Flow
+**Server Components** → `services/*.service.ts` → Backend (optimal SSR, no extra hop)
+**Client Components** → `app/api/route.ts` → Backend (BFF layer, auth headers, URL hidden)
 
-### Frontend
-1. `cd frontend && npm install`
-2. `npm run dev`
-3. App runs on: http://localhost:3000
+## Types
 
-## Database Configuration
-The backend is configured to:
-- Auto-create/drop schema on startup (`spring.jpa.hibernate.ddl-auto=create-drop`)
-- Display SQL statements in logs
-- Use PostgreSQL dialect for Hibernate
+### Categoria
+```ts
+{
+  id: string
+  nome: string
+  descricao: string
+  slug: string
+  imageUrl: string
+}
+```
 
-## Important Notes
-- Next.js version may have breaking changes - refer to `node_modules/next/dist/docs/` before making changes
-- Java version requirement: 21+
-- PostgreSQL must be accessible before starting the backend
+### Moto
+```ts
+{
+  id: string
+  nome: string
+  marca: string
+  modelo: string
+  ano: number
+  imagemUrl: string
+  precoPorDia: number
+  caucao: number
+  motor: string
+  potencia: string
+  transmissao: string
+  capacidadeTanque: string
+  alturaAssento: string
+  peso: string
+  itens: string[]              // Backend sends CSV, mapped to array
+  disponivel: boolean
+  categoria: Categoria         // Nested object
+}
+```
+
+## Key Patterns
+1. Services use `mappers.ts` to transform backend DTO → frontend types
+2. Keep `lib/types.ts` as single source of truth
+3. `.env.local`: `API_URL=http://localhost:8080/api` (not committed)
+4. Create Route Handlers only when Client Components need data
