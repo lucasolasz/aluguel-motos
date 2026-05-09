@@ -1,48 +1,24 @@
-import Link from "next/link";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { SearchForm } from "@/components/search-form";
-import { MotorcycleCard } from "@/components/motorcycle-card";
-import { CategoryCard } from "@/components/category-card";
+// import { CategoryCard } from "@/components/category-card";
+// import { Footer } from "@/components/footer";
+// import { Header } from "@/components/header";
+// import { MotorcycleCard } from "@/components/motorcycle-card";
+// import { SearchForm } from "@/components/search-form";
 import { Button } from "@/components/ui/button";
-import { categories, motorcycles } from "@/lib/data";
-import { Shield, Clock, MapPin, Headphones } from "lucide-react";
+import { Clock, Headphones, MapPin, Shield } from "lucide-react";
+import Link from "next/link";
+import { getCategorias } from "@/services/categorias.service";
+import { CategoryCard } from "@/components/category-card";
 
-const features = [
-  {
-    icon: Shield,
-    title: "Segurança Total",
-    description:
-      "Todas as motos com seguro incluso e opções de cobertura completa.",
-  },
-  {
-    icon: Clock,
-    title: "Reserva Rápida",
-    description: "Processo de reserva simples e rápido, 100% online.",
-  },
-  {
-    icon: MapPin,
-    title: "Retirada Flexível",
-    description: "Vários pontos de retirada e devolução pela cidade.",
-  },
-  {
-    icon: Headphones,
-    title: "Suporte 24h",
-    description: "Assistência disponível a qualquer hora, todos os dias.",
-  },
-];
-
-export default function HomePage() {
-  const featuredMotorcycles = motorcycles.slice(0, 4);
-  const featuredCategories = categories.slice(0, 4);
+export default async function HomePage() {
+const featuredCategories = await getCategorias();
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative bg-primary py-20 lg:py-32">
+        {/* <section className="relative bg-primary py-20 lg:py-32">
           <div className="absolute inset-0 bg-[url('/images/hero-pattern.svg')] opacity-5" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
@@ -56,12 +32,12 @@ export default function HomePage() {
             </div>
             <div className="mx-auto mt-10 max-w-4xl">
               <SearchForm />
-            </div>
+            </div>Ø
           </div>
-        </section>
+        </section> */}
 
         {/* Features Section */}
-        <section className="border-b border-border bg-card py-12">
+        {/* <section className="border-b border-border bg-card py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
               {features.map((feature) => (
@@ -79,9 +55,9 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
-        {/* Featured Motorcycles Section */}
+        {/* Featured Motorcycles Section
         <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between">
@@ -108,7 +84,7 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Categories Section */}
         <section className="bg-muted/50 py-16 lg:py-24">
@@ -128,7 +104,8 @@ export default function HomePage() {
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {featuredCategories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
+                // <CategoryCard key={category.id} category={category} />
+                <div>{category.nome}</div>
               ))}
             </div>
             <div className="mt-8 text-center sm:hidden">
@@ -140,7 +117,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-primary py-16 lg:py-24">
+        {/* <section className="bg-primary py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
@@ -165,10 +142,10 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* How it Works Section */}
-        <section className="py-16 lg:py-24">
+        {/* <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -215,10 +192,10 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
