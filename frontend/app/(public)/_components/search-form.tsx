@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Search } from 'lucide-react'
-import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 
 interface SearchFormProps {
   categories: Categoria[]
@@ -29,11 +29,36 @@ interface SearchFormProps {
 }
 
 export function SearchForm({ categories, variant = 'default', className }: SearchFormProps) {
-  const [pickupDate, setPickupDate] = useState<Date>()
-  const [returnDate, setReturnDate] = useState<Date>()
-  const [category, setCategory] = useState<string>('')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const getInitialDate = (param: string | null): Date | undefined => {
+    if (!param) return undefined
+    const date = new Date(param)
+    return isNaN(date.getTime()) ? undefined : date
+  }
+
+  const [pickupDate, setPickupDate] = useState<Date | undefined>(() =>
+    getInitialDate(searchParams.get('pickup'))
+  )
+  const [returnDate, setReturnDate] = useState<Date | undefined>(() =>
+    getInitialDate(searchParams.get('return'))
+  )
+  const [category, setCategory] = useState<string>(() =>
+    searchParams.get('category') || ''
+  )
   const [pickupOpen, setPickupOpen] = useState(false)
   const [returnOpen, setReturnOpen] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (pickupDate) params.set('pickup', pickupDate.toISOString())
+    if (returnDate) params.set('return', returnDate.toISOString())
+    if (category && category !== 'all') params.set('category', category)
+    const qs = params.toString()
+    const url = qs ? `?${qs}` : '/'
+    router.replace(url, { scroll: false })
+  }, [pickupDate, returnDate, category, router])
 
   const searchHref = useMemo(() => {
     const params = new URLSearchParams()
@@ -95,11 +120,9 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
             </PopoverContent>
           </Popover>
         </div>
-        <Button asChild className="gap-2">
-          <Link href={searchHref}>
-            <Search className="h-4 w-4" />
-            Buscar
-          </Link>
+        <Button onClick={() => router.push(searchHref)} className="gap-2">
+          <Search className="h-4 w-4" />
+          Buscar
         </Button>
       </div>
     )
@@ -108,7 +131,6 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
   return (
     <div className={cn('rounded-2xl border border-border bg-card p-6 shadow-lg', className)}>
       <div className="grid gap-6 md:grid-cols-4">
-        {/* Data de Retirada */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
             Data de Retirada
@@ -137,7 +159,6 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
           </Popover>
         </div>
 
-        {/* Data de Devolução */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
             Data de Devolução
@@ -166,7 +187,6 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
           </Popover>
         </div>
 
-        {/* Categoria */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
             Categoria
@@ -186,13 +206,10 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
           </Select>
         </div>
 
-        {/* Botão de Busca */}
         <div className="flex items-end">
-          <Button asChild size="lg" className="w-full gap-2">
-            <Link href={searchHref}>
-              <Search className="h-5 w-5" />
-              Buscar Motos
-            </Link>
+          <Button onClick={() => router.push(searchHref)} size="lg" className="w-full gap-2">
+            <Search className="h-5 w-5" />
+            Buscar Motos
           </Button>
         </div>
       </div>
