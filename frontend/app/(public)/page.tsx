@@ -16,7 +16,7 @@ export default async function HomePage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative bg-primary py-20 lg:py-32">
-          <div className="absolute inset-0 bg-[url('/images/hero-pattern.svg')] opacity-5" />
+          <div className="absolute inset-0 bg-[url('/images/hero-pattern.jpg')] bg-cover bg-center bg-no-repeat opacity-15" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="text-balance text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl">
