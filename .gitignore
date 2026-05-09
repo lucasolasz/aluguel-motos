@@ -11,6 +11,7 @@
 # Next.js / Frontend
 frontend/.next/
 frontend/out/
+.next
 
 # Spring Boot / Maven / Backend
 backend/target/
