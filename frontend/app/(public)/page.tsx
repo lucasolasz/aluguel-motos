@@ -1,8 +1,3 @@
-// import { CategoryCard } from "@/components/category-card";
-// import { Footer } from "@/components/footer";
-// import { Header } from "@/components/header";
-// import { MotorcycleCard } from "@/components/motorcycle-card";
-// import { SearchForm } from "@/components/search-form";
 import { Button } from "@/components/ui/button";
 import { Clock, Headphones, MapPin, Shield } from "lucide-react";
 import Link from "next/link";
@@ -10,12 +5,10 @@ import { getCategorias } from "@/services/categorias.service";
 import { CategoryCard } from "@/components/category-card";
 
 export default async function HomePage() {
-const featuredCategories = await getCategorias();
+  const featuredCategories = await getCategorias();
 
   return (
     <div className="flex min-h-screen flex-col">
-      
-
       <main className="flex-1">
         {/* Hero Section */}
         {/* <section className="relative bg-primary py-20 lg:py-32">
@@ -32,7 +25,7 @@ const featuredCategories = await getCategorias();
             </div>
             <div className="mx-auto mt-10 max-w-4xl">
               <SearchForm />
-            </div>Ø
+            </div>
           </div>
         </section> */}
 
@@ -104,8 +97,7 @@ const featuredCategories = await getCategorias();
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {featuredCategories.map((category) => (
-                // <CategoryCard key={category.id} category={category} />
-                <div>{category.nome}</div>
+                <CategoryCard key={category.id} category={category} />
               ))}
             </div>
             <div className="mt-8 text-center sm:hidden">

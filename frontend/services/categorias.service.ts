@@ -1,10 +1,8 @@
 import { apiFetch } from "./api";
+import { Category } from "@/lib/types";
+import { mapCategorias, type CategoriaDTO } from "@/lib/mappers";
 
-export interface Categoria {
-  id: string;
-  nome: string;
-}
-
-export function getCategorias() {
-  return apiFetch<Categoria[]>("/categorias");
+export async function getCategorias(): Promise<Category[]> {
+  const dtos = await apiFetch<CategoriaDTO[]>("/categorias");
+  return mapCategorias(dtos);
 }

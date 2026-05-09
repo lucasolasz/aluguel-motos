@@ -1,11 +1,8 @@
 import { apiFetch } from "./api";
+import { Motorcycle } from "@/lib/types";
+import { mapMotos, type MotoDTO } from "@/lib/mappers";
 
-export interface Moto {
-  id: string;
-  nome: string;
-  precoPorDia: number;
-}
-
-export function getMotos() {
-  return apiFetch<Moto[]>("/motos");
+export async function getMotos(): Promise<Motorcycle[]> {
+  const dtos = await apiFetch<MotoDTO[]>("/motos");
+  return mapMotos(dtos);
 }
