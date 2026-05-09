@@ -19,6 +19,7 @@ export function CategoriaCard({ categoria }: CategoriaCardProps) {
           src={categoria.imageUrl || '/images/placeholder-category.jpg'}
           alt={categoria.nome}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />

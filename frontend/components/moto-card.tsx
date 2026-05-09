@@ -19,6 +19,7 @@ export function MotoCard({ moto }: MotoCardProps) {
           src={fotoUrl}
           alt={moto.nome}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <Badge className="absolute left-3 top-3" variant="secondary">
