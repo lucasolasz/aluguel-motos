@@ -1,12 +1,61 @@
 -- CATEGORIAS
-INSERT INTO public.categorias (id,descricao,nome) VALUES
-	 ('8eccc115-8455-4f02-af9d-88f1c325f0e5'::uuid,'Perfeitas para o dia a dia na cidade. Econômicas e fáceis de pilotar.','Scooter'),
-	 ('2905c8df-e6c5-4877-a6ed-b2aa814bf587'::uuid,'Scooters de alto desempenho com mais conforto e potência.','Scooter Premium'),
-	 ('fe460ec8-e080-452b-9d5f-b69238eba014'::uuid,'Ideais para viagens curtas e médias com muito conforto.','Scooter Touring'),
-	 ('e71c9032-1fbc-49cf-89ca-a18ab051c259'::uuid,'Motos esportivas de alta performance para pilotos exigentes.','Street Premium'),
-	 ('b0618acd-7127-4d43-a11b-e81832f0dcbe'::uuid,'Prontas para qualquer terreno e longas aventuras.','Adventure Touring'),
-	 ('de494b1e-31b8-454a-9c94-f6cf72d72088'::uuid,'O melhor em tecnologia, conforto e desempenho.','Ultra Premium'),
-	 ('91d05089-105f-49a6-8bdc-ef38dbe8880a'::uuid,'Estilo clássico americano para quem busca conforto e presença.','Custom Cruiser');
+-- CATEGORIAS
+INSERT INTO public.categorias (
+    id,
+    descricao,
+    nome,
+    slug,
+    image_url
+) VALUES
+(
+    '8eccc115-8455-4f02-af9d-88f1c325f0e5'::uuid,
+    'Perfeitas para o dia a dia na cidade. Econômicas e fáceis de pilotar.',
+    'Scooter',
+    'scooter',
+    '/images/categories/scooter.jpg'
+),
+(
+    '2905c8df-e6c5-4877-a6ed-b2aa814bf587'::uuid,
+    'Scooters de alto desempenho com mais conforto e potência.',
+    'Scooter Premium',
+    'scooter-premium',
+    '/images/categories/premium-scooter.jpg'
+),
+(
+    'fe460ec8-e080-452b-9d5f-b69238eba014'::uuid,
+    'Ideais para viagens curtas e médias com muito conforto.',
+    'Scooter Touring',
+    'scooter-touring',
+    '/images/categories/touring-scooter.jpg'
+),
+(
+    'e71c9032-1fbc-49cf-89ca-a18ab051c259'::uuid,
+    'Motos esportivas de alta performance para pilotos exigentes.',
+    'Street Premium',
+    'street-premium',
+    '/images/categories/street-premium.jpg'
+),
+(
+    'b0618acd-7127-4d43-a11b-e81832f0dcbe'::uuid,
+    'Prontas para qualquer terreno e longas aventuras.',
+    'Adventure Touring',
+    'adventure-touring',
+    '/images/categories/adventure-touring.jpg'
+),
+(
+    'de494b1e-31b8-454a-9c94-f6cf72d72088'::uuid,
+    'O melhor em tecnologia, conforto e desempenho.',
+    'Ultra Premium',
+    'ultra-premium',
+    '/images/categories/ultra-premium.jpg'
+),
+(
+    '91d05089-105f-49a6-8bdc-ef38dbe8880a'::uuid,
+    'Estilo clássico americano para quem busca conforto e presença.',
+    'Custom Cruiser',
+    'custom-cruiser',
+    '/images/categories/custom-cruiser.jpg'
+);
 
 
 -- HONDA PCX 160
