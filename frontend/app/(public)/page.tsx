@@ -10,8 +10,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export default async function HomePage() {
-  const featuredCategories = await getCategorias();
-  const featuredMotorcycles = await getMotos();
+  const categorias = await getCategorias();
+  const motos = await getMotos();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -32,7 +32,7 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="mx-auto mt-10 max-w-4xl">
-              <SearchForm categories={featuredCategories} />
+              <SearchForm categories={categorias} />
             </div>
           </div>
         </section>
@@ -59,7 +59,7 @@ export default async function HomePage() {
               </Button>
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredMotorcycles.map((moto) => (
+              {motos.map((moto) => (
                 <MotoCard key={moto.id} moto={moto} />
               ))}
             </div>
@@ -88,7 +88,7 @@ export default async function HomePage() {
               </Button>
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredCategories.slice(0, 4).map((categoria) => (
+              {categorias.slice(0, 4).map((categoria) => (
                 <CategoriaCard key={categoria.id} categoria={categoria} />
               ))}
             </div>
