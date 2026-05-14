@@ -44,6 +44,7 @@ public class MotoController {
         return new MotoDTO(
             moto.getId(),
             moto.getNome(),
+            moto.getSlug(),
             moto.getMarca(),
             moto.getModelo(),
             moto.getAno(),

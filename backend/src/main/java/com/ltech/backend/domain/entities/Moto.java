@@ -36,6 +36,8 @@ public class Moto {
 
     private String nome;
 
+    private String slug;
+
     private String marca;
 
     private String modelo;

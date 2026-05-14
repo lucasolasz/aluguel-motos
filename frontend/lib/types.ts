@@ -16,6 +16,7 @@ export interface MotoFoto {
 export interface Moto {
   id: string;
   nome: string;
+  slug: string;
   marca: string;
   modelo: string;
   ano: number;

@@ -7,6 +7,7 @@ import java.util.UUID;
 public record MotoDTO(
     UUID id,
     String nome,
+    String slug,
     String marca,
     String modelo,
     Integer ano,

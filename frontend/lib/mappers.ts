@@ -20,6 +20,7 @@ export interface MotoFotoDTO {
 export interface MotoDTO {
   id: string;
   nome: string;
+  slug: string;
   marca: string;
   modelo: string;
   ano: number;
@@ -67,6 +68,7 @@ export function mapMoto(dto: MotoDTO): Moto {
   return {
     id: dto.id,
     nome: dto.nome,
+    slug: dto.slug,
     marca: dto.marca,
     modelo: dto.modelo,
     ano: dto.ano,
