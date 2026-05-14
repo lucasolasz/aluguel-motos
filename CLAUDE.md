@@ -74,3 +74,14 @@ lib/
 2. Keep `lib/types.ts` as single source of truth
 3. `.env.local`: `API_URL=http://localhost:8080/api` (not committed)
 4. Create Route Handlers only when Client Components need data
+
+# Next.js Best Practices
+
+- Prefer Server Components
+- Use App Router
+- Avoid unnecessary use client
+- Prefer async server data fetching
+- Use Suspense
+- Use streaming where possible
+- Optimize caching
+- Follow Vercel recommendations
