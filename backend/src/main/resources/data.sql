@@ -253,6 +253,39 @@ INSERT INTO motos (
     'e71c9032-1fbc-49cf-89ca-a18ab051c259'
 );
 
+-- SEGUROS
+INSERT INTO seguros (id, nome, slug, descricao, preco_por_dia, basico) VALUES
+('10000000-0000-0000-0000-000000000001'::uuid, 'Seguro Básico', 'seguro-basico', 'Cobertura básica incluída no valor da diária.', 0, true),
+('10000000-0000-0000-0000-000000000002'::uuid, 'Seguro Completo - Scooters', 'seguro-completo-scooters', 'Proteção total para scooters com franquia reduzida.', 38.9, false),
+('10000000-0000-0000-0000-000000000003'::uuid, 'Seguro Completo - Motos', 'seguro-completo-motos', 'Proteção máxima para motos de maior cilindrada.', 59.9, false);
+
+-- SEGURO COBERTURAS
+-- Seguro Básico
+INSERT INTO seguro_coberturas (id, seguro_id, descricao, ordem) VALUES
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Responsabilidade civil obrigatória', 0),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Assistência 24h', 1),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Guincho até 50km', 2);
+
+-- Seguro Completo - Scooters
+INSERT INTO seguro_coberturas (id, seguro_id, descricao, ordem) VALUES
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura contra roubo e furto', 0),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Danos a terceiros', 1),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Franquia reduzida (R$ 500)', 2),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Assistência 24h premium', 3),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Guincho ilimitado', 4),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Carro reserva por 3 dias', 5);
+
+-- Seguro Completo - Motos
+INSERT INTO seguro_coberturas (id, seguro_id, descricao, ordem) VALUES
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura contra roubo e furto', 0),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Danos a terceiros até R$ 100.000', 1),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Franquia reduzida (R$ 1.000)', 2),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Assistência 24h VIP', 3),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Guincho ilimitado', 4),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Moto reserva por 5 dias', 5),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura de equipamentos', 6);
+
+
 -- MOTO FOTOS
 -- Honda PCX 160
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
