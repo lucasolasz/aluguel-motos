@@ -101,7 +101,7 @@ export default async function HomePage() {
         </section>
 
         {/* CTA Section */}
-        {/* <section className="bg-primary py-16 lg:py-24">
+        <section className="bg-primary py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
@@ -117,16 +117,15 @@ export default async function HomePage() {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
+                  variant="secondary"
                   asChild
-                  className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
                 >
                   <Link href="/como-funciona">Como Funciona</Link>
                 </Button>
               </div>
             </div>
           </div>
-        </section> */}
+        </section>
 
         {/* How it Works Section */}
         <section className="py-16 lg:py-24">
