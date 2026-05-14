@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Search } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
 
 interface SearchFormProps {
   categories: Categoria[]
@@ -30,35 +30,12 @@ interface SearchFormProps {
 
 export function SearchForm({ categories, variant = 'default', className }: SearchFormProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
-  const getInitialDate = (param: string | null): Date | undefined => {
-    if (!param) return undefined
-    const date = new Date(param)
-    return isNaN(date.getTime()) ? undefined : date
-  }
-
-  const [pickupDate, setPickupDate] = useState<Date | undefined>(() =>
-    getInitialDate(searchParams.get('pickup'))
-  )
-  const [returnDate, setReturnDate] = useState<Date | undefined>(() =>
-    getInitialDate(searchParams.get('return'))
-  )
-  const [category, setCategory] = useState<string>(() =>
-    searchParams.get('category') || ''
-  )
+  const [pickupDate, setPickupDate] = useState<Date | undefined>(undefined)
+  const [returnDate, setReturnDate] = useState<Date | undefined>(undefined)
+  const [category, setCategory] = useState<string>('')
   const [pickupOpen, setPickupOpen] = useState(false)
   const [returnOpen, setReturnOpen] = useState(false)
-
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (pickupDate) params.set('pickup', pickupDate.toISOString())
-    if (returnDate) params.set('return', returnDate.toISOString())
-    if (category && category !== 'all') params.set('category', category)
-    const qs = params.toString()
-    const url = qs ? `?${qs}` : '/'
-    router.replace(url, { scroll: false })
-  }, [pickupDate, returnDate, category, router])
 
   const searchHref = useMemo(() => {
     const params = new URLSearchParams()
@@ -120,7 +97,7 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
             </PopoverContent>
           </Popover>
         </div>
-        <Button onClick={() => router.push(searchHref)} className="gap-2">
+        <Button onClick={() => router.push(searchHref)} className="gap-2 !cursor-pointer">
           <Search className="h-4 w-4" />
           Buscar
         </Button>
