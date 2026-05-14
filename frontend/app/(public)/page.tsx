@@ -6,6 +6,8 @@ import { getMotos } from "@/services/motos.service";
 import Link from "next/link";
 import { Features } from "./_components/features";
 import { SearchForm } from "./_components/search-form";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
 export default async function HomePage() {
   const featuredCategories = await getCategorias();
@@ -13,6 +15,8 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <Header />
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative bg-primary py-20 lg:py-32">
@@ -35,7 +39,7 @@ export default async function HomePage() {
 
         {/* Features Section */}
         <section className="border-b border-border bg-card py-12">
-         <Features />
+          <Features />
         </section>
 
         {/* Featured Motorcycles Section */}
@@ -125,7 +129,7 @@ export default async function HomePage() {
         </section> */}
 
         {/* How it Works Section */}
-        {/* <section className="py-16 lg:py-24">
+        <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -172,10 +176,10 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-        </section> */}
+        </section>
       </main>
 
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 }
