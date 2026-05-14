@@ -1,4 +1,4 @@
-import { Categoria, Moto, MotoFoto } from "./types";
+import { Acessorio, Categoria, Moto, MotoFoto, Seguro } from "./types";
 
 
 // DTOs para tipagem do parâmetro de entrada
@@ -90,4 +90,54 @@ export function mapMoto(dto: MotoDTO): Moto {
 
 export function mapMotos(dtos: MotoDTO[]): Moto[] {
   return dtos.map(mapMoto);
+}
+
+// DTOs de Seguro
+export interface SeguroDTO {
+  id: string;
+  nome: string;
+  slug: string;
+  descricao: string;
+  precoPorDia: number;
+  basico: boolean;
+  coberturas: string[];
+}
+
+export function mapSeguro(dto: SeguroDTO): Seguro {
+  return {
+    id: dto.id,
+    nome: dto.nome,
+    slug: dto.slug,
+    descricao: dto.descricao,
+    precoPorDia: dto.precoPorDia,
+    basico: dto.basico,
+    coberturas: dto.coberturas,
+  };
+}
+
+export function mapSeguros(dtos: SeguroDTO[]): Seguro[] {
+  return dtos.map(mapSeguro);
+}
+
+// DTOs de Acessorio
+export interface AcessorioDTO {
+  id: string;
+  nome: string;
+  descricao: string;
+  precoPorDia: number;
+  quantidadeMaxima: number;
+}
+
+export function mapAcessorio(dto: AcessorioDTO): Acessorio {
+  return {
+    id: dto.id,
+    nome: dto.nome,
+    descricao: dto.descricao,
+    precoPorDia: dto.precoPorDia,
+    quantidadeMaxima: dto.quantidadeMaxima,
+  };
+}
+
+export function mapAcessorios(dtos: AcessorioDTO[]): Acessorio[] {
+  return dtos.map(mapAcessorio);
 }

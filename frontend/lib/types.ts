@@ -1,3 +1,21 @@
+export interface Seguro {
+  id: string;
+  nome: string;
+  slug: string;
+  descricao: string;
+  precoPorDia: number;
+  basico: boolean;
+  coberturas: string[];
+}
+
+export interface Acessorio {
+  id: string;
+  nome: string;
+  descricao: string;
+  precoPorDia: number;
+  quantidadeMaxima: number;
+}
+
 export interface Categoria {
   id: string;
   nome: string;
