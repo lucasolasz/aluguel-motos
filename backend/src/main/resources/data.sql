@@ -253,6 +253,16 @@ INSERT INTO motos (
     'e71c9032-1fbc-49cf-89ca-a18ab051c259'
 );
 
+-- ACESSORIOS
+INSERT INTO acessorios (id, nome, descricao, preco_por_dia, quantidade_maxima) VALUES
+('20000000-0000-0000-0000-000000000001'::uuid, 'Capacete Extra', 'Capacete certificado para passageiro.', 15, 2),
+('20000000-0000-0000-0000-000000000002'::uuid, 'Luvas', 'Luvas de proteção para piloto.', 10, 2),
+('20000000-0000-0000-0000-000000000003'::uuid, 'GPS', 'Navegador GPS com mapas atualizados.', 25, 1),
+('20000000-0000-0000-0000-000000000004'::uuid, 'Baú (Top Case)', 'Baú traseiro com capacidade de 45 litros.', 20, 1),
+('20000000-0000-0000-0000-000000000005'::uuid, 'Capa de Chuva', 'Conjunto de capa de chuva impermeável.', 8, 2),
+('20000000-0000-0000-0000-000000000006'::uuid, 'Suporte para Celular', 'Suporte universal com carregador USB.', 12, 1);
+
+
 -- SEGUROS
 INSERT INTO seguros (id, nome, slug, descricao, preco_por_dia, basico) VALUES
 ('10000000-0000-0000-0000-000000000001'::uuid, 'Seguro Básico', 'seguro-basico', 'Cobertura básica incluída no valor da diária.', 0, true),
