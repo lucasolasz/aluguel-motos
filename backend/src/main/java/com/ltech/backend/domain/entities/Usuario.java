@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -29,6 +30,13 @@ public class Usuario {
     private String username;
     private String password;
     private boolean enabled;
+    private String nomeCompleto;
+    private String email;
+    private String telefone;
+    @Column(unique = true)
+    private String cpf;
+    private String numeroCnh;
+    private String fotoPerfil;
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -41,5 +49,18 @@ public class Usuario {
         this.password = password;
         this.enabled = enabled;
         this.grupo = grupo;
+    }
+
+    public Usuario(String username, String password, boolean enabled, Grupo grupo,
+                   String nomeCompleto, String email, String telefone, String cpf, String numeroCnh) {
+        this.username = username;
+        this.password = password;
+        this.enabled = enabled;
+        this.grupo = grupo;
+        this.nomeCompleto = nomeCompleto;
+        this.email = email;
+        this.telefone = telefone;
+        this.cpf = cpf;
+        this.numeroCnh = numeroCnh;
     }
 }

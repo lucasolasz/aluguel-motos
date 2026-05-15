@@ -37,7 +37,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/acessorios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/seguros/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/register/cliente").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").hasAnyRole("ADMINS", "DESENVOLVEDORES")
+                        .requestMatchers("/api/reservas/**").authenticated()
+                        .requestMatchers("/api/documentos/**").authenticated()
+                        .requestMatchers("/api/usuarios/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

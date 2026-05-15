@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,9 +12,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Menu, X, User, Calendar, Settings, LogOut } from 'lucide-react'
+import { getToken, clearToken } from '@/lib/auth'
 
 export function Header() {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    setIsLoggedIn(!!getToken())
+  }, [])
+
+  const handleLogout = () => {
+    clearToken()
+    setIsLoggedIn(false)
+    router.push('/')
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -50,46 +64,48 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-4 md:flex">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Menu do usuário</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem asChild>
-                <Link href="/conta" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Minha Conta</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/conta/reservas" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Minhas Reservas</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/conta/perfil" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Configurações</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/admin" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Painel Admin</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center gap-2 text-destructive">
-                <LogOut className="h-4 w-4" />
-                <span>Sair</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isLoggedIn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Menu do usuário</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/conta/reservas" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Minhas Reservas</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/conta/perfil" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>Meu Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/conta/configuracoes" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    <span>Configurações</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="flex items-center gap-2 text-destructive"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" asChild>
+              <Link href="/login">Entrar</Link>
+            </Button>
+          )}
           <Button asChild>
             <Link href="/motos">Reservar Agora</Link>
           </Button>

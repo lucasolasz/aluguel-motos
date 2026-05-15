@@ -343,9 +343,9 @@ INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
 SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('ADMIN_FULL', 'RESERVAS_LEITURA', 'RESERVAS_ESCRITA', 'USUARIOS_LEITURA')
 WHERE g.nome = 'ADMINS';
 
--- GRUPO_PERMISSOES: geral tem apenas RESERVAS_LEITURA
+-- GRUPO_PERMISSOES: geral tem RESERVAS_LEITURA e RESERVAS_ESCRITA (clientes)
 INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
-SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome = 'RESERVAS_LEITURA'
+SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('RESERVAS_LEITURA', 'RESERVAS_ESCRITA')
 WHERE g.nome = 'GERAL';
 
 -- USUARIO: lucasolasz / lucas123 no grupo DESENVOLVEDORES

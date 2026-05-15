@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.ltech.backend.domain.dtos.ClienteRegisterRequestDTO;
 import com.ltech.backend.domain.dtos.LoginRequestDTO;
 import com.ltech.backend.domain.dtos.LoginResponseDTO;
 import com.ltech.backend.domain.dtos.RegisterRequestDTO;
@@ -71,5 +72,33 @@ public class AuthenticationController {
                 usuarioResponse.isEnabled(),
                 usuarioResponse.getCreatedAt(),
                 new RegisterResponseDTO.GrupoDTO(grupo != null ? grupo.getNome() : null)));
+    }
+
+    @PostMapping("/register/cliente")
+    public ResponseEntity<RegisterResponseDTO> registrarCliente(
+            @RequestBody @Valid ClienteRegisterRequestDTO dto,
+            UriComponentsBuilder uriBuilder) {
+
+        if (this.usuarioService.existsByUsername(dto.username())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Grupo grupoGeral = this.grupoRepository.findByNome("GERAL")
+                .orElseThrow(() -> new RuntimeException("Grupo GERAL não encontrado"));
+
+        String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
+
+        Usuario newUser = new Usuario(
+                dto.username(), encryptedPassword, true, grupoGeral,
+                dto.nomeCompleto(), dto.email(), dto.telefone(), dto.cpf(), dto.numeroCnh());
+
+        Usuario saved = this.usuarioService.save(newUser);
+        URI location = uriBuilder.path("/usuarios/{id}").buildAndExpand(saved.getId()).toUri();
+
+        return ResponseEntity.created(location).body(new RegisterResponseDTO(
+                saved.getUsername(),
+                saved.isEnabled(),
+                saved.getCreatedAt(),
+                new RegisterResponseDTO.GrupoDTO(grupoGeral.getNome())));
     }
 }
