@@ -321,3 +321,34 @@ INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
 (gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900.png', 0, true),
 (gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900-side.png', 1, false);
+
+
+-- PERMISSOES
+INSERT INTO permissao (nome) VALUES ('ADMIN_FULL');
+INSERT INTO permissao (nome) VALUES ('RESERVAS_LEITURA');
+INSERT INTO permissao (nome) VALUES ('RESERVAS_ESCRITA');
+INSERT INTO permissao (nome) VALUES ('USUARIOS_LEITURA');
+
+-- GRUPOS
+INSERT INTO grupo (nome) VALUES ('DESENVOLVEDORES');
+INSERT INTO grupo (nome) VALUES ('ADMINS');
+INSERT INTO grupo (nome) VALUES ('GERAL');
+
+-- GRUPO_PERMISSOES: desenvolvedores tem todas as permissoes
+INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
+SELECT g.id, p.id FROM grupo g, permissao p WHERE g.nome = 'DESENVOLVEDORES';
+
+-- GRUPO_PERMISSOES: admins tem ADMIN_FULL + RESERVAS + USUARIOS
+INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
+SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('ADMIN_FULL', 'RESERVAS_LEITURA', 'RESERVAS_ESCRITA', 'USUARIOS_LEITURA')
+WHERE g.nome = 'ADMINS';
+
+-- GRUPO_PERMISSOES: geral tem apenas RESERVAS_LEITURA
+INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
+SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome = 'RESERVAS_LEITURA'
+WHERE g.nome = 'GERAL';
+
+-- USUARIO: lucasolasz / lucas123 no grupo DESENVOLVEDORES
+INSERT INTO usuario (id, username, password, enabled, grupo_id)
+SELECT gen_random_uuid()::text, 'lucasolasz', '$2y$10$L7XVUu3GsRzMdQRwgfNKrOcXS37gi.gVmSGU4276FILy5gtqKwVHm', true, g.id
+FROM grupo g WHERE g.nome = 'DESENVOLVEDORES';
