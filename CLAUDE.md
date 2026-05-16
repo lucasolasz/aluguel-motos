@@ -31,7 +31,7 @@ app/
     documentos/page.tsx  # Meus documentos KYC (dados reais)
     configuracoes/page.tsx # Notificações + senha (ainda mock)
   (admin)/               # Painel admin (auth protegido)
-middleware.ts            # Protege /conta/**, redireciona p/ /login?redirect=<path>
+proxy.ts                 # Protege /conta/**, redireciona p/ /login?redirect=<path>
 services/
   api.ts                 # Base fetch + API_URL (server-side)
   categorias.service.ts  # Server component: getCategorias()
@@ -48,7 +48,7 @@ lib/
 
 ## Auth Flow
 1. `POST /auth/login` → `{ token }` → `setToken(token)` salva em cookie `auth-token`
-2. `middleware.ts` lê cookie; redireciona `/conta/**` → `/login?redirect=<path>` se ausente
+2. `proxy.ts` lê cookie; redireciona `/conta/**` → `/login?redirect=<path>` se ausente
 3. Client components chamam `apiFetch()` de `lib/auth.ts` (adiciona `Authorization: Bearer <token>`)
 4. Server components de rotas públicas chamam `services/*.service.ts` direto (sem auth)
 
