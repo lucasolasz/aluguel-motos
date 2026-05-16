@@ -73,6 +73,47 @@ export interface Documento {
   createdAt: string
 }
 
+export interface Cartao {
+  id: string
+  nome: string
+  numeroMascarado: string
+  validade: string
+  cpf: string
+  enderecoCobranca: EnderecoCobranca | null
+  createdAt: string
+}
+
+export interface CreateCartao {
+  nome: string
+  numero: string
+  validade: string
+  cpf: string
+}
+
+export interface EnderecoCobranca {
+  id: string
+  cep: string
+  logradouro: string
+  numero: string | null
+  semNumero: boolean
+  complemento: string | null
+  estado: string
+  cidade: string
+  bairro: string
+  createdAt: string
+}
+
+export interface CreateEnderecoCobranca {
+  cep: string
+  logradouro: string
+  numero: string
+  semNumero: boolean
+  complemento: string
+  estado: string
+  cidade: string
+  bairro: string
+}
+
 export interface Moto {
   id: string;
   nome: string;
