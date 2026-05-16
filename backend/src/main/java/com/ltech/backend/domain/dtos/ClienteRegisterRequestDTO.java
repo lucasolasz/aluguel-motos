@@ -6,7 +6,6 @@ public record ClienteRegisterRequestDTO(
         @NotBlank String username,
         @NotBlank String password,
         @NotBlank String nomeCompleto,
-        @NotBlank String email,
         @NotBlank String telefone,
         @NotBlank String cpf,
         @NotBlank String numeroCnh) {

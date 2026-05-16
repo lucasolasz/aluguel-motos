@@ -33,9 +33,8 @@ export interface MotoFoto {
 
 export interface UserProfile {
   id: string
-  username: string
+  username: string  // é o e-mail do usuário
   nomeCompleto: string | null
-  email: string | null
   telefone: string | null
   cpf: string | null
   numeroCnh: string | null

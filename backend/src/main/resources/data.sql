@@ -349,6 +349,6 @@ SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('RESERVAS_LEITURA'
 WHERE g.nome = 'GERAL';
 
 -- USUARIO: lucasolasz / lucas123 no grupo DESENVOLVEDORES
-INSERT INTO usuario (id, username, password, enabled, grupo_id)
-SELECT gen_random_uuid()::text, 'lucasolasz', '$2y$10$L7XVUu3GsRzMdQRwgfNKrOcXS37gi.gVmSGU4276FILy5gtqKwVHm', true, g.id
+INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf)
+SELECT gen_random_uuid()::text, 'lucasolasz@ltech.com', '$2y$10$L7XVUu3GsRzMdQRwgfNKrOcXS37gi.gVmSGU4276FILy5gtqKwVHm', true, g.id, 'Lucas Andrade', '58126131203', '84596566089'
 FROM grupo g WHERE g.nome = 'DESENVOLVEDORES';

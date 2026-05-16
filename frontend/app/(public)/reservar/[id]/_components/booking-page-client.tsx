@@ -55,7 +55,6 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   >([])
   const [customerData, setCustomerData] = useState({
     fullName: '',
-    email: '',
     phone: '',
     cpf: '',
     cnh: '',
@@ -123,7 +122,6 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
       case 5:
         return (
           customerData.fullName &&
-          customerData.email &&
           customerData.phone &&
           customerData.cpf &&
           customerData.cnh
@@ -402,18 +400,6 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               handleCustomerDataChange('fullName', e.target.value)
                             }
                             placeholder="Digite seu nome completo"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">E-mail</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={customerData.email}
-                            onChange={(e) =>
-                              handleCustomerDataChange('email', e.target.value)
-                            }
-                            placeholder="seu@email.com"
                           />
                         </div>
                         <div className="space-y-2">

@@ -13,7 +13,6 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [form, setForm] = useState({
     nomeCompleto: '',
-    email: '',
     telefone: '',
     numeroCnh: '',
     fotoPerfil: '',
@@ -28,7 +27,6 @@ export default function ProfilePage() {
         setProfile(p)
         setForm({
           nomeCompleto: p.nomeCompleto ?? '',
-          email: p.email ?? '',
           telefone: p.telefone ?? '',
           numeroCnh: p.numeroCnh ?? '',
           fotoPerfil: p.fotoPerfil ?? '',
@@ -87,7 +85,7 @@ export default function ProfilePage() {
             </Avatar>
             <div>
               <CardTitle>{form.nomeCompleto || profile?.username}</CardTitle>
-              <CardDescription>{form.email || profile?.username}</CardDescription>
+              <CardDescription>{profile?.username}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -113,9 +111,10 @@ export default function ProfilePage() {
               <Input
                 id="email"
                 type="email"
-                value={form.email}
-                onChange={(e) => handleChange('email', e.target.value)}
+                value={profile?.username ?? ''}
+                disabled
               />
+              <p className="text-xs text-muted-foreground">E-mail não pode ser alterado</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="telefone">Telefone</Label>

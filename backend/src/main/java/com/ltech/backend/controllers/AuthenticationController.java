@@ -90,7 +90,7 @@ public class AuthenticationController {
 
         Usuario newUser = new Usuario(
                 dto.username(), encryptedPassword, true, grupoGeral,
-                dto.nomeCompleto(), dto.email(), dto.telefone(), dto.cpf(), dto.numeroCnh());
+                dto.nomeCompleto(), dto.telefone(), dto.cpf(), dto.numeroCnh());
 
         Usuario saved = this.usuarioService.save(newUser);
         URI location = uriBuilder.path("/usuarios/{id}").buildAndExpand(saved.getId()).toUri();

@@ -31,7 +31,6 @@ public class Usuario {
     private String password;
     private boolean enabled;
     private String nomeCompleto;
-    private String email;
     private String telefone;
     @Column(unique = true)
     private String cpf;
@@ -52,13 +51,12 @@ public class Usuario {
     }
 
     public Usuario(String username, String password, boolean enabled, Grupo grupo,
-                   String nomeCompleto, String email, String telefone, String cpf, String numeroCnh) {
+                   String nomeCompleto, String telefone, String cpf, String numeroCnh) {
         this.username = username;
         this.password = password;
         this.enabled = enabled;
         this.grupo = grupo;
         this.nomeCompleto = nomeCompleto;
-        this.email = email;
         this.telefone = telefone;
         this.cpf = cpf;
         this.numeroCnh = numeroCnh;
