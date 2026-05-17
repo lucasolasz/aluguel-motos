@@ -88,7 +88,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
     const allowedStep = Math.min(step, maxCompletedStep + 1)
 
     if (allowedStep >= 5 && !getToken()) {
-      router.push(`/login?redirect=/reservar/${moto.id}?step=5`)
+      router.push(`/login?redirect=${encodeURIComponent(`/reservar/${moto.id}?step=5`)}`)
       return
     }
 
@@ -152,7 +152,15 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
 
   const handleNext = () => {
     if (currentStep === 4 && !getToken()) {
-      router.push(`/login?redirect=/reservar/${moto.id}?step=5`)
+      const storageKey = `booking-state-${moto.id}`
+      try {
+        const saved = sessionStorage.getItem(storageKey)
+        const state = saved ? JSON.parse(saved) : {}
+        const completedSteps: number[] = state.completedSteps ?? []
+        if (!completedSteps.includes(4)) completedSteps.push(4)
+        sessionStorage.setItem(storageKey, JSON.stringify({ ...state, completedSteps }))
+      } catch {}
+      router.push(`/login?redirect=${encodeURIComponent(`/reservar/${moto.id}?step=5`)}`)
       return
     }
     if (currentStep < steps.length) {
