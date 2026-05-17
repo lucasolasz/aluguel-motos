@@ -11,6 +11,7 @@ public record CreateReservaDTO(
         @NotNull LocalDate dataRetirada,
         @NotNull LocalDate dataDevolucao,
         String seguroId,
+        String cartaoId,
         List<AcessorioItemDTO> acessorios) {
 
     public record AcessorioItemDTO(

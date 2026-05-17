@@ -6,6 +6,7 @@ export interface CreateReservaPayload {
   seguroId: string
   dataRetirada: string
   dataDevolucao: string
+  cartaoId?: string
   acessorios: { acessorioId: string; quantidade: number }[]
 }
 

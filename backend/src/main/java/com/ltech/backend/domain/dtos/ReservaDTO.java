@@ -20,6 +20,7 @@ public record ReservaDTO(
         BigDecimal totalSeguro,
         BigDecimal totalAcessorios,
         BigDecimal total,
+        String cartaoNumeroMascarado,
         LocalDateTime createdAt) {
 
     public record MotoResumoDTO(String id, String nome, List<String> imagens) {
@@ -29,6 +30,10 @@ public record ReservaDTO(
         List<String> imagens = reserva.getMoto().getFotos().stream()
                 .map(f -> f.getUrl())
                 .toList();
+
+        String cartaoNumeroMascarado = reserva.getCartao() != null
+                ? reserva.getCartao().getNumeroMascarado()
+                : null;
 
         return new ReservaDTO(
                 reserva.getId().toString(),
@@ -46,6 +51,7 @@ public record ReservaDTO(
                 reserva.getTotalSeguro(),
                 reserva.getTotalAcessorios(),
                 reserva.getTotal(),
+                cartaoNumeroMascarado,
                 reserva.getCreatedAt());
     }
 }

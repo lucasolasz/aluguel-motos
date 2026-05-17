@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.ltech.backend.domain.dtos.CreateReservaDTO;
 import com.ltech.backend.domain.dtos.ReservaDTO;
 import com.ltech.backend.domain.entities.Acessorio;
+import com.ltech.backend.domain.entities.Cartao;
 import com.ltech.backend.domain.entities.Moto;
 import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.ReservaAcessorioItem;
@@ -20,6 +21,7 @@ import com.ltech.backend.domain.entities.Seguro;
 import com.ltech.backend.domain.entities.StatusReserva;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.AcessorioRepository;
+import com.ltech.backend.domain.repositories.CartaoRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
 import com.ltech.backend.domain.repositories.SeguroRepository;
@@ -34,6 +36,7 @@ public class ReservaService {
     private MotoRepository motoRepository;
     private SeguroRepository seguroRepository;
     private AcessorioRepository acessorioRepository;
+    private CartaoRepository cartaoRepository;
 
     public List<ReservaDTO> listarMinhasReservas(String usuarioId) {
         return reservaRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId)
@@ -68,10 +71,16 @@ public class ReservaService {
         BigDecimal totalAluguel = moto.getPrecoPorDia().multiply(BigDecimal.valueOf(dias));
         BigDecimal totalAcessorios = BigDecimal.ZERO;
 
+        Cartao cartao = null;
+        if (dto.cartaoId() != null && !dto.cartaoId().isBlank()) {
+            cartao = cartaoRepository.findById(UUID.fromString(dto.cartaoId())).orElse(null);
+        }
+
         Reserva reserva = Reserva.builder()
                 .usuario(usuario)
                 .moto(moto)
                 .seguro(seguro)
+                .cartao(cartao)
                 .dataRetirada(dto.dataRetirada())
                 .dataDevolucao(dto.dataDevolucao())
                 .totalDias((int) dias)

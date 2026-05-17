@@ -154,6 +154,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
         seguroId: selectedSeguroId,
         dataRetirada: pickupDate!.toISOString().split('T')[0],
         dataDevolucao: returnDate!.toISOString().split('T')[0],
+        cartaoId: step5.selectedCardId ?? undefined,
         acessorios: selectedAcessorios.map((a) => ({
           acessorioId: a.acessorioId,
           quantidade: a.quantity,

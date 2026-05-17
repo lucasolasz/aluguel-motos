@@ -53,6 +53,10 @@ public class Reserva {
     @JoinColumn(name = "seguro_id")
     private Seguro seguro;
 
+    @ManyToOne
+    @JoinColumn(name = "cartao_id", nullable = true)
+    private Cartao cartao;
+
     private LocalDate dataRetirada;
 
     private LocalDate dataDevolucao;

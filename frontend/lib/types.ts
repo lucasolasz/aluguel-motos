@@ -59,6 +59,7 @@ export interface Reservation {
   totalSeguro: number
   totalAcessorios: number
   total: number
+  cartaoNumeroMascarado: string | null
   createdAt: string
 }
 
