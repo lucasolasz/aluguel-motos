@@ -43,7 +43,7 @@ export function AddressSelect({
             <SelectContent>
               {addresses.map((addr) => (
                 <SelectItem key={addr.id} value={addr.id}>
-                  {addr.logradouro}{addr.numero ? `, ${addr.numero}` : ''} — {addr.cidade}/{addr.estado}
+                  {(addr.logradouro + (addr.numero ? `, ${addr.numero}` : '') + ' — ' + addr.cidade + '/' + addr.estado).toUpperCase()}
                 </SelectItem>
               ))}
             </SelectContent>

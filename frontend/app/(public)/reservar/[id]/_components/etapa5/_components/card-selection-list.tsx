@@ -56,7 +56,7 @@ export function CardSelectionList({
               </p>
               {card.enderecoCobranca ? (
                 <p className="text-xs text-muted-foreground">
-                  {card.enderecoCobranca.logradouro}{card.enderecoCobranca.numero ? `, ${card.enderecoCobranca.numero}` : ''} — {card.enderecoCobranca.cidade}
+                  {(card.enderecoCobranca.logradouro + (card.enderecoCobranca.numero ? `, ${card.enderecoCobranca.numero}` : '') + ' — ' + card.enderecoCobranca.cidade).toUpperCase()}
                 </p>
               ) : (
                 <button
