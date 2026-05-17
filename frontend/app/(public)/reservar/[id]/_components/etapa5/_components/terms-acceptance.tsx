@@ -1,11 +1,17 @@
 "use client";
 
+import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TermsDialog } from "./terms-dialog";
+
 interface TermsAcceptanceProps {
   accepted: boolean;
   onChange: (accepted: boolean) => void;
 }
 
 export function TermsAcceptance({ accepted, onChange }: TermsAcceptanceProps) {
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="border-t border-border pt-6">
       <h3 className="mb-3 text-base font-semibold text-foreground">
@@ -40,20 +46,36 @@ export function TermsAcceptance({ accepted, onChange }: TermsAcceptanceProps) {
           qualquer custo para você.
         </p>
       </div>
-      <label className="mt-4 flex cursor-pointer items-start gap-3">
-        <input
-          type="checkbox"
-          className="mt-0.5 h-4 w-4 rounded border-border"
-          checked={accepted}
-          onChange={(e) => onChange(e.target.checked)}
-        />
-        <span className="text-foreground text-justify">
-          Aceito os Termos e Condições de Uso e declaro ter ciência de que a
-          Localiza, por meio de empresas parceiras, poderá consultar o Sistema
-          de Informações de Crédito para fins de análise de crédito e risco, nos
-          termos da Resolução CMN n° 5.037 de 29.9.2022.*
-        </span>
-      </label>
+      <div className="mt-4 flex-col items-start">
+        <div className="flex items-start space-x-3">
+          <Checkbox
+            id="terms"
+            checked={accepted}
+            onCheckedChange={(checked) => onChange(checked === true)}
+            className="mt-0.5"
+          />
+          <label
+            htmlFor="terms"
+            className="text-foreground text-justify"
+          >
+            Aceito os Termos e Condições de Uso e declaro ter ciência de que a
+            Localiza, por meio de empresas parceiras, poderá consultar o Sistema
+            de Informações de Crédito para fins de análise de crédito e risco,
+            nos termos da Resolução CMN n° 5.037 de 29.9.2022.*
+          </label>
+        </div>
+        <div className="mt-5 ml-6">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="text-blue-500 underline"
+          >
+            Exibir termos e condições completos
+          </button>
+        </div>
+      </div>
+
+      <TermsDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }
