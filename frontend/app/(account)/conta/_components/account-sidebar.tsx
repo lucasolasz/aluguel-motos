@@ -8,7 +8,7 @@ import { User, Calendar, FileText, Settings, CreditCard } from 'lucide-react'
 const navigation = [
   { name: 'Minhas Reservas', href: '/conta/reservas', icon: Calendar },
   { name: 'Meu Perfil', href: '/conta/perfil', icon: User },
-  { name: 'Documentos', href: '/conta/documentos', icon: FileText },
+  { name: 'CNH', href: '/conta/documentos', icon: FileText },
   { name: 'Meus Cartões', href: '/conta/cartoes', icon: CreditCard },
   { name: 'Configurações', href: '/conta/configuracoes', icon: Settings },
 ]

@@ -74,6 +74,26 @@ export interface Documento {
   createdAt: string
 }
 
+export interface Cnh {
+  id: string
+  rg: string
+  dataNascimento: string
+  numeroRegistro: string
+  numeroCnh: string
+  dataValidade: string
+  estado: string
+  createdAt: string
+}
+
+export interface CreateCnh {
+  rg: string
+  dataNascimento: string
+  numeroRegistro: string
+  numeroCnh: string
+  dataValidade: string
+  estado: string
+}
+
 export interface Cartao {
   id: string
   nome: string

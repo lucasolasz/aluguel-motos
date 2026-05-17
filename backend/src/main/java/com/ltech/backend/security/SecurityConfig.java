@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/**").authenticated()
                         .requestMatchers("/api/cartoes/**").authenticated()
                         .requestMatchers("/api/enderecos-cobranca/**").authenticated()
+                        .requestMatchers("/api/cnh/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
