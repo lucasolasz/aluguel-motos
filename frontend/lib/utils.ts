@@ -12,7 +12,8 @@ export function formatCurrency(value: number): string {
   }).format(value)
 }
 
-export function formatDate(date: Date | string): string {
+export function formatDate(date: Date | string | null): string {
+  if (!date) return '-'
   const str = typeof date === 'string' ? date : date.toISOString()
   const normalized = str.includes('T') ? str : str + 'T00:00:00'
   return new Intl.DateTimeFormat('pt-BR').format(new Date(normalized))
