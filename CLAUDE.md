@@ -25,6 +25,8 @@ app/
     motos/               # Listagem e detalhe de motos
     reservar/[id]/       # Fluxo de reserva (7 steps)
     login/page.tsx       # Login → salva JWT em cookie auth-token
+    categorias/         # Categorias
+    como-funciona/      # FAQ
   (account)/conta/       # Protegidas por middleware.ts
     reservas/page.tsx    # Minhas reservas (dados reais)
     perfil/page.tsx      # Meu perfil (dados reais)
@@ -39,11 +41,18 @@ services/
   reservas.service.ts    # Client: getMinhasReservas(), cancelarReserva()
   usuario.service.ts     # Client: getMeuPerfil(), atualizarPerfil()
   documentos.service.ts  # Client: getMeusDocumentos(), salvarDocumento()
+  cartao.service.ts      # Client: getMeusCartoes(), criarCartao(), associarEndereco()
+  endereco.service.ts   # Client: getMeusEnderecos(), criarEndereco()
 lib/
   types.ts               # Source of truth para todos os tipos TS
   mappers.ts             # DTOs → types (public entities)
   auth.ts                # getToken/setToken/clearToken/apiFetch (client-side)
   data.ts                # formatCurrency(), formatDate()
+components/
+  header.tsx            # Nav com auth state
+  footer.tsx            # Footer
+  moto-card.tsx         # Card de moto
+  categoria-card.tsx    # Card de categoria
 ```
 
 ## Auth Flow
@@ -89,6 +98,7 @@ dataRetirada, dataDevolucao (LocalDate), totalDias
 status (enum): PENDENTE | CONFIRMADA | EM_ANDAMENTO | CONCLUIDA | CANCELADA
 precoPorDia, caucao, totalAluguel, totalSeguro, totalAcessorios, total (BigDecimal)
 acessorios (OneToMany → ReservaAcessorioItem)
+cartaoNumeroMascarado (String, nullable)
 createdAt
 ```
 
@@ -104,6 +114,21 @@ id (UUID), usuario (ManyToOne)
 tipo (enum): CNH_FRENTE | CNH_VERSO | SELFIE_COM_DOCUMENTO
 url (String — URL do arquivo hospedado)
 status (enum): PENDENTE | VERIFICADO | RECUSADO
+createdAt
+```
+
+### Cartao
+```java
+id (UUID), usuario (ManyToOne), enderecoCobranca (ManyToOne, nullable)
+nome, numeroMascarado, validade, cpf
+createdAt
+```
+
+### EnderecoCobranca
+```java
+id (UUID), usuario (ManyToOne)
+cep, logradouro, numero, semNumero (boolean), complemento
+estado, cidade, bairro
 createdAt
 ```
 
@@ -131,6 +156,11 @@ createdAt
 | GET | `/api/documentos/me` | Documentos do usuário |
 | POST | `/api/documentos` | Salvar/atualizar documento (upsert por tipo) |
 | DELETE | `/api/documentos/{id}` | Excluir documento |
+| GET | `/api/cartoes/me` | Cartões do usuário |
+| POST | `/api/cartoes` | Criar cartão |
+| PATCH | `/api/cartoes/{id}/endereco` | Associar endereço ao cartão |
+| GET | `/api/enderecos-cobranca/me` | Endereços de cobrança do usuário |
+| POST | `/api/enderecos-cobranca` | Criar endereço de cobrança |
 
 ## Frontend — Types (lib/types.ts)
 
@@ -142,10 +172,17 @@ Reservation {
   dataRetirada, dataDevolucao (string ISO date), totalDias
   moto: { id, nome, imagens: string[] }
   precoPorDia, caucao, totalAluguel, totalSeguro, totalAcessorios, total
+  cartaoNumeroMascarado: string | null
   createdAt
 }
 
 Documento { id, tipo: DocumentoTipo, url, status: DocumentoStatus, createdAt }
+
+Cartao { id, nome, numeroMascarado, validade, cpf, enderecoCobranca: EnderecoCobranca | null, createdAt }
+
+EnderecoCobranca { id, cep, logradouro, numero: string | null, semNumero: boolean, complemento: string | null, estado, cidade, bairro, createdAt }
+
+Moto { id, nome, slug, marca, modelo, ano, precoPorDia, caucao, motor, potencia, transmissao, capacidadeTanque, alturaAssento, peso, itens: string[], disponivel, fotos: MotoFoto[], categoria: Categoria }
 ```
 
 ## Grupos e Permissões (data.sql)
@@ -159,6 +196,7 @@ Documento { id, tipo: DocumentoTipo, url, status: DocumentoStatus, createdAt }
 3. Endpoint `/api/usuarios/me` usa `@AuthenticationPrincipal UsuarioDetails` para pegar usuário do JWT
 4. `Reserva` calcula totais no `ReservaService` (não no frontend)
 5. Documentos: upsert por tipo — cada usuário tem no máximo 1 doc de cada tipo
+6. Cartão e Endereço são relacionados: um cartão pode ter um endereço de cobrança associado
 
 # Next.js Best Practices
 - Prefer Server Components (rotas públicas)
