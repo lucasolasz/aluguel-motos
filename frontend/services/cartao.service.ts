@@ -20,6 +20,10 @@ export async function validarCartao(numero: string): Promise<void> {
   })
 }
 
+export async function deletarCartao(id: string): Promise<void> {
+  await apiFetch<void>(`/api/cartoes/${id}`, { method: 'DELETE' })
+}
+
 export async function associarEndereco(cartaoId: string, enderecoId: string): Promise<Cartao> {
   return apiFetch<Cartao>(`/api/cartoes/${cartaoId}/endereco`, {
     method: 'PATCH',

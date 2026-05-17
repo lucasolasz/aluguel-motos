@@ -5,6 +5,7 @@ import type { Cartao, EnderecoCobranca } from '@/lib/types'
 import {
   associarEndereco,
   criarCartao,
+  deletarCartao,
   getMeusCartoes,
   validarCartao,
 } from '@/services/cartao.service'
@@ -81,6 +82,7 @@ export function useStep5({ active }: UseStep5Args) {
   const [validationStatus, setValidationStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [cardError, setCardError] = useState<string | null>(null)
 
+  const [deletingCardId, setDeletingCardId] = useState<string | null>(null)
   const [addressSaving, setAddressSaving] = useState(false)
   const [addressAssociating, setAddressAssociating] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
@@ -307,6 +309,19 @@ export function useStep5({ active }: UseStep5Args) {
   const selectedCard = userCards.find((c) => c.id === selectedCardId)
   const isReady = !!selectedCardId && termsAccepted && selectedCard?.enderecoCobranca != null
 
+  const handleDeleteCard = async (cardId: string) => {
+    setDeletingCardId(cardId)
+    try {
+      await deletarCartao(cardId)
+      const updated = userCards.filter((c) => c.id !== cardId)
+      setUserCards(updated)
+      if (selectedCardId === cardId) setSelectedCardId(null)
+      if (updated.length === 0) setStep5Phase('card-form')
+    } finally {
+      setDeletingCardId(null)
+    }
+  }
+
   const requestAddressForCard = (cardId: string) => {
     setPendingCardId(cardId)
     setStep5Phase(userAddresses.length > 0 ? 'address-select' : 'address-form')
@@ -367,6 +382,8 @@ export function useStep5({ active }: UseStep5Args) {
     isCardFormValid,
     isAddressFormValid,
     isReady,
+    handleDeleteCard,
+    deletingCardId,
     requestAddressForCard,
     backFromCardForm,
     goToCardForm,

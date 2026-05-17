@@ -62,6 +62,15 @@ public class CartaoService {
         return CartaoDTO.from(cartaoRepository.save(cartao));
     }
 
+    public void deletarCartao(String cartaoId, String usuarioId) {
+        Cartao cartao = cartaoRepository.findById(UUID.fromString(cartaoId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cartão não encontrado"));
+        if (!cartao.getUsuario().getId().equals(usuarioId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sem permissão");
+        }
+        cartaoRepository.deleteById(UUID.fromString(cartaoId));
+    }
+
     public CartaoDTO associarEndereco(String cartaoId, String enderecoId, String usuarioId) {
         Cartao cartao = cartaoRepository.findById(UUID.fromString(cartaoId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cartão não encontrado"));

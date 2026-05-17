@@ -1,6 +1,6 @@
 'use client'
 
-import { CreditCard, Plus } from 'lucide-react'
+import { CreditCard, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
@@ -12,6 +12,8 @@ interface CardSelectionListProps {
   onSelectedCardIdChange: (id: string) => void
   onAddNewCard: () => void
   onAddAddressForCard: (cardId: string) => void
+  onDeleteCard: (id: string) => void
+  deletingCardId: string | null
 }
 
 export function CardSelectionList({
@@ -20,6 +22,8 @@ export function CardSelectionList({
   onSelectedCardIdChange,
   onAddNewCard,
   onAddAddressForCard,
+  onDeleteCard,
+  deletingCardId,
 }: CardSelectionListProps) {
   return (
     <div className="border-t border-border pt-6">
@@ -71,7 +75,24 @@ export function CardSelectionList({
                 </button>
               )}
             </div>
-            <CreditCard className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-1">
+              <CreditCard className="h-5 w-5 text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                disabled={deletingCardId === card.id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  onDeleteCard(card.id)
+                }}
+              >
+                {deletingCardId === card.id
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Trash2 className="h-4 w-4" />
+                }
+              </Button>
+            </div>
           </label>
         ))}
       </RadioGroup>

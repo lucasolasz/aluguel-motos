@@ -48,6 +48,8 @@ export function DadosStep({ controller }: DadosStepProps) {
     handleAddressSelectContinue,
     isCardFormValid,
     isAddressFormValid,
+    handleDeleteCard,
+    deletingCardId,
     requestAddressForCard,
     backFromCardForm,
     goToCardForm,
@@ -116,6 +118,8 @@ export function DadosStep({ controller }: DadosStepProps) {
             onSelectedCardIdChange={setSelectedCardId}
             onAddNewCard={goToCardForm}
             onAddAddressForCard={requestAddressForCard}
+            onDeleteCard={handleDeleteCard}
+            deletingCardId={deletingCardId}
           />
           <TermsAcceptance accepted={termsAccepted} onChange={setTermsAccepted} />
         </>
