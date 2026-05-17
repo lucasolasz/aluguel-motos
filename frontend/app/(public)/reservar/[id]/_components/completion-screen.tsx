@@ -28,7 +28,7 @@ export function CompletionScreen({
       <Header />
       <main className="flex flex-1 items-center justify-center py-12">
         <div className="mx-auto max-w-lg text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-600">
             <Check className="h-8 w-8 text-accent-foreground" />
           </div>
           <h1 className="mt-6 text-2xl font-bold text-foreground">Reserva Confirmada!</h1>
