@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aluguel Moto",
-  description: "Alugel de motos por temporada",
+  title: "Rio Ride Rental - Aluguel de Motos por Temporada",
+  description: "Alugel de motos por temporada com a Rio Ride Rental. Reserve sua moto para viagens, passeios ou necessidades temporárias. Oferecemos uma variedade de modelos, preços competitivos e um processo de reserva fácil. Aproveite a liberdade de explorar com nossas motos de aluguel por temporada.",
 };
 
 export default function RootLayout({
