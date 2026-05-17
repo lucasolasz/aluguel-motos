@@ -11,16 +11,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Menu, X, User, Calendar, Settings, LogOut } from 'lucide-react'
+import { Menu, X, User, Calendar, Settings, LogOut, LayoutDashboard } from 'lucide-react'
 import { getToken, clearToken } from '@/lib/auth'
+
+function decodeToken(token: string): { grupo?: string; permissoes?: string[] } {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}
 
 export function Header() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userGrupo, setUserGrupo] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    setIsLoggedIn(!!getToken())
+    const token = getToken()
+    setIsLoggedIn(!!token)
+    if (token) {
+      const decoded = decodeToken(token)
+      setUserGrupo(decoded.grupo || null)
+      setIsAdmin(decoded.permissoes?.includes('ADMIN_FULL') || false)
+    } else {
+      setUserGrupo(null)
+      setIsAdmin(false)
+    }
   }, [])
 
   const handleLogout = () => {
@@ -91,6 +118,14 @@ export function Header() {
                     <span>Configurações</span>
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="flex items-center gap-2 cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Painel Admin</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="flex items-center gap-2 text-destructive"
@@ -166,13 +201,15 @@ export function Header() {
             >
               Minhas Reservas
             </Link>
-            <Link
-              href="/admin"
-              className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Painel Admin
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Painel Admin
+              </Link>
+            )}
             <div className="pt-4">
               <Button asChild className="w-full">
                 <Link href="/motos" onClick={() => setMobileMenuOpen(false)}>

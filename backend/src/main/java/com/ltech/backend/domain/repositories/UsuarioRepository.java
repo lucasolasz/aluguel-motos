@@ -9,4 +9,6 @@ import com.ltech.backend.domain.entities.Usuario;
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     Optional<Usuario> findByUsername(String username);
+
+    java.util.List<Usuario> findAllByOrderByCreatedAtDesc();
 }

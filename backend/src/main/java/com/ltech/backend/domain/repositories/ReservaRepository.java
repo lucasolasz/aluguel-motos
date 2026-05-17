@@ -10,4 +10,8 @@ import com.ltech.backend.domain.entities.Reserva;
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
 
     List<Reserva> findByUsuarioIdOrderByCreatedAtDesc(String usuarioId);
+
+    List<Reserva> findAllByOrderByCreatedAtDesc();
+
+    int countByUsuarioId(String usuarioId);
 }
