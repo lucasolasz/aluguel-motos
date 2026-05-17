@@ -20,6 +20,27 @@ itens (String CSV → frontend converte para array)
 disponivel, fotos (OneToMany MotoFoto), categoria (ManyToOne)
 ```
 
+### Categoria
+```java
+id (UUID), nome, slug, descricao, icone
+```
+
+### Acessorio
+```java
+id (UUID), nome, descricao, precoPorDia (BigDecimal), icone, disponivel
+```
+
+### Seguro
+```java
+id (UUID), nome, descricao, preco (BigDecimal)
+coberturas (OneToMany → SeguroCobertura)
+```
+
+### SeguroCobertura
+```java
+id (UUID), seguro (ManyToOne), descricao
+```
+
 ### Reserva
 ```java
 id (UUID), usuario (ManyToOne), moto (ManyToOne), seguro (ManyToOne, nullable)
@@ -35,6 +56,13 @@ createdAt
 ```java
 id (UUID), reserva (ManyToOne), acessorio (ManyToOne)
 quantidade (int), precoPorDia (BigDecimal — snapshot no momento da reserva)
+```
+
+### Cnh
+```java
+id (UUID), usuario (OneToOne)
+numero, categoria (String), dataExpiracao (LocalDate)
+createdAt
 ```
 
 ### Documento (KYC)
@@ -90,6 +118,15 @@ createdAt
 | PATCH | `/api/cartoes/{id}/endereco` | Associar endereço |
 | GET | `/api/enderecos-cobranca/me` | Endereços |
 | POST | `/api/enderecos-cobranca` | Criar endereço |
+| GET | `/api/cnh/me` | CNH do usuário |
+| POST | `/api/cnh` | Cadastrar/atualizar CNH |
+
+### Admin (requer ADMIN_FULL)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/admin/clientes` | Lista todos clientes |
+| GET | `/api/admin/reservas` | Lista todas reservas |
+| PATCH | `/api/admin/reservas/{id}/status` | Atualiza status reserva |
 
 ## Grupos e Permissões (data.sql)
 - **DESENVOLVEDORES** — todas
@@ -100,4 +137,6 @@ createdAt
 1. `@AuthenticationPrincipal UsuarioDetails` para pegar usuário do JWT
 2. Reserva calcula totais no `ReservaService` (não no frontend)
 3. Documentos: upsert por tipo — 1 doc por tipo por usuário
-4. Cartao ↔ Endereco:ManyToOne opcional
+4. Cartao ↔ Endereco: ManyToOne opcional
+5. `CartaoFingerprintService` — deduplica cartões por fingerprint
+6. `GlobalExceptionHandler` — trata exceções globalmente

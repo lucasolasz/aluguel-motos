@@ -1,7 +1,7 @@
 # Aluguel Motos
 
 ## Stack
-- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL (localhost:5432)
+- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL (localhost:5432, DB: `aluguel-moto`)
 - **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui
 - **Auth**: JWT via `com.auth0:java-jwt:4.4.0`, cookie `auth-token`
 
@@ -35,6 +35,11 @@ API_URL=http://localhost:8080/api
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
+## Grupos
+- **DESENVOLVEDORES** — todas as permissões
+- **ADMINS** — ADMIN_FULL, RESERVAS_*
+- **GERAL** — clientes (RESERVAS_LEITURA, RESERVAS_ESCRITA)
+
 ## Projetos
-- `backend/` — API Spring Boot (entities, endpoints, services)
-- `frontend/` — App Next.js (components, pages, services, types)
+- `backend/` — API Spring Boot (entities, endpoints, services) → ver `backend/CLAUDE.md`
+- `frontend/` — App Next.js (components, pages, services, types) → ver `frontend/CLAUDE.md`
