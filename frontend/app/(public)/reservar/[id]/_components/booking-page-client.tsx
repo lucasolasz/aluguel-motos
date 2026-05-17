@@ -1,5 +1,7 @@
 'use client'
 
+import { IMaskInput } from 'react-imask'
+import { cn } from '@/lib/utils'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
@@ -11,13 +13,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Acessorio, Cartao, EnderecoCobranca, Moto, Seguro } from '@/lib/types'
-import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/data'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ArrowLeft, ArrowRight, CalendarIcon, Check, CreditCard, Loader2, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getToken } from '@/lib/auth'
 import { getMeuPerfil } from '@/services/usuario.service'
@@ -30,6 +31,32 @@ import { InsuranceSelector } from './insurance-selector'
 import { PriceSummary } from './price-summary'
 
 type Step5Phase = 'loading' | 'card-form' | 'address-select' | 'address-form' | 'selection'
+
+const INPUT_CLASS =
+  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 md:text-sm dark:bg-input/30'
+
+interface MaskedInputProps {
+  mask: string
+  value: string
+  onAccept: (value: string) => void
+  id?: string
+  placeholder?: string
+  className?: string
+  onBlur?: React.FocusEventHandler<HTMLInputElement>
+  disabled?: boolean
+}
+
+function MaskedInput({ mask, value, onAccept, className, ...props }: MaskedInputProps) {
+  return (
+    <IMaskInput
+      mask={mask}
+      value={value}
+      onAccept={onAccept}
+      className={cn(INPUT_CLASS, className)}
+      {...props}
+    />
+  )
+}
 
 const steps = [
   { id: 1, name: 'Datas' },
@@ -163,9 +190,9 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
     try {
       const saved = await criarCartao({
         nome: newCardData.nome,
-        numero: newCardData.numero,
+        numero: newCardData.numero.replace(/\s/g, ''),
         validade: newCardData.validade,
-        cpf: newCardData.cpf,
+        cpf: newCardData.cpf.replace(/\D/g, ''),
       })
       setUserCards((prev) => [...prev, saved])
       setPendingCardId(saved.id)
@@ -201,7 +228,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
     setAddressSaving(true)
     try {
       const saved = await criarEndereco({
-        cep: newAddressData.cep,
+        cep: newAddressData.cep.replace(/\D/g, ''),
         logradouro: newAddressData.logradouro,
         numero: newAddressData.numero,
         semNumero: newAddressData.semNumero,
@@ -310,7 +337,11 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   }
 
   const isCardFormValid =
-    newCardData.nome && newCardData.numero && newCardData.validade && newCardData.cvv && newCardData.cpf
+    newCardData.nome.trim().length > 0 &&
+    newCardData.numero.replace(/\D/g, '').length === 16 &&
+    newCardData.validade.replace(/\D/g, '').length === 4 &&
+    newCardData.cvv.replace(/\D/g, '').length === 3 &&
+    newCardData.cpf.replace(/\D/g, '').length === 11
 
   const isAddressFormValid =
     newAddressData.cep && newAddressData.logradouro &&
@@ -521,46 +552,47 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="cardNome"
                                 value={newCardData.nome}
-                                onChange={(e) => setNewCardData((p) => ({ ...p, nome: e.target.value }))}
-                                placeholder="Como aparece no cartão"
+                                onChange={(e) => setNewCardData((p) => ({ ...p, nome: e.target.value.toUpperCase() }))}
+                                placeholder="COMO APARECE NO CARTÃO"
                               />
                             </div>
                             <div className="space-y-2 sm:col-span-2">
                               <Label htmlFor="cardNumero">Número do Cartão</Label>
-                              <Input
+                              <MaskedInput
                                 id="cardNumero"
+                                mask="0000 0000 0000 0000"
                                 value={newCardData.numero}
-                                onChange={(e) => setNewCardData((p) => ({ ...p, numero: e.target.value }))}
+                                onAccept={(val) => setNewCardData((p) => ({ ...p, numero: val }))}
                                 placeholder="0000 0000 0000 0000"
-                                maxLength={19}
                               />
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="cardValidade">Validade</Label>
-                              <Input
+                              <MaskedInput
                                 id="cardValidade"
+                                mask="00/00"
                                 value={newCardData.validade}
-                                onChange={(e) => setNewCardData((p) => ({ ...p, validade: e.target.value }))}
+                                onAccept={(val) => setNewCardData((p) => ({ ...p, validade: val }))}
                                 placeholder="MM/AA"
-                                maxLength={5}
                               />
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="cardCvv">CVV</Label>
-                              <Input
+                              <MaskedInput
                                 id="cardCvv"
+                                mask="000"
                                 value={newCardData.cvv}
-                                onChange={(e) => setNewCardData((p) => ({ ...p, cvv: e.target.value }))}
+                                onAccept={(val) => setNewCardData((p) => ({ ...p, cvv: val }))}
                                 placeholder="000"
-                                maxLength={4}
                               />
                             </div>
                             <div className="space-y-2 sm:col-span-2">
                               <Label htmlFor="cardCpf">CPF do Titular</Label>
-                              <Input
+                              <MaskedInput
                                 id="cardCpf"
+                                mask="000.000.000-00"
                                 value={newCardData.cpf}
-                                onChange={(e) => setNewCardData((p) => ({ ...p, cpf: e.target.value }))}
+                                onAccept={(val) => setNewCardData((p) => ({ ...p, cpf: val }))}
                                 placeholder="000.000.000-00"
                               />
                             </div>
@@ -646,13 +678,13 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                             <div className="space-y-2 sm:col-span-2">
                               <Label htmlFor="cep">CEP</Label>
                               <div className="relative">
-                                <Input
+                                <MaskedInput
                                   id="cep"
+                                  mask="00000-000"
                                   value={newAddressData.cep}
-                                  onChange={(e) => setNewAddressData((p) => ({ ...p, cep: e.target.value }))}
+                                  onAccept={(val) => setNewAddressData((p) => ({ ...p, cep: val }))}
                                   onBlur={(e) => handleCepBlur(e.target.value)}
                                   placeholder="00000-000"
-                                  maxLength={9}
                                 />
                                 {cepLoading && (
                                   <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
@@ -664,8 +696,8 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="logradouro"
                                 value={newAddressData.logradouro}
-                                onChange={(e) => setNewAddressData((p) => ({ ...p, logradouro: e.target.value }))}
-                                placeholder="Rua, Avenida..."
+                                onChange={(e) => setNewAddressData((p) => ({ ...p, logradouro: e.target.value.toUpperCase() }))}
+                                placeholder="RUA, AVENIDA..."
                               />
                             </div>
                             <div className="space-y-2">
@@ -673,7 +705,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="numero"
                                 value={newAddressData.numero}
-                                onChange={(e) => setNewAddressData((p) => ({ ...p, numero: e.target.value }))}
+                                onChange={(e) => setNewAddressData((p) => ({ ...p, numero: e.target.value.replace(/\D/g, '') }))}
                                 placeholder="123"
                                 disabled={newAddressData.semNumero}
                               />
@@ -700,8 +732,8 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="complemento"
                                 value={newAddressData.complemento}
-                                onChange={(e) => setNewAddressData((p) => ({ ...p, complemento: e.target.value }))}
-                                placeholder="Apto, Bloco... (opcional)"
+                                onChange={(e) => setNewAddressData((p) => ({ ...p, complemento: e.target.value.toUpperCase() }))}
+                                placeholder="APTO, BLOCO... (OPCIONAL)"
                               />
                             </div>
                             <div className="space-y-2">
@@ -709,7 +741,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="estado"
                                 value={newAddressData.estado}
-                                onChange={(e) => setNewAddressData((p) => ({ ...p, estado: e.target.value }))}
+                                onChange={(e) => setNewAddressData((p) => ({ ...p, estado: e.target.value.toUpperCase() }))}
                                 placeholder="SP"
                                 maxLength={2}
                               />
@@ -719,8 +751,8 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="cidade"
                                 value={newAddressData.cidade}
-                                onChange={(e) => setNewAddressData((p) => ({ ...p, cidade: e.target.value }))}
-                                placeholder="São Paulo"
+                                onChange={(e) => setNewAddressData((p) => ({ ...p, cidade: e.target.value.toUpperCase() }))}
+                                placeholder="SÃO PAULO"
                               />
                             </div>
                             <div className="space-y-2 sm:col-span-2">
@@ -728,8 +760,8 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                               <Input
                                 id="bairro"
                                 value={newAddressData.bairro}
-                                onChange={(e) => setNewAddressData((p) => ({ ...p, bairro: e.target.value }))}
-                                placeholder="Centro"
+                                onChange={(e) => setNewAddressData((p) => ({ ...p, bairro: e.target.value.toUpperCase() }))}
+                                placeholder="CENTRO"
                               />
                             </div>
                           </div>
