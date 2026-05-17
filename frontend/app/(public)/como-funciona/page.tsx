@@ -209,7 +209,7 @@ export default function ComoFuncionaPage() {
               Como Funciona
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-primary-foreground/80 sm:text-lg">
-              Alugar uma moto na MotoRent é simples e rápido. Do cadastro à retirada, tudo digital.
+              Alugar uma moto na Rio Ride Rental é simples e rápido. Do cadastro à retirada, tudo digital.
             </p>
           </div>
         </section>

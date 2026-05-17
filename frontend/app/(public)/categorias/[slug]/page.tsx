@@ -17,11 +17,11 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   const categoria = await getCategoriaBySlug(slug)
 
   if (!categoria) {
-    return { title: 'Categoria não encontrada - MotoRent' }
+    return { title: 'Categoria não encontrada - Rio Ride Rental' }
   }
 
   return {
-    title: `${categoria.nome} - MotoRent`,
+    title: `${categoria.nome} - Rio Ride Rental`,
     description: categoria.descricao,
   }
 }

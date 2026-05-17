@@ -56,7 +56,7 @@ export default function AdminLayout({
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <span className="text-sm font-bold text-primary-foreground">M</span>
               </div>
-              <span className="font-bold">MotoRent Admin</span>
+              <span className="font-bold">Rio Ride Rental Admin</span>
             </Link>
             <Button
               variant="ghost"
@@ -115,7 +115,7 @@ export default function AdminLayout({
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="font-semibold">MotoRent Admin</span>
+          <span className="font-semibold">Rio Ride Rental Admin</span>
         </header>
 
         {/* Page Content */}

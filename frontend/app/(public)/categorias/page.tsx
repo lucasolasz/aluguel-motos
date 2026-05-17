@@ -4,7 +4,7 @@ import { CategoriaCard } from '@/components/categoria-card'
 import { getCategorias } from '@/services/categorias.service'
 
 export const metadata = {
-  title: 'Categorias de Motos - MotoRent',
+  title: 'Categorias de Motos - Rio Ride Rental',
   description: 'Explore nossas categorias de motos: scooters, motos esportivas, touring, adventure e muito mais.',
 }
 

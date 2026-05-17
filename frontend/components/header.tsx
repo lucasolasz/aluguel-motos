@@ -68,7 +68,7 @@ export function Header() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <span className="text-lg font-bold text-primary-foreground">M</span>
           </div>
-          <span className="text-xl font-bold tracking-tight">MotoRent</span>
+          <span className="text-xl font-bold tracking-tight">Rio Ride Rental</span>
         </Link>
 
         {/* Desktop Navigation */}

@@ -109,7 +109,7 @@ export default async function HomePage() {
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80">
                 Junte-se a milhares de motociclistas que já descobriram a
-                liberdade de alugar com a MotoRent.
+                liberdade de alugar com a Rio Ride Rental.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button size="lg" variant="secondary" asChild>

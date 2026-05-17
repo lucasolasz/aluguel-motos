@@ -29,11 +29,11 @@ export async function generateMetadata({ params }: MotorcycleDetailPageProps) {
   try {
     const moto = await getMotoById(id)
     return {
-      title: `${moto.nome} - Aluguel - MotoRent`,
+      title: `${moto.nome} - Aluguel - Rio Ride Rental`,
       description: `Alugue a ${moto.nome} por ${formatCurrency(moto.precoPorDia)}/dia. ${moto.motor}, ${moto.potencia}.`,
     }
   } catch {
-    return { title: 'Moto não encontrada - MotoRent' }
+    return { title: 'Moto não encontrada - Rio Ride Rental' }
   }
 }
 

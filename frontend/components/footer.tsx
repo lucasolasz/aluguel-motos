@@ -32,7 +32,7 @@ export function Footer() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
                 <span className="text-lg font-bold text-primary-foreground">M</span>
               </div>
-              <span className="text-xl font-bold tracking-tight">MotoRent</span>
+              <span className="text-xl font-bold tracking-tight">Rio Ride Rental</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               Alugue a moto dos seus sonhos com segurança e praticidade. 
@@ -94,7 +94,7 @@ export function Footer() {
 
         <div className="mt-12 border-t border-border pt-8">
           <p className="text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} MotoRent. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} Rio Ride Rental. Todos os direitos reservados.
           </p>
         </div>
       </div>
