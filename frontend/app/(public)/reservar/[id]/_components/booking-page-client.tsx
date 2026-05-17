@@ -65,17 +65,42 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
     if (!stepParam) return
     const step = parseInt(stepParam, 10)
     if (isNaN(step) || step < 1 || step > steps.length) return
+
+    let restoredPickup: Date | undefined
+    let restoredReturn: Date | undefined
+    let restoredSeguroId = defaultSeguroId
+    let restoredAcessorios: { acessorioId: string; quantity: number }[] = []
+    let completedSteps: number[] = []
+
     const saved = sessionStorage.getItem(`booking-state-${moto.id}`)
     if (saved) {
       try {
         const state = JSON.parse(saved)
-        if (state.pickupDate) setPickupDate(new Date(state.pickupDate))
-        if (state.returnDate) setReturnDate(new Date(state.returnDate))
-        if (state.selectedSeguroId) setSelectedSeguroId(state.selectedSeguroId)
-        if (state.selectedAcessorios) setSelectedAcessorios(state.selectedAcessorios)
+        if (state.pickupDate) restoredPickup = new Date(state.pickupDate)
+        if (state.returnDate) restoredReturn = new Date(state.returnDate)
+        if (state.selectedSeguroId) restoredSeguroId = state.selectedSeguroId
+        if (state.selectedAcessorios) restoredAcessorios = state.selectedAcessorios
+        if (Array.isArray(state.completedSteps)) completedSteps = state.completedSteps
       } catch {}
     }
-    setCurrentStep(step)
+
+    const maxCompletedStep = completedSteps.length > 0 ? Math.max(...completedSteps) : 0
+    const allowedStep = Math.min(step, maxCompletedStep + 1)
+
+    if (allowedStep >= 5 && !getToken()) {
+      router.push(`/login?redirect=/reservar/${moto.id}?step=5`)
+      return
+    }
+
+    if (restoredPickup) setPickupDate(restoredPickup)
+    if (restoredReturn) setReturnDate(restoredReturn)
+    setSelectedSeguroId(restoredSeguroId)
+    setSelectedAcessorios(restoredAcessorios)
+    setCurrentStep(allowedStep)
+
+    if (allowedStep !== step) {
+      window.history.replaceState(null, '', `/reservar/${moto.id}?step=${allowedStep}`)
+    }
   }, [])
 
   useEffect(() => {
@@ -131,6 +156,15 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
       return
     }
     if (currentStep < steps.length) {
+      const storageKey = `booking-state-${moto.id}`
+      try {
+        const saved = sessionStorage.getItem(storageKey)
+        const state = saved ? JSON.parse(saved) : {}
+        const completedSteps: number[] = state.completedSteps ?? []
+        if (!completedSteps.includes(currentStep)) completedSteps.push(currentStep)
+        sessionStorage.setItem(storageKey, JSON.stringify({ ...state, completedSteps }))
+      } catch {}
+
       const nextStep = currentStep + 1
       setCurrentStep(nextStep)
       window.history.replaceState(null, '', `/reservar/${moto.id}?step=${nextStep}`)
