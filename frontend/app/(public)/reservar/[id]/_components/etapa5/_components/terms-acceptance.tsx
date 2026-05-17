@@ -59,7 +59,7 @@ export function TermsAcceptance({ accepted, onChange }: TermsAcceptanceProps) {
             className="text-foreground text-justify"
           >
             Aceito os Termos e Condições de Uso e declaro ter ciência de que a
-            Localiza, por meio de empresas parceiras, poderá consultar o Sistema
+            Rio Ride Rental, por meio de empresas parceiras, poderá consultar o Sistema
             de Informações de Crédito para fins de análise de crédito e risco,
             nos termos da Resolução CMN n° 5.037 de 29.9.2022.*
           </label>
