@@ -6,8 +6,10 @@ export function getToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null
 }
 
+const COOKIE_MAX_AGE = 15 * 60
+
 export function setToken(token: string): void {
-  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
 }
 
 export function clearToken(): void {
@@ -31,6 +33,12 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     },
   })
   if (!res.ok) {
+    if (res.status === 401) {
+      clearToken()
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    }
     const text = await res.text().catch(() => res.statusText)
     throw new Error(text || `HTTP ${res.status}`)
   }
