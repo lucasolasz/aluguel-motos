@@ -40,7 +40,7 @@ export function AddressSelect({
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione um endereço" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {addresses.map((addr) => (
                 <SelectItem key={addr.id} value={addr.id}>
                   {(addr.logradouro + (addr.numero ? `, ${addr.numero}` : '') + ' — ' + addr.cidade + '/' + addr.estado).toUpperCase()}

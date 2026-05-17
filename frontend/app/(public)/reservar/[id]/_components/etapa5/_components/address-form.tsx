@@ -123,7 +123,7 @@ export function AddressForm({
                 <SelectValue placeholder="SEL" />
               )}
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {ESTADOS_BRASIL.map((estado) => (
                 <SelectItem key={estado.sigla} value={estado.sigla}>
                   {estado.sigla} - {estado.nome.toUpperCase()}
@@ -146,7 +146,7 @@ export function AddressForm({
                 <SelectValue placeholder="CIDADE" />
               )}
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {cidades.map((cidade) => (
                 <SelectItem key={cidade.id} value={cidade.nome.toUpperCase()}>
                   {cidade.nome.toUpperCase()}

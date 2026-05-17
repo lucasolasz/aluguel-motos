@@ -59,7 +59,7 @@ export function MotosList({ motos, categorias }: MotosListProps) {
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="all">Todas as categorias</SelectItem>
                 {categorias.map((categoria) => (
                   <SelectItem key={categoria.id} value={categoria.id}>
@@ -73,7 +73,7 @@ export function MotosList({ motos, categorias }: MotosListProps) {
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="price-asc">Menor preço</SelectItem>
               <SelectItem value="price-desc">Maior preço</SelectItem>
               <SelectItem value="name">Nome A-Z</SelectItem>

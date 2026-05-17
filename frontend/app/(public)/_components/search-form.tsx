@@ -172,7 +172,7 @@ export function SearchForm({ categories, variant = 'default', className }: Searc
             <SelectTrigger>
               <SelectValue placeholder="Todas as categorias" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="all">Todas as categorias</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>

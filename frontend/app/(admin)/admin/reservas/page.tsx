@@ -178,7 +178,7 @@ export default function AdminReservationsPage() {
                             {statusLabels[reservation.status]}
                           </Badge>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent position="popper">
                           {Object.entries(statusLabels).map(([value, label]) => (
                             <SelectItem key={value} value={value}>
                               {label}

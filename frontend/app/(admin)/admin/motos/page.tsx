@@ -102,7 +102,7 @@ export default function AdminMotorcyclesPage() {
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectItem value="scooter">Scooter</SelectItem>
                       <SelectItem value="naked">Naked</SelectItem>
                       <SelectItem value="touring">Touring</SelectItem>
