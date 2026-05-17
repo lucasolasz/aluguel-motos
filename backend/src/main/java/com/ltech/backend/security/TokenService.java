@@ -31,6 +31,7 @@ public class TokenService {
                     .withClaim("grupo", usuario.getGrupo().getNome())
                     .withClaim("id_usuario", usuario.getId())
                     .withClaim("permissoes", usuario.getGrupo().getPermissoes().stream().map(p -> p.getNome()).toList())
+                    .withClaim("nomeCompleto", usuario.getNomeCompleto())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
             return token;

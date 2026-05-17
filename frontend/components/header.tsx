@@ -14,7 +14,7 @@ import {
 import { Menu, X, User, Calendar, Settings, LogOut, LayoutDashboard } from 'lucide-react'
 import { getToken, clearToken } from '@/lib/auth'
 
-function decodeToken(token: string): { grupo?: string; permissoes?: string[] } {
+function decodeToken(token: string): { grupo?: string; permissoes?: string[]; nomeCompleto?: string } {
   try {
     const base64Url = token.split('.')[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
@@ -37,6 +37,8 @@ export function Header() {
   const [userGrupo, setUserGrupo] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
+  const [userName, setUserName] = useState<string | null>(null)
+
   useEffect(() => {
     const token = getToken()
     setIsLoggedIn(!!token)
@@ -44,9 +46,11 @@ export function Header() {
       const decoded = decodeToken(token)
       setUserGrupo(decoded.grupo || null)
       setIsAdmin(decoded.permissoes?.includes('ADMIN_FULL') || false)
+      setUserName(decoded.nomeCompleto?.split(' ')[0] || null)
     } else {
       setUserGrupo(null)
       setIsAdmin(false)
+      setUserName(null)
     }
   }, [])
 
@@ -94,7 +98,8 @@ export function Header() {
           {isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="ghost" className="rounded-full gap-2 px-3">
+                  <span className="text-sm font-medium">{userName}</span>
                   <User className="h-5 w-5" />
                   <span className="sr-only">Menu do usuário</span>
                 </Button>
