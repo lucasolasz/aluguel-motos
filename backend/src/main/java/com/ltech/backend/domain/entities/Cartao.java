@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +27,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "cartoes")
+@Table(name = "cartoes", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "usuario_id", "fingerprint" })
+})
 public class Cartao {
 
     @Id
@@ -44,6 +48,9 @@ public class Cartao {
     private String numeroMascarado;
     private String validade;
     private String cpf;
+
+    @Column(nullable = false)
+    private String fingerprint;
 
     @CreatedDate
     private LocalDateTime createdAt;

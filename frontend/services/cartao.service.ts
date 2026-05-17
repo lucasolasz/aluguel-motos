@@ -12,6 +12,14 @@ export async function criarCartao(data: CreateCartao): Promise<Cartao> {
   })
 }
 
+export async function validarCartao(numero: string): Promise<void> {
+  await apiFetch<Record<string, boolean>>('/api/cartoes/validar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ numero: numero.replace(/\s/g, '') }),
+  })
+}
+
 export async function associarEndereco(cartaoId: string, enderecoId: string): Promise<Cartao> {
   return apiFetch<Cartao>(`/api/cartoes/${cartaoId}/endereco`, {
     method: 'PATCH',

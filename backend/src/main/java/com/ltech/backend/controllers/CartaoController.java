@@ -1,6 +1,7 @@
 package com.ltech.backend.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ltech.backend.domain.dtos.AssociarEnderecoDTO;
 import com.ltech.backend.domain.dtos.CartaoDTO;
+import com.ltech.backend.domain.dtos.CartaoValidarDTO;
 import com.ltech.backend.domain.dtos.CreateCartaoDTO;
 import com.ltech.backend.security.UsuarioDetails;
 import com.ltech.backend.services.CartaoService;
@@ -33,6 +35,14 @@ public class CartaoController {
             @AuthenticationPrincipal UsuarioDetails userDetails) {
         return ResponseEntity.ok(
                 cartaoService.listarMeusCartoes(userDetails.getUsuario().getId()));
+    }
+
+    @PostMapping("/validar")
+    public ResponseEntity<Map<String, Boolean>> validarCartao(
+            @RequestBody @Valid CartaoValidarDTO dto,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        cartaoService.validarCartao(dto, userDetails.getUsuario());
+        return ResponseEntity.ok(Map.of("valido", true));
     }
 
     @PostMapping

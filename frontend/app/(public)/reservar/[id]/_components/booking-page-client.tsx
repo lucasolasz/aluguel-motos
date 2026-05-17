@@ -138,6 +138,10 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   }
 
   const handleBack = () => {
+    if (currentStep === 5 && step5.step5Phase === 'card-form' && step5.userCards.length > 0) {
+      step5.backFromCardForm()
+      return
+    }
     if (currentStep > 1) {
       const prevStep = currentStep - 1
       setCurrentStep(prevStep)

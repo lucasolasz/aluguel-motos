@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ltech.backend.domain.dtos.CartaoDTO;
+import com.ltech.backend.domain.dtos.CartaoValidarDTO;
 import com.ltech.backend.domain.dtos.CreateCartaoDTO;
 import com.ltech.backend.domain.entities.Cartao;
 import com.ltech.backend.domain.entities.EnderecoCobranca;
@@ -23,6 +24,7 @@ public class CartaoService {
 
     private CartaoRepository cartaoRepository;
     private EnderecoCobrancaRepository enderecoCobrancaRepository;
+    private CartaoFingerprintService cartaoFingerprintService;
 
     public List<CartaoDTO> listarMeusCartoes(String usuarioId) {
         return cartaoRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId)
@@ -31,8 +33,22 @@ public class CartaoService {
                 .toList();
     }
 
+    public void validarCartao(CartaoValidarDTO dto, Usuario usuario) {
+        String numero = dto.numero().replaceAll("\\D", "");
+        String fingerprint = cartaoFingerprintService.gerar(numero);
+        if (cartaoRepository.existsByUsuarioIdAndFingerprint(usuario.getId(), fingerprint)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cartão já cadastrado");
+        }
+    }
+
     public CartaoDTO salvarCartao(CreateCartaoDTO dto, Usuario usuario) {
         String numero = dto.numero().replaceAll("\\D", "");
+        String fingerprint = cartaoFingerprintService.gerar(numero);
+
+        if (cartaoRepository.existsByUsuarioIdAndFingerprint(usuario.getId(), fingerprint)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cartão já cadastrado");
+        }
+
         String mascarado = "****" + numero.substring(Math.max(0, numero.length() - 4));
 
         Cartao cartao = Cartao.builder()
@@ -41,6 +57,7 @@ public class CartaoService {
                 .numeroMascarado(mascarado)
                 .validade(dto.validade())
                 .cpf(dto.cpf())
+                .fingerprint(fingerprint)
                 .build();
         return CartaoDTO.from(cartaoRepository.save(cartao));
     }

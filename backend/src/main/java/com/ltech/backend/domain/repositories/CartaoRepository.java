@@ -9,4 +9,6 @@ import com.ltech.backend.domain.entities.Cartao;
 
 public interface CartaoRepository extends JpaRepository<Cartao, UUID> {
     List<Cartao> findByUsuarioIdOrderByCreatedAtDesc(String usuarioId);
+
+    boolean existsByUsuarioIdAndFingerprint(String usuarioId, String fingerprint);
 }

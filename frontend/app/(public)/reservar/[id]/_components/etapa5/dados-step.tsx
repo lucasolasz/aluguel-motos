@@ -25,6 +25,8 @@ export function DadosStep({ controller }: DadosStepProps) {
     setTermsAccepted,
     selectedAddressId,
     setSelectedAddressId,
+    cardValidating,
+    cardError,
     addressSaving,
     addressAssociating,
     cepLoading,
@@ -43,6 +45,7 @@ export function DadosStep({ controller }: DadosStepProps) {
     isCardFormValid,
     isAddressFormValid,
     requestAddressForCard,
+    backFromCardForm,
     goToCardForm,
     goToAddressForm,
     backFromAddressForm,
@@ -69,6 +72,9 @@ export function DadosStep({ controller }: DadosStepProps) {
           onChange={setNewCardData}
           onSubmit={handleValidarECadastrarCartao}
           isValid={isCardFormValid}
+          validating={cardValidating}
+          error={cardError}
+          onBack={userCards.length > 0 ? backFromCardForm : undefined}
         />
       )}
 

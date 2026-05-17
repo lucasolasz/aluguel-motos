@@ -6,6 +6,7 @@ import {
   associarEndereco,
   criarCartao,
   getMeusCartoes,
+  validarCartao,
 } from '@/services/cartao.service'
 import {
   criarEndereco,
@@ -76,6 +77,9 @@ export function useStep5({ active }: UseStep5Args) {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [selectedAddressId, setSelectedAddressId] = useState<string>('')
 
+  const [cardValidating, setCardValidating] = useState(false)
+  const [cardError, setCardError] = useState<string | null>(null)
+
   const [addressSaving, setAddressSaving] = useState(false)
   const [addressAssociating, setAddressAssociating] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
@@ -114,9 +118,33 @@ export function useStep5({ active }: UseStep5Args) {
       })
   }, [active, profileLoaded])
 
-  const handleValidarECadastrarCartao = () => {
-    setNewCardPending(true)
-    setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
+  useEffect(() => {
+    if (!active && step5Phase === 'card-form' && userCards.length > 0) {
+      setStep5Phase('selection')
+      setNewCardData(INITIAL_CARD)
+      setNewCardPending(false)
+      setCardError(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active])
+
+  const handleValidarECadastrarCartao = async () => {
+    setCardError(null)
+    setCardValidating(true)
+    try {
+      await validarCartao(newCardData.numero)
+      setNewCardPending(true)
+      setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : ''
+      if (msg.includes('já cadastrado')) {
+        setCardError('Este cartão já está cadastrado. Use outro número de cartão.')
+      } else {
+        setCardError('Erro ao validar cartão. Tente novamente.')
+      }
+    } finally {
+      setCardValidating(false)
+    }
   }
 
   const handleCepBlur = async (cep: string) => {
@@ -273,6 +301,13 @@ export function useStep5({ active }: UseStep5Args) {
     setStep5Phase(userAddresses.length > 0 ? 'address-select' : 'address-form')
   }
 
+  const backFromCardForm = () => {
+    setNewCardData(INITIAL_CARD)
+    setNewCardPending(false)
+    setCardError(null)
+    setStep5Phase('selection')
+  }
+
   const goToCardForm = () => setStep5Phase('card-form')
   const goToAddressForm = () => setStep5Phase('address-form')
 
@@ -298,6 +333,8 @@ export function useStep5({ active }: UseStep5Args) {
     selectedAddressId,
     setSelectedAddressId,
     pendingCardId,
+    cardValidating,
+    cardError,
     addressSaving,
     addressAssociating,
     cepLoading,
@@ -317,6 +354,7 @@ export function useStep5({ active }: UseStep5Args) {
     isAddressFormValid,
     isReady,
     requestAddressForCard,
+    backFromCardForm,
     goToCardForm,
     goToAddressForm,
     backFromAddressForm,
