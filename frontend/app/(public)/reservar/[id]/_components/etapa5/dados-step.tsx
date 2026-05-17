@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { AddressForm } from './_components/address-form'
 import { AddressSelect } from './_components/address-select'
 import { CardForm } from './_components/card-form'
+import { CardValidationDialog } from './_components/card-validation-dialog'
 import { CardSelectionList } from './_components/card-selection-list'
 import { CustomerDataFields } from './_components/customer-data-fields'
 import { TermsAcceptance } from './_components/terms-acceptance'
@@ -25,8 +26,11 @@ export function DadosStep({ controller }: DadosStepProps) {
     setTermsAccepted,
     selectedAddressId,
     setSelectedAddressId,
-    cardValidating,
+    validationDialogOpen,
+    validationStatus,
     cardError,
+    confirmValidation,
+    closeValidationDialog,
     addressSaving,
     addressAssociating,
     cepLoading,
@@ -72,8 +76,6 @@ export function DadosStep({ controller }: DadosStepProps) {
           onChange={setNewCardData}
           onSubmit={handleValidarECadastrarCartao}
           isValid={isCardFormValid}
-          validating={cardValidating}
-          error={cardError}
           onBack={userCards.length > 0 ? backFromCardForm : undefined}
         />
       )}
@@ -118,6 +120,14 @@ export function DadosStep({ controller }: DadosStepProps) {
           <TermsAcceptance accepted={termsAccepted} onChange={setTermsAccepted} />
         </>
       )}
+
+      <CardValidationDialog
+        open={validationDialogOpen}
+        status={validationStatus}
+        errorMessage={cardError}
+        onConfirm={confirmValidation}
+        onClose={closeValidationDialog}
+      />
     </div>
   )
 }

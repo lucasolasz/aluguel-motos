@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, CreditCard, Loader2 } from 'lucide-react'
+import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +12,10 @@ interface CardFormProps {
   onChange: (updater: (prev: NewCardData) => NewCardData) => void
   onSubmit: () => void
   isValid: boolean
-  validating?: boolean
-  error?: string | null
   onBack?: () => void
 }
 
-export function CardForm({ data, onChange, onSubmit, isValid, validating, error, onBack }: CardFormProps) {
+export function CardForm({ data, onChange, onSubmit, isValid, onBack }: CardFormProps) {
   return (
     <div className="border-t border-border pt-6">
       <div className="mb-4 flex items-center gap-2">
@@ -78,16 +76,11 @@ export function CardForm({ data, onChange, onSubmit, isValid, validating, error,
       <Button
         className="mt-4 w-full gap-2"
         onClick={onSubmit}
-        disabled={!isValid || validating}
+        disabled={!isValid}
       >
-        {validating ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <CreditCard className="h-4 w-4" />
-        )}
-        {validating ? 'Validando...' : 'Confirmar Dados do Cartão'}
+        <CreditCard className="h-4 w-4" />
+        Confirmar Dados do Cartão
       </Button>
-      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
       {onBack && (
         <Button variant="ghost" size="sm" onClick={onBack} className="mt-2 w-full gap-2">
           <ArrowLeft className="h-4 w-4" />

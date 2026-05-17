@@ -77,7 +77,8 @@ export function useStep5({ active }: UseStep5Args) {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [selectedAddressId, setSelectedAddressId] = useState<string>('')
 
-  const [cardValidating, setCardValidating] = useState(false)
+  const [validationDialogOpen, setValidationDialogOpen] = useState(false)
+  const [validationStatus, setValidationStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [cardError, setCardError] = useState<string | null>(null)
 
   const [addressSaving, setAddressSaving] = useState(false)
@@ -130,21 +131,31 @@ export function useStep5({ active }: UseStep5Args) {
 
   const handleValidarECadastrarCartao = async () => {
     setCardError(null)
-    setCardValidating(true)
+    setValidationStatus('loading')
+    setValidationDialogOpen(true)
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     try {
       await validarCartao(newCardData.numero)
-      setNewCardPending(true)
-      setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
+      setValidationStatus('success')
     } catch (error) {
       const msg = error instanceof Error ? error.message : ''
-      if (msg.includes('já cadastrado')) {
-        setCardError('Este cartão já está cadastrado. Use outro número de cartão.')
-      } else {
-        setCardError('Erro ao validar cartão. Tente novamente.')
-      }
-    } finally {
-      setCardValidating(false)
+      setCardError(
+        msg.includes('já cadastrado')
+          ? 'Este cartão já está cadastrado. Use outro número de cartão.'
+          : 'Erro ao validar cartão. Tente novamente.'
+      )
+      setValidationStatus('error')
     }
+  }
+
+  const confirmValidation = () => {
+    setValidationDialogOpen(false)
+    setNewCardPending(true)
+    setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
+  }
+
+  const closeValidationDialog = () => {
+    setValidationDialogOpen(false)
   }
 
   const handleCepBlur = async (cep: string) => {
@@ -333,8 +344,11 @@ export function useStep5({ active }: UseStep5Args) {
     selectedAddressId,
     setSelectedAddressId,
     pendingCardId,
-    cardValidating,
+    validationDialogOpen,
+    validationStatus,
     cardError,
+    confirmValidation,
+    closeValidationDialog,
     addressSaving,
     addressAssociating,
     cepLoading,
