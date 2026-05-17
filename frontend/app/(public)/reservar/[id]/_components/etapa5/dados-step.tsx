@@ -29,9 +29,7 @@ export function DadosStep({ controller }: DadosStepProps) {
     addressAssociating,
     cepLoading,
     cidadesLoading,
-    bairrosLoading,
     cidades,
-    bairros,
     newCardData,
     setNewCardData,
     newAddressData,
@@ -40,7 +38,6 @@ export function DadosStep({ controller }: DadosStepProps) {
     handleCepBlur,
     handleEstadoChange,
     handleCidadeChange,
-    handleBairroChange,
     handleCadastrarEndereco,
     handleAddressSelectContinue,
     isCardFormValid,
@@ -93,14 +90,11 @@ export function DadosStep({ controller }: DadosStepProps) {
           onCepBlur={handleCepBlur}
           onEstadoChange={handleEstadoChange}
           onCidadeChange={handleCidadeChange}
-          onBairroChange={handleBairroChange}
           onSubmit={handleCadastrarEndereco}
           onBack={backFromAddressForm}
           cepLoading={cepLoading}
           cidadesLoading={cidadesLoading}
-          bairrosLoading={bairrosLoading}
           cidades={cidades}
-          bairros={bairros}
           isValid={isAddressFormValid}
           saving={addressSaving}
         />

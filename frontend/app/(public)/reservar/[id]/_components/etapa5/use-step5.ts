@@ -12,8 +12,8 @@ import {
   getMeusEnderecos,
 } from '@/services/endereco.service'
 import { getMeuPerfil } from '@/services/usuario.service'
-import { getCidadesByEstado, getBairrosByCidade } from '@/services/ibge.service'
-import type { Cidade, Bairro } from '@/services/ibge.service'
+import { getCidadesByEstado } from '@/services/ibge.service'
+import type { Cidade } from '@/services/ibge.service'
 
 export type Step5Phase =
   | 'loading'
@@ -80,10 +80,8 @@ export function useStep5({ active }: UseStep5Args) {
   const [addressAssociating, setAddressAssociating] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
   const [cidadesLoading, setCidadesLoading] = useState(false)
-  const [bairrosLoading, setBairrosLoading] = useState(false)
 
   const [cidades, setCidades] = useState<Cidade[]>([])
-  const [bairros, setBairros] = useState<Bairro[]>([])
 
   const [newCardData, setNewCardData] = useState<NewCardData>(INITIAL_CARD)
   const [newAddressData, setNewAddressData] = useState<NewAddressData>(INITIAL_ADDRESS)
@@ -131,47 +129,29 @@ export function useStep5({ active }: UseStep5Args) {
       if (!data.erro) {
         const estado = (data.uf ?? '').toUpperCase()
         const cidadeViacep = data.localidade ?? ''
-        const bairroViacep = data.bairro ?? ''
+        const bairroViacep = (data.bairro ?? '').toUpperCase()
         const cidadeNome = cidadeViacep.toUpperCase()
-        const bairroNome = bairroViacep.toUpperCase()
         
         setNewAddressData((prev) => ({
           ...prev,
           logradouro: (data.logradouro ?? prev.logradouro).toUpperCase(),
-          bairro: bairroNome,
+          bairro: bairroViacep,
           cidade: cidadeNome,
           estado,
         }))
         
         setCidadesLoading(true)
-        setBairrosLoading(true)
-        
-        let cidadesData: { id: number; nome: string }[] = []
-        let distritosData: { nome: string }[] = []
-        
         try {
-          [cidadesData, distritosData] = await Promise.all([
-            getCidadesByEstado(estado),
-            getBairrosByCidade(cidadeViacep, estado),
-          ])
+          const cidadesData = await getCidadesByEstado(estado)
+          const cidadeExiste = cidadesData.some((c) => c.nome.toUpperCase() === cidadeNome)
+          const cidadesComCidadeViacep = cidadeExiste
+            ? cidadesData
+            : [...cidadesData, { id: 0, nome: cidadeViacep }]
+          setCidades(cidadesComCidadeViacep)
         } catch {
-          // IBGE API falhou, usa só os dados do ViaCEP
+          setCidades([])
         }
-        
-        const bairroExiste = distritosData.some((d) => d.nome.toUpperCase() === bairroNome)
-        const distritosComBairroViacep = bairroExiste
-          ? distritosData
-          : [...distritosData, { nome: bairroViacep }]
-        
-        const cidadeExiste = cidadesData.some((c) => c.nome.toUpperCase() === cidadeNome)
-        const cidadesComCidadeViacep = cidadeExiste
-          ? cidadesData
-          : [...cidadesData, { id: 0, nome: cidadeViacep }]
-        
-        setCidades(cidadesComCidadeViacep)
-        setBairros(distritosComBairroViacep)
         setCidadesLoading(false)
-        setBairrosLoading(false)
       }
     } finally {
       setCepLoading(false)
@@ -181,7 +161,6 @@ export function useStep5({ active }: UseStep5Args) {
   const handleEstadoChange = async (estado: string) => {
     setNewAddressData((prev) => ({ ...prev, estado: estado.toUpperCase(), cidade: '', bairro: '' }))
     setCidades([])
-    setBairros([])
     if (!estado) return
     setCidadesLoading(true)
     const result = await getCidadesByEstado(estado)
@@ -191,18 +170,6 @@ export function useStep5({ active }: UseStep5Args) {
 
   const handleCidadeChange = async (cidadeNome: string) => {
     setNewAddressData((prev) => ({ ...prev, cidade: cidadeNome, bairro: '' }))
-    setBairros([])
-    const estado = newAddressData.estado
-    if (!cidadeNome || !estado) return
-    const cidadeOriginal = cidades.find((c) => c.nome.toUpperCase() === cidadeNome)?.nome ?? cidadeNome
-    setBairrosLoading(true)
-    const result = await getBairrosByCidade(cidadeOriginal, estado)
-    setBairros(result)
-    setBairrosLoading(false)
-  }
-
-  const handleBairroChange = (bairro: string) => {
-    setNewAddressData((prev) => ({ ...prev, bairro: bairro.toUpperCase() }))
   }
 
   const handleCadastrarEndereco = async () => {
@@ -335,9 +302,7 @@ export function useStep5({ active }: UseStep5Args) {
     addressAssociating,
     cepLoading,
     cidadesLoading,
-    bairrosLoading,
     cidades,
-    bairros,
     newCardData,
     setNewCardData,
     newAddressData,
@@ -346,7 +311,6 @@ export function useStep5({ active }: UseStep5Args) {
     handleCepBlur,
     handleEstadoChange,
     handleCidadeChange,
-    handleBairroChange,
     handleCadastrarEndereco,
     handleAddressSelectContinue,
     isCardFormValid,

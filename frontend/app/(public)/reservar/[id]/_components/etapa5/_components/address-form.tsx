@@ -14,7 +14,7 @@ import {
 import { MaskedInput } from '../../masked-input'
 import type { NewAddressData } from '../use-step5'
 import { ESTADOS_BRASIL } from '@/lib/estados'
-import type { Cidade, Bairro } from '@/services/ibge.service'
+import type { Cidade } from '@/services/ibge.service'
 
 interface AddressFormProps {
   data: NewAddressData
@@ -24,12 +24,9 @@ interface AddressFormProps {
   onBack: () => void
   onEstadoChange: (estado: string) => void
   onCidadeChange: (cidade: string) => void
-  onBairroChange: (bairro: string) => void
   cepLoading: boolean
   cidadesLoading: boolean
-  bairrosLoading: boolean
   cidades: Cidade[]
-  bairros: Bairro[]
   isValid: boolean
   saving: boolean
 }
@@ -42,12 +39,9 @@ export function AddressForm({
   onBack,
   onEstadoChange,
   onCidadeChange,
-  onBairroChange,
   cepLoading,
   cidadesLoading,
-  bairrosLoading,
   cidades,
-  bairros,
   isValid,
   saving,
 }: AddressFormProps) {
@@ -163,26 +157,12 @@ export function AddressForm({
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="bairro">Bairro</Label>
-          <Select
+          <Input
+            id="bairro"
             value={data.bairro}
-            onValueChange={onBairroChange}
-            disabled={!data.cidade || bairrosLoading}
-          >
-            <SelectTrigger className="w-full">
-              {bairrosLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <SelectValue placeholder="BAIRRO" />
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              {bairros.map((bairro) => (
-                <SelectItem key={bairro.nome} value={bairro.nome.toUpperCase()}>
-                  {bairro.nome.toUpperCase()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) => onChange((p) => ({ ...p, bairro: e.target.value.toUpperCase() }))}
+            placeholder="CENTRO"
+          />
         </div>
       </div>
       <div className="mt-4 flex gap-3">
