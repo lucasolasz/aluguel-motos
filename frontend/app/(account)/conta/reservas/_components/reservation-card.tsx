@@ -40,6 +40,7 @@ export function ReservationCard({ reservation, onCancel }: ReservationCardProps)
               src={imagemUrl}
               alt={reservation.moto.nome}
               fill
+              sizes="(max-width: 640px) 100vw, 128px"
               className="object-cover"
             />
           </div>

@@ -174,6 +174,7 @@ export default function AdminMotorcyclesPage() {
                             src={moto.fotos[0]?.url || '/images/placeholder-moto.jpg'}
                             alt={moto.nome}
                             fill
+                            sizes="56px"
                             className="object-cover"
                           />
                         </div>
