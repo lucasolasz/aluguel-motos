@@ -74,19 +74,19 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
-                  <Link href="/conta/reservas" className="flex items-center gap-2">
+                  <Link href="/conta/reservas" className="flex items-center gap-2 cursor-pointer">
                     <Calendar className="h-4 w-4" />
                     <span>Minhas Reservas</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/conta/perfil" className="flex items-center gap-2">
+                  <Link href="/conta/perfil" className="flex items-center gap-2 cursor-pointer">
                     <User className="h-4 w-4" />
                     <span>Meu Perfil</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/conta/configuracoes" className="flex items-center gap-2">
+                  <Link href="/conta/configuracoes" className="flex items-center gap-2 cursor-pointer">
                     <Settings className="h-4 w-4" />
                     <span>Configurações</span>
                   </Link>
