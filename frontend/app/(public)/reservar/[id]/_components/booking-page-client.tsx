@@ -98,9 +98,9 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   const [userCards, setUserCards] = useState<Cartao[]>([])
   const [userAddresses, setUserAddresses] = useState<EnderecoCobranca[]>([])
   const [pendingCardId, setPendingCardId] = useState<string | null>(null)
+  const [newCardPending, setNewCardPending] = useState(false)
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
-  const [cardSaving, setCardSaving] = useState(false)
   const [addressSaving, setAddressSaving] = useState(false)
   const [addressAssociating, setAddressAssociating] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
@@ -122,22 +122,39 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   const [isComplete, setIsComplete] = useState(false)
   const [reservaId, setReservaId] = useState<string>('')
 
-  // Restore booking state when returning from login redirect
+  // Restore step + booking state from URL on mount (handles refresh and login redirect)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('step') === '5' && getToken()) {
-      const saved = sessionStorage.getItem('booking-state')
-      if (saved) {
+    const stepParam = params.get('step')
+    if (!stepParam) return
+    const step = parseInt(stepParam, 10)
+    if (isNaN(step) || step < 1 || step > steps.length) return
+    const saved = sessionStorage.getItem(`booking-state-${moto.id}`)
+    if (saved) {
+      try {
         const state = JSON.parse(saved)
         if (state.pickupDate) setPickupDate(new Date(state.pickupDate))
         if (state.returnDate) setReturnDate(new Date(state.returnDate))
         if (state.selectedSeguroId) setSelectedSeguroId(state.selectedSeguroId)
         if (state.selectedAcessorios) setSelectedAcessorios(state.selectedAcessorios)
-        sessionStorage.removeItem('booking-state')
-      }
-      setCurrentStep(5)
+      } catch {}
     }
+    setCurrentStep(step)
   }, [])
+
+  // Persist booking state — only after user has selected both dates to avoid overwriting on mount
+  useEffect(() => {
+    if (!pickupDate || !returnDate) return
+    sessionStorage.setItem(
+      `booking-state-${moto.id}`,
+      JSON.stringify({
+        pickupDate: pickupDate.toISOString(),
+        returnDate: returnDate.toISOString(),
+        selectedSeguroId,
+        selectedAcessorios,
+      })
+    )
+  }, [pickupDate, returnDate, selectedSeguroId, selectedAcessorios, moto.id])
 
   // Load profile + cards + addresses when entering step 5
   useEffect(() => {
@@ -152,7 +169,15 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
         setUserCards(cards)
         setUserAddresses(addresses)
         setProfileLoaded(true)
-        setStep5Phase(cards.length === 0 ? 'card-form' : 'selection')
+        const orphaned = cards.find((c) => c.enderecoCobranca === null)
+        if (cards.length === 0) {
+          setStep5Phase('card-form')
+        } else if (orphaned) {
+          setPendingCardId(orphaned.id)
+          setStep5Phase(addresses.length > 0 ? 'address-select' : 'address-form')
+        } else {
+          setStep5Phase('selection')
+        }
       })
       .catch(() => {
         setProfileLoaded(true)
@@ -183,24 +208,9 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
     })
   }
 
-  const handleValidarECadastrarCartao = async () => {
-    setCardSaving(true)
-    // Simulate card validation (1.5s)
-    await new Promise((r) => setTimeout(r, 1500))
-    try {
-      const saved = await criarCartao({
-        nome: newCardData.nome,
-        numero: newCardData.numero.replace(/\s/g, ''),
-        validade: newCardData.validade,
-        cpf: newCardData.cpf.replace(/\D/g, ''),
-      })
-      setUserCards((prev) => [...prev, saved])
-      setPendingCardId(saved.id)
-      setNewCardData({ nome: '', numero: '', validade: '', cvv: '', cpf: '' })
-      setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
-    } finally {
-      setCardSaving(false)
-    }
+  const handleValidarECadastrarCartao = () => {
+    setNewCardPending(true)
+    setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
   }
 
   const handleCepBlur = async (cep: string) => {
@@ -227,7 +237,22 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   const handleCadastrarEndereco = async () => {
     setAddressSaving(true)
     try {
-      const saved = await criarEndereco({
+      let cardId = pendingCardId
+
+      if (newCardPending) {
+        const newCard = await criarCartao({
+          nome: newCardData.nome,
+          numero: newCardData.numero.replace(/\s/g, ''),
+          validade: newCardData.validade,
+          cpf: newCardData.cpf.replace(/\D/g, ''),
+        })
+        setUserCards((prev) => [...prev, newCard])
+        cardId = newCard.id
+        setNewCardPending(false)
+        setNewCardData({ nome: '', numero: '', validade: '', cvv: '', cpf: '' })
+      }
+
+      const savedAddress = await criarEndereco({
         cep: newAddressData.cep.replace(/\D/g, ''),
         logradouro: newAddressData.logradouro,
         numero: newAddressData.numero,
@@ -237,17 +262,16 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
         cidade: newAddressData.cidade,
         bairro: newAddressData.bairro,
       })
-      const updatedAddresses = [...userAddresses, saved]
-      setUserAddresses(updatedAddresses)
-      if (pendingCardId) {
-        await associarEndereco(pendingCardId, saved.id)
+      setUserAddresses((prev) => [...prev, savedAddress])
+
+      if (cardId) {
+        await associarEndereco(cardId, savedAddress.id)
         setUserCards((prev) =>
-          prev.map((c) =>
-            c.id === pendingCardId ? { ...c, enderecoCobranca: saved } : c
-          )
+          prev.map((c) => c.id === cardId ? { ...c, enderecoCobranca: savedAddress } : c)
         )
         setPendingCardId(null)
       }
+
       setNewAddressData({
         cep: '', logradouro: '', numero: '', semNumero: false,
         complemento: '', estado: '', cidade: '', bairro: '',
@@ -259,20 +283,35 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
   }
 
   const handleAddressSelectContinue = async () => {
-    if (!selectedAddressId || !pendingCardId) {
+    if (!selectedAddressId && !newCardPending && !pendingCardId) {
       setStep5Phase('selection')
       return
     }
     setAddressAssociating(true)
     try {
-      await associarEndereco(pendingCardId, selectedAddressId)
-      const addr = userAddresses.find((a) => a.id === selectedAddressId)
-      setUserCards((prev) =>
-        prev.map((c) =>
-          c.id === pendingCardId ? { ...c, enderecoCobranca: addr ?? null } : c
+      let cardId = pendingCardId
+
+      if (newCardPending) {
+        const newCard = await criarCartao({
+          nome: newCardData.nome,
+          numero: newCardData.numero.replace(/\s/g, ''),
+          validade: newCardData.validade,
+          cpf: newCardData.cpf.replace(/\D/g, ''),
+        })
+        setUserCards((prev) => [...prev, newCard])
+        cardId = newCard.id
+        setNewCardPending(false)
+        setNewCardData({ nome: '', numero: '', validade: '', cvv: '', cpf: '' })
+      }
+
+      if (cardId && selectedAddressId) {
+        await associarEndereco(cardId, selectedAddressId)
+        const addr = userAddresses.find((a) => a.id === selectedAddressId)
+        setUserCards((prev) =>
+          prev.map((c) => c.id === cardId ? { ...c, enderecoCobranca: addr ?? null } : c)
         )
-      )
-      setPendingCardId(null)
+        setPendingCardId(null)
+      }
     } finally {
       setAddressAssociating(false)
       setStep5Phase('selection')
@@ -285,32 +324,32 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
       case 2: return !!selectedSeguroId
       case 3: return true
       case 4: return true
-      case 5: return !!selectedCardId && termsAccepted
+      case 5: {
+        const card = userCards.find((c) => c.id === selectedCardId)
+        return !!selectedCardId && termsAccepted && card?.enderecoCobranca != null
+      }
       default: return false
     }
   }
 
   const handleNext = () => {
     if (currentStep === 4 && !getToken()) {
-      sessionStorage.setItem(
-        'booking-state',
-        JSON.stringify({
-          pickupDate: pickupDate?.toISOString(),
-          returnDate: returnDate?.toISOString(),
-          selectedSeguroId,
-          selectedAcessorios,
-        })
-      )
       router.push(`/login?redirect=/reservar/${moto.id}?step=5`)
       return
     }
     if (currentStep < steps.length) {
-      setCurrentStep((prev) => prev + 1)
+      const nextStep = currentStep + 1
+      setCurrentStep(nextStep)
+      window.history.replaceState(null, '', `/reservar/${moto.id}?step=${nextStep}`)
     }
   }
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep((prev) => prev - 1)
+    if (currentStep > 1) {
+      const prevStep = currentStep - 1
+      setCurrentStep(prevStep)
+      window.history.replaceState(null, '', `/reservar/${moto.id}?step=${prevStep}`)
+    }
   }
 
   const handleFinalizar = async () => {
@@ -328,6 +367,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
         })),
       })
       setReservaId(result.id)
+      sessionStorage.removeItem(`booking-state-${moto.id}`)
       setIsComplete(true)
     } catch {
       setFinalizationError('Erro ao finalizar reserva. Tente novamente.')
@@ -600,19 +640,10 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                           <Button
                             className="mt-4 w-full gap-2"
                             onClick={handleValidarECadastrarCartao}
-                            disabled={!isCardFormValid || cardSaving}
+                            disabled={!isCardFormValid}
                           >
-                            {cardSaving ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Validando cartão...
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="h-4 w-4" />
-                                Cadastrar Cartão
-                              </>
-                            )}
+                            <CreditCard className="h-4 w-4" />
+                            Confirmar Dados do Cartão
                           </Button>
                         </div>
                       )}
@@ -768,7 +799,7 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                           <div className="mt-4 flex gap-3">
                             <Button
                               variant="outline"
-                              onClick={() => setStep5Phase(userAddresses.length > 0 ? 'address-select' : 'card-form')}
+                              onClick={() => setStep5Phase(userAddresses.length > 0 ? 'address-select' : pendingCardId ? 'selection' : 'card-form')}
                             >
                               Voltar
                             </Button>
@@ -812,20 +843,33 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
                                 <label
                                   key={card.id}
                                   className={cn(
-                                    'flex cursor-pointer items-center gap-3 rounded-lg border border-border p-4 transition-colors',
-                                    selectedCardId === card.id && 'border-primary bg-primary/5'
+                                    'flex cursor-pointer items-start gap-3 rounded-lg border border-border p-4 transition-colors',
+                                    selectedCardId === card.id && 'border-primary bg-primary/5',
+                                    !card.enderecoCobranca && 'cursor-default opacity-60'
                                   )}
                                 >
-                                  <RadioGroupItem value={card.id} id={card.id} />
+                                  <RadioGroupItem value={card.id} id={card.id} disabled={!card.enderecoCobranca} className="mt-1" />
                                   <div className="flex-1">
                                     <p className="font-medium text-foreground">{card.nome}</p>
                                     <p className="text-sm text-muted-foreground">
                                       {card.numeroMascarado} &bull; Validade {card.validade}
                                     </p>
-                                    {card.enderecoCobranca && (
+                                    {card.enderecoCobranca ? (
                                       <p className="text-xs text-muted-foreground">
                                         {card.enderecoCobranca.logradouro}{card.enderecoCobranca.numero ? `, ${card.enderecoCobranca.numero}` : ''} — {card.enderecoCobranca.cidade}
                                       </p>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        className="mt-1 text-xs text-primary underline-offset-2 hover:underline"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          setPendingCardId(card.id)
+                                          setStep5Phase(userAddresses.length > 0 ? 'address-select' : 'address-form')
+                                        }}
+                                      >
+                                        Adicionar endereço de cobrança
+                                      </button>
                                     )}
                                   </div>
                                   <CreditCard className="h-5 w-5 text-muted-foreground" />
