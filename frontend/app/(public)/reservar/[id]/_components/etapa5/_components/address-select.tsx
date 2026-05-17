@@ -37,7 +37,7 @@ export function AddressSelect({
       {addresses.length > 0 ? (
         <>
           <Select value={selectedAddressId} onValueChange={onSelectedAddressIdChange}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione um endereço" />
             </SelectTrigger>
             <SelectContent>
