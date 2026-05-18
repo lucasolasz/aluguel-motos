@@ -1,0 +1,9 @@
+target/
+.mvn/
+mvnw.cmd
+.git
+.gitignore
+*.md
+.dockerignore
+Dockerfile
+docker-compose.portainer.yml

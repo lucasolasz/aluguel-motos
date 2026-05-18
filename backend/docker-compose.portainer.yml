@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: America/Sao_Paulo
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - network_public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  backend:
+    image: ghcr.io/lucasolasz/aluguel-motos-backend:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      TZ: America/Sao_Paulo
+    networks:
+      - network_public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.aluguel-motos-api.rule=Host(`${API_DOMAIN}`)
+        - traefik.http.routers.aluguel-motos-api.entrypoints=websecure
+        - traefik.http.routers.aluguel-motos-api.tls.certresolver=letsencryptresolver
+        - traefik.http.services.aluguel-motos-api.loadbalancer.server.port=8080
+
+volumes:
+  pgdata:
+
+networks:
+  network_public:
+    external: true
