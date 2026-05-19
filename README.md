@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aluguel Motos
 
-## Getting Started
+Aplicação full-stack para aluguel de motos.
 
-First, run the development server:
+## Stack
+
+- **Backend:** Spring Boot 3.5 (Java 21) + PostgreSQL
+- **Frontend:** Next.js 16 (App Router) + Tailwind CSS + shadcn/ui
+
+---
+
+## Rodar localmente
+
+**Pré-requisitos:** Java 21, Maven, Node.js 20+, Docker
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# PostgreSQL
+docker run --name postgres-aluguel -e POSTGRES_PASSWORD=lucas123 -p 5432:5432 -d postgres
+
+# Backend (porta 8080)
+cd backend && mvn spring-boot:run
+
+# Frontend (porta 3000)
+cd frontend && npm install && npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+O banco é recriado a cada restart (`create-drop` + `data.sql`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> **Nota:** As chamadas ao backend usam o prefixo `/api` nos endpoints (ex: `/api/motos`). A URL base **não** inclui `/api` — ela é definida em `frontend/lib/config.ts` e propagada para todos os services.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Frontend (Vercel)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Conecte o repositório à Vercel
+2. Framework: Next.js (auto-detectado)
+3. Root Directory: `frontend`
+4. Configure a env var:
 
-## Deploy on Vercel
+| Variável | Valor |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://rioriderentalapi.ltech.app.br` |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Essa é a **única** variável de ambiente necessária no frontend. Todos os endpoints incluem `/api` no caminho (ex: `/api/motos`, `/auth/login`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Backend (Docker)
+
+O backend é deployado via `docker-compose.portainer.yml`. Env vars necessárias:
+
+| Variável | Descrição |
+|---|---|
+| `DB_URL` | JDBC URL do PostgreSQL |
+| `DB_USER` | Usuário do banco |
+| `DB_PASSWORD` | Senha do banco |
+| `JWT_SECRET` | Chave de assinatura JWT |
+| `CORS_ORIGINS` | Origens permitidas, separadas por vírgula |
