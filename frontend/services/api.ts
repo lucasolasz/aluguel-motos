@@ -1,4 +1,4 @@
-const API_URL = process.env.API_URL || "http://localhost:8080/api";
+import { API_URL } from "@/lib/config";
 
 export async function apiFetch<T>(
   endpoint: string,

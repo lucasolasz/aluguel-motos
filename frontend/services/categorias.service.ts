@@ -3,7 +3,7 @@ import { Categoria } from "@/lib/types";
 import { mapCategorias, type CategoriaDTO } from "@/lib/mappers";
 
 export async function getCategorias(): Promise<Categoria[]> {
-  const dtos = await apiFetch<CategoriaDTO[]>("/categorias");
+  const dtos = await apiFetch<CategoriaDTO[]>("/api/categorias");
   return mapCategorias(dtos);
 }
 
