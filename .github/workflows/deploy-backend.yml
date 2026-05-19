@@ -13,7 +13,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: Production
+    environment: BackendProduction
     permissions:
       contents: read
       packages: write
