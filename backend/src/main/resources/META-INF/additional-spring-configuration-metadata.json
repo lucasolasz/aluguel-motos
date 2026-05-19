@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "cors.origins",
+    "type": "java.lang.String",
+    "description": "Endereço de origem permitido para requisições CORS. Exemplo: http://localhost:3000"
+  },
+  {
+    "name": "api.security.token.secret",
+    "type": "java.lang.String",
+    "description": "Chave secreta usada para assinar e verificar tokens JWT. Deve ser uma string longa e segura."
+  }
+]}
