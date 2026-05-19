@@ -25,9 +25,15 @@ public class SecurityConfig {
     private String corsOrigins;
 
     private final SecurityFilter securityFilter;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(SecurityFilter securityFilter) {
+    public SecurityConfig(SecurityFilter securityFilter,
+                          CustomAuthenticationEntryPoint authenticationEntryPoint,
+                          CustomAccessDeniedHandler accessDeniedHandler) {
         this.securityFilter = securityFilter;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -36,6 +42,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/motos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
