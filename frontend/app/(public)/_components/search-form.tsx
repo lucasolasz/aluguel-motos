@@ -14,7 +14,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { gerarHorariosReserva } from '@/lib/data'
+import {
+  horariosDevolucaoValidos,
+  horariosRetiradaValidos,
+  startOfToday,
+} from '@/lib/data'
 import { Categoria, Local } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -32,7 +36,6 @@ interface SearchFormProps {
 
 export function SearchForm({ locais, variant = 'default', className }: SearchFormProps) {
   const router = useRouter()
-  const horarios = useMemo(() => gerarHorariosReserva(), [])
 
   const [localRetiradaId, setLocalRetiradaId] = useState<string>('')
   const [pickupDate, setPickupDate] = useState<Date | undefined>(undefined)
@@ -64,6 +67,23 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
     const timer = setTimeout(() => setHighlight(false), 2500)
     return () => clearTimeout(timer)
   }, [])
+
+  const horariosRetirada = useMemo(
+    () => horariosRetiradaValidos(pickupDate),
+    [pickupDate],
+  )
+  const horariosDevolucao = useMemo(
+    () => horariosDevolucaoValidos(pickupDate, horaRetirada, returnDate),
+    [pickupDate, horaRetirada, returnDate],
+  )
+
+  useEffect(() => {
+    if (horaRetirada && !horariosRetirada.includes(horaRetirada)) setHoraRetirada('')
+  }, [horariosRetirada, horaRetirada])
+
+  useEffect(() => {
+    if (horaDevolucao && !horariosDevolucao.includes(horaDevolucao)) setHoraDevolucao('')
+  }, [horariosDevolucao, horaDevolucao])
 
   const showDevolucao = !!localRetiradaId && !!pickupDate && !!horaRetirada
 
@@ -152,7 +172,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
                         setReturnDate(undefined)
                       }
                     }}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < startOfToday()}
                   />
                 </PopoverContent>
               </Popover>
@@ -165,7 +185,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
                   <SelectValue placeholder="--:--" />
                 </SelectTrigger>
                 <SelectContent position="popper" className="max-h-64">
-                  {horarios.map((h) => (
+                  {horariosRetirada.map((h) => (
                     <SelectItem key={h} value={h}>
                       {h}
                     </SelectItem>
@@ -225,7 +245,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
                         setReturnDate(date)
                         setReturnOpen(false)
                       }}
-                      disabled={(date) => date < (pickupDate || new Date())}
+                      disabled={(date) => date < (pickupDate || startOfToday())}
                     />
                   </PopoverContent>
                 </Popover>
@@ -238,7 +258,12 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
                     <SelectValue placeholder="--:--" />
                   </SelectTrigger>
                   <SelectContent position="popper" className="max-h-64">
-                    {horarios.map((h) => (
+                    {horariosDevolucao.length === 0 && (
+                      <div className="px-2 py-3 text-xs text-muted-foreground">
+                        Sem horário disponível
+                      </div>
+                    )}
+                    {horariosDevolucao.map((h) => (
                       <SelectItem key={h} value={h}>
                         {h}
                       </SelectItem>

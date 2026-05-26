@@ -3,7 +3,7 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, MapPin, Pencil } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
@@ -15,7 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { gerarHorariosReserva } from '@/lib/data'
+import {
+  horariosDevolucaoValidos,
+  horariosRetiradaValidos,
+  startOfToday,
+} from '@/lib/data'
 import type { Local } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -56,7 +60,26 @@ export function DatasStep({
   readOnly = false,
   onEdit,
 }: DatasStepProps) {
-  const horarios = useMemo(() => gerarHorariosReserva(), [])
+  const horariosRetirada = useMemo(
+    () => horariosRetiradaValidos(pickupDate),
+    [pickupDate],
+  )
+  const horariosDevolucao = useMemo(
+    () => horariosDevolucaoValidos(pickupDate, horaRetirada, returnDate),
+    [pickupDate, horaRetirada, returnDate],
+  )
+
+  useEffect(() => {
+    if (horaRetirada && !horariosRetirada.includes(horaRetirada)) {
+      onHoraRetiradaChange('')
+    }
+  }, [horariosRetirada, horaRetirada, onHoraRetiradaChange])
+
+  useEffect(() => {
+    if (horaDevolucao && !horariosDevolucao.includes(horaDevolucao)) {
+      onHoraDevolucaoChange('')
+    }
+  }, [horariosDevolucao, horaDevolucao, onHoraDevolucaoChange])
 
   if (readOnly) {
     const localRetirada = locais.find((l) => l.id === localRetiradaId)
@@ -192,7 +215,7 @@ export function DatasStep({
                   mode="single"
                   selected={pickupDate}
                   onSelect={onPickupChange}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => date < startOfToday()}
                   initialFocus
                 />
               </PopoverContent>
@@ -206,7 +229,7 @@ export function DatasStep({
                 <SelectValue placeholder="--:--" />
               </SelectTrigger>
               <SelectContent position="popper" className="max-h-64">
-                {horarios.map((h) => (
+                {horariosRetirada.map((h) => (
                   <SelectItem key={h} value={h}>
                     {h}
                   </SelectItem>
@@ -261,7 +284,7 @@ export function DatasStep({
                   mode="single"
                   selected={returnDate}
                   onSelect={onReturnChange}
-                  disabled={(date) => date < (pickupDate || new Date())}
+                  disabled={(date) => date < (pickupDate || startOfToday())}
                   initialFocus
                 />
               </PopoverContent>
@@ -275,7 +298,12 @@ export function DatasStep({
                 <SelectValue placeholder="--:--" />
               </SelectTrigger>
               <SelectContent position="popper" className="max-h-64">
-                {horarios.map((h) => (
+                {horariosDevolucao.length === 0 && (
+                  <div className="px-2 py-3 text-xs text-muted-foreground">
+                    Sem horário disponível
+                  </div>
+                )}
+                {horariosDevolucao.map((h) => (
                   <SelectItem key={h} value={h}>
                     {h}
                   </SelectItem>

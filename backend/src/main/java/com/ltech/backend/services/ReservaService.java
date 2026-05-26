@@ -1,6 +1,7 @@
 package com.ltech.backend.services;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -69,7 +70,7 @@ public class ReservaService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto não disponível");
         }
 
-        long dias = ChronoUnit.DAYS.between(dto.dataRetirada(), dto.dataDevolucao());
+        long dias = Math.max(1, ChronoUnit.DAYS.between(dto.dataRetirada(), dto.dataDevolucao()));
 
         List<Reserva> conflitos = reservaRepository.findOverlapping(
                 moto.getId(), dto.dataRetirada(), dto.dataDevolucao());
@@ -176,8 +177,9 @@ public class ReservaService {
         if (dataRetirada.isBefore(hoje)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data de retirada não pode ser no passado");
         }
-        if (!dataDevolucao.isAfter(dataRetirada)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data de devolução deve ser após a retirada");
+        if (dataDevolucao.isBefore(dataRetirada)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Data de devolução não pode ser anterior à retirada");
         }
         if (ChronoUnit.DAYS.between(dataRetirada, dataDevolucao) > 365) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Período máximo de reserva é 365 dias");
@@ -196,6 +198,13 @@ public class ReservaService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Horário de retirada já passou");
             }
+        }
+        LocalDateTime inicio = LocalDateTime.of(dataRetirada, horaRetirada);
+        LocalDateTime fim = LocalDateTime.of(dataDevolucao, horaDevolucao);
+        Duration duracao = Duration.between(inicio, fim);
+        if (duracao.toMinutes() < 60) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Duração mínima da reserva é 1 hora");
         }
     }
 
