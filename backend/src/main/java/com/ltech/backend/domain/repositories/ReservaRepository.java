@@ -19,6 +19,13 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
     int countByUsuarioId(String usuarioId);
 
     @Query("""
+        SELECT COUNT(r) FROM Reserva r
+        WHERE r.usuario.id = :usuarioId
+          AND r.status = com.ltech.backend.domain.entities.StatusReserva.PENDENTE
+    """)
+    int countPendentesByUsuario(@Param("usuarioId") String usuarioId);
+
+    @Query("""
         SELECT r FROM Reserva r
         WHERE r.moto.id = :motoId
           AND r.status IN (
