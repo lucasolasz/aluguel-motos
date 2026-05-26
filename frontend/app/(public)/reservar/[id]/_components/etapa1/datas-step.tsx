@@ -71,7 +71,7 @@ export function DatasStep({
           <div className="space-y-1.5">
             <Label className="text-xs">Local</Label>
             <Select value={localRetiradaId} onValueChange={onLocalRetiradaChange}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
@@ -117,7 +117,7 @@ export function DatasStep({
           <div className="space-y-1.5">
             <Label className="text-xs">Horário</Label>
             <Select value={horaRetirada} onValueChange={onHoraRetiradaChange}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="--:--" />
               </SelectTrigger>
               <SelectContent position="popper" className="max-h-64">
@@ -140,7 +140,7 @@ export function DatasStep({
           <div className="space-y-1.5">
             <Label className="text-xs">Local</Label>
             <Select value={localDevolucaoId} onValueChange={onLocalDevolucaoChange}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
@@ -186,7 +186,7 @@ export function DatasStep({
           <div className="space-y-1.5">
             <Label className="text-xs">Horário</Label>
             <Select value={horaDevolucao} onValueChange={onHoraDevolucaoChange}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="--:--" />
               </SelectTrigger>
               <SelectContent position="popper" className="max-h-64">

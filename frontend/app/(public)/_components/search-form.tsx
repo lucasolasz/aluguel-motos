@@ -43,7 +43,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
   const [pickupOpen, setPickupOpen] = useState(false)
   const [returnOpen, setReturnOpen] = useState(false)
 
-  const showDevolucao = !!pickupDate
+  const showDevolucao = !!localRetiradaId && !!pickupDate && !!horaRetirada
 
   const canSearch =
     !!localRetiradaId &&
@@ -84,7 +84,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Local</label>
               <Select value={localRetiradaId} onValueChange={setLocalRetiradaId}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                   <SelectValue placeholder="Selecione o local" />
                 </SelectTrigger>
@@ -135,7 +135,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Horário</label>
               <Select value={horaRetirada} onValueChange={setHoraRetirada}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="--:--" />
                 </SelectTrigger>
                 <SelectContent position="popper" className="max-h-64">
@@ -160,7 +160,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Local</label>
                 <Select value={localDevolucaoId} onValueChange={setLocalDevolucaoId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                     <SelectValue placeholder="Selecione o local" />
                   </SelectTrigger>
@@ -208,7 +208,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Horário</label>
                 <Select value={horaDevolucao} onValueChange={setHoraDevolucao}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="--:--" />
                   </SelectTrigger>
                   <SelectContent position="popper" className="max-h-64">
