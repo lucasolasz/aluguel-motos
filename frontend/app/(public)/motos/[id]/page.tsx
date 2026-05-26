@@ -13,7 +13,17 @@ import { ArrowLeft, Check, Shield, Gauge, Fuel, Weight, Cog, ArrowUpDown } from 
 
 interface MotorcycleDetailPageProps {
   params: Promise<{ id: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
+
+const FORWARDED_KEYS = [
+  'local_retirada',
+  'pickup',
+  'hora_retirada',
+  'local_devolucao',
+  'return',
+  'hora_devolucao',
+] as const
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -37,8 +47,17 @@ export async function generateMetadata({ params }: MotorcycleDetailPageProps) {
   }
 }
 
-export default async function MotorcycleDetailPage({ params }: MotorcycleDetailPageProps) {
+export default async function MotorcycleDetailPage({ params, searchParams }: MotorcycleDetailPageProps) {
   const { id } = await params
+  const sp = searchParams ? await searchParams : {}
+
+  const qs = new URLSearchParams()
+  for (const k of FORWARDED_KEYS) {
+    const v = sp[k]
+    const value = Array.isArray(v) ? v[0] : v
+    if (value) qs.set(k, value)
+  }
+  const reservarHref = qs.toString() ? `/reservar/${id}?${qs.toString()}` : `/reservar/${id}`
 
   let moto
   try {
@@ -128,7 +147,7 @@ export default async function MotorcycleDetailPage({ params }: MotorcycleDetailP
                     </div>
                   </div>
                   <Button asChild size="lg" className="mt-6 w-full" disabled={!moto.disponivel}>
-                    <Link href={`/reservar/${moto.id}`}>
+                    <Link href={reservarHref}>
                       {moto.disponivel ? 'Reservar Agora' : 'Indisponível'}
                     </Link>
                   </Button>

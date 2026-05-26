@@ -61,6 +61,16 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
   const [isComplete, setIsComplete] = useState(false)
   const [reservaId, setReservaId] = useState<string>('')
   const [finalizationError, setFinalizationError] = useState('')
+  const [editingStep1, setEditingStep1] = useState(false)
+
+  const isStep1Prefilled =
+    !!localRetiradaId &&
+    !!pickupDate &&
+    !!horaRetirada &&
+    !!localDevolucaoId &&
+    !!returnDate &&
+    !!horaDevolucao
+  const readOnlyStep1 = isStep1Prefilled && !editingStep1
 
   const step5 = useStep5({ active: currentStep === 5 })
 
@@ -77,28 +87,28 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
     let restoredAcessorios: { acessorioId: string; quantity: number }[] = []
     let completedSteps: number[] = []
 
+    if (params.get('pickup')) restoredPickup = new Date(params.get('pickup')!)
+    if (params.get('return')) restoredReturn = new Date(params.get('return')!)
+    if (params.get('hora_retirada')) restoredHoraRetirada = params.get('hora_retirada')!
+    if (params.get('hora_devolucao')) restoredHoraDevolucao = params.get('hora_devolucao')!
+    if (params.get('local_retirada')) restoredLocalRetiradaId = params.get('local_retirada')!
+    if (params.get('local_devolucao')) restoredLocalDevolucaoId = params.get('local_devolucao')!
+
     const saved = sessionStorage.getItem(`booking-state-${moto.id}`)
     if (saved) {
       try {
         const state = JSON.parse(saved)
-        if (state.pickupDate) restoredPickup = new Date(state.pickupDate)
-        if (state.returnDate) restoredReturn = new Date(state.returnDate)
-        if (state.horaRetirada) restoredHoraRetirada = state.horaRetirada
-        if (state.horaDevolucao) restoredHoraDevolucao = state.horaDevolucao
-        if (state.localRetiradaId) restoredLocalRetiradaId = state.localRetiradaId
-        if (state.localDevolucaoId) restoredLocalDevolucaoId = state.localDevolucaoId
+        if (!restoredPickup && state.pickupDate) restoredPickup = new Date(state.pickupDate)
+        if (!restoredReturn && state.returnDate) restoredReturn = new Date(state.returnDate)
+        if (!restoredHoraRetirada && state.horaRetirada) restoredHoraRetirada = state.horaRetirada
+        if (!restoredHoraDevolucao && state.horaDevolucao) restoredHoraDevolucao = state.horaDevolucao
+        if (!restoredLocalRetiradaId && state.localRetiradaId) restoredLocalRetiradaId = state.localRetiradaId
+        if (!restoredLocalDevolucaoId && state.localDevolucaoId) restoredLocalDevolucaoId = state.localDevolucaoId
         if (state.selectedSeguroId) restoredSeguroId = state.selectedSeguroId
         if (state.selectedAcessorios) restoredAcessorios = state.selectedAcessorios
         if (Array.isArray(state.completedSteps)) completedSteps = state.completedSteps
       } catch {}
     }
-
-    if (!restoredPickup && params.get('pickup')) restoredPickup = new Date(params.get('pickup')!)
-    if (!restoredReturn && params.get('return')) restoredReturn = new Date(params.get('return')!)
-    if (!restoredHoraRetirada && params.get('hora_retirada')) restoredHoraRetirada = params.get('hora_retirada')!
-    if (!restoredHoraDevolucao && params.get('hora_devolucao')) restoredHoraDevolucao = params.get('hora_devolucao')!
-    if (!restoredLocalRetiradaId && params.get('local_retirada')) restoredLocalRetiradaId = params.get('local_retirada')!
-    if (!restoredLocalDevolucaoId && params.get('local_devolucao')) restoredLocalDevolucaoId = params.get('local_devolucao')!
 
     if (restoredPickup) setPickupDate(restoredPickup)
     if (restoredReturn) setReturnDate(restoredReturn)
@@ -319,6 +329,8 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
                       onLocalRetiradaChange={setLocalRetiradaId}
                       onLocalDevolucaoChange={setLocalDevolucaoId}
                       days={days}
+                      readOnly={readOnlyStep1}
+                      onEdit={() => setEditingStep1(true)}
                     />
                   )}
 

@@ -61,6 +61,12 @@ public class ReservaService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Datas inválidas");
         }
 
+        List<Reserva> conflitos = reservaRepository.findOverlapping(
+                moto.getId(), dto.dataRetirada(), dto.dataDevolucao());
+        if (!conflitos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Moto indisponível no período");
+        }
+
         Local localRetirada = localRepository.findById(UUID.fromString(dto.localRetiradaId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local de retirada não encontrado"));
         Local localDevolucao = localRepository.findById(UUID.fromString(dto.localDevolucaoId()))

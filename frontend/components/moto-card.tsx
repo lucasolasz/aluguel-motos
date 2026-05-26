@@ -7,9 +7,11 @@ import Link from 'next/link'
 
 interface MotoCardProps {
   moto: Moto
+  reservationQs?: string
 }
 
-export function MotoCard({ moto }: MotoCardProps) {
+export function MotoCard({ moto, reservationQs }: MotoCardProps) {
+  const detailHref = reservationQs ? `/motos/${moto.id}?${reservationQs}` : `/motos/${moto.id}`
   const fotoUrl = moto.fotos.find(f => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
 
   return (
@@ -59,7 +61,7 @@ export function MotoCard({ moto }: MotoCardProps) {
             <p className="text-xs text-muted-foreground">por dia</p>
           </div>
           <Button asChild size="sm" disabled={!moto.disponivel}>
-            <Link href={`/motos/${moto.id}`}>
+            <Link href={detailHref}>
               Reservar
             </Link>
           </Button>

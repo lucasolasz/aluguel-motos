@@ -16,12 +16,48 @@ import type { Moto, Categoria } from '@/lib/types'
 interface MotosListProps {
   motos: Moto[]
   categorias: Categoria[]
+  searchParams?: Record<string, string>
 }
 
-export function MotosList({ motos, categorias }: MotosListProps) {
+const FORWARDED_KEYS = [
+  'local_retirada',
+  'pickup',
+  'hora_retirada',
+  'local_devolucao',
+  'return',
+  'hora_devolucao',
+] as const
+
+export function MotosList({ motos, categorias, searchParams = {} }: MotosListProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('price-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const reservationQs = useMemo(() => {
+    const qs = new URLSearchParams()
+    for (const k of FORWARDED_KEYS) {
+      if (searchParams[k]) qs.set(k, searchParams[k]!)
+    }
+    return qs.toString()
+  }, [searchParams])
+
+  const hasPeriodo = !!searchParams.pickup && !!searchParams.return
+
+  const periodoLabel = useMemo(() => {
+    if (!hasPeriodo) return ''
+    try {
+      const fmt = new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+      const ini = fmt.format(new Date(searchParams.pickup!))
+      const fim = fmt.format(new Date(searchParams.return!))
+      return `${ini} → ${fim}`
+    } catch {
+      return ''
+    }
+  }, [hasPeriodo, searchParams])
 
   const filteredMotos = useMemo(() => {
     let filtered = [...motos]
@@ -50,6 +86,12 @@ export function MotosList({ motos, categorias }: MotosListProps) {
 
   return (
     <>
+      {hasPeriodo && periodoLabel && (
+        <div className="mb-4 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
+          <span className="text-muted-foreground">Período selecionado: </span>
+          <span className="font-medium text-foreground">{periodoLabel}</span>
+        </div>
+      )}
       {/* Toolbar */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -120,7 +162,7 @@ export function MotosList({ motos, categorias }: MotosListProps) {
           }
         >
           {filteredMotos.map((moto) => (
-            <MotoCard key={moto.id} moto={moto} />
+            <MotoCard key={moto.id} moto={moto} reservationQs={reservationQs} />
           ))}
         </div>
       ) : (

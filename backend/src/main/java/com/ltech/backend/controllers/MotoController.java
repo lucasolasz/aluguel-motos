@@ -1,12 +1,15 @@
 package com.ltech.backend.controllers;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ltech.backend.domain.dtos.CategoriaDTO;
@@ -26,12 +29,14 @@ public class MotoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MotoDTO>> obterTodas() {
-        List<MotoDTO> motos = motoService.obterTodas()
-            .stream()
-            .map(this::toMotoDTO)
-            .toList();
-        return ResponseEntity.ok(motos);
+    public ResponseEntity<List<MotoDTO>> obterTodas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataRetirada,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataDevolucao) {
+        List<Moto> motos = (dataRetirada != null && dataDevolucao != null)
+                ? motoService.obterDisponiveisPorPeriodo(dataRetirada, dataDevolucao)
+                : motoService.obterTodas();
+        List<MotoDTO> dtos = motos.stream().map(this::toMotoDTO).toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/{id}")

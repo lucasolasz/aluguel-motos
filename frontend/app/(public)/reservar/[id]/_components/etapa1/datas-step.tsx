@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarIcon, MapPin } from 'lucide-react'
+import { CalendarIcon, MapPin, Pencil } from 'lucide-react'
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -34,6 +34,8 @@ interface DatasStepProps {
   onLocalRetiradaChange: (id: string) => void
   onLocalDevolucaoChange: (id: string) => void
   days: number
+  readOnly?: boolean
+  onEdit?: () => void
 }
 
 export function DatasStep({
@@ -51,8 +53,91 @@ export function DatasStep({
   onLocalRetiradaChange,
   onLocalDevolucaoChange,
   days,
+  readOnly = false,
+  onEdit,
 }: DatasStepProps) {
   const horarios = useMemo(() => gerarHorariosReserva(), [])
+
+  if (readOnly) {
+    const localRetirada = locais.find((l) => l.id === localRetiradaId)
+    const localDevolucao = locais.find((l) => l.id === localDevolucaoId)
+    const dataRetiradaLabel = pickupDate
+      ? format(pickupDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+      : ''
+    const dataDevolucaoLabel = returnDate
+      ? format(returnDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+      : ''
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Local, datas e horários</h2>
+            <p className="mt-1 text-muted-foreground">Dados informados na busca</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onEdit} className="gap-2">
+            <Pencil className="h-4 w-4" />
+            Editar
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Retirada
+            </p>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">
+                  {localRetirada
+                    ? `${localRetirada.nome} — ${localRetirada.cidade}/${localRetirada.estado}`
+                    : '—'}
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CalendarIcon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="text-sm text-foreground">
+                  {dataRetiradaLabel} às {horaRetirada}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Devolução
+            </p>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">
+                  {localDevolucao
+                    ? `${localDevolucao.nome} — ${localDevolucao.cidade}/${localDevolucao.estado}`
+                    : '—'}
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CalendarIcon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="text-sm text-foreground">
+                  {dataDevolucaoLabel} às {horaDevolucao}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {days > 0 && (
+          <div className="rounded-lg bg-muted p-4 text-center">
+            <p className="text-sm text-muted-foreground">Duração do aluguel</p>
+            <p className="text-2xl font-bold text-foreground">
+              {days} {days === 1 ? 'dia' : 'dias'}
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
