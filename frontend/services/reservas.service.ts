@@ -6,6 +6,10 @@ export interface CreateReservaPayload {
   seguroId: string
   dataRetirada: string
   dataDevolucao: string
+  horaRetirada: string
+  horaDevolucao: string
+  localRetiradaId: string
+  localDevolucaoId: string
   cartaoId?: string
   acessorios: { acessorioId: string; quantidade: number }[]
 }

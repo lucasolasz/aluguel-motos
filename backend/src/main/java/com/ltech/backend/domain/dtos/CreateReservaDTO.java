@@ -1,6 +1,7 @@
 package com.ltech.backend.domain.dtos;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +11,10 @@ public record CreateReservaDTO(
         @NotBlank String motoId,
         @NotNull LocalDate dataRetirada,
         @NotNull LocalDate dataDevolucao,
+        @NotNull LocalTime horaRetirada,
+        @NotNull LocalTime horaDevolucao,
+        @NotBlank String localRetiradaId,
+        @NotBlank String localDevolucaoId,
         String seguroId,
         String cartaoId,
         List<AcessorioItemDTO> acessorios) {

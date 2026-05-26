@@ -14,6 +14,7 @@ import com.ltech.backend.domain.dtos.CreateReservaDTO;
 import com.ltech.backend.domain.dtos.ReservaDTO;
 import com.ltech.backend.domain.entities.Acessorio;
 import com.ltech.backend.domain.entities.Cartao;
+import com.ltech.backend.domain.entities.Local;
 import com.ltech.backend.domain.entities.Moto;
 import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.ReservaAcessorioItem;
@@ -22,6 +23,7 @@ import com.ltech.backend.domain.entities.StatusReserva;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.AcessorioRepository;
 import com.ltech.backend.domain.repositories.CartaoRepository;
+import com.ltech.backend.domain.repositories.LocalRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
 import com.ltech.backend.domain.repositories.SeguroRepository;
@@ -37,6 +39,7 @@ public class ReservaService {
     private SeguroRepository seguroRepository;
     private AcessorioRepository acessorioRepository;
     private CartaoRepository cartaoRepository;
+    private LocalRepository localRepository;
 
     public List<ReservaDTO> listarMinhasReservas(String usuarioId) {
         return reservaRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId)
@@ -57,6 +60,11 @@ public class ReservaService {
         if (dias <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Datas inválidas");
         }
+
+        Local localRetirada = localRepository.findById(UUID.fromString(dto.localRetiradaId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local de retirada não encontrado"));
+        Local localDevolucao = localRepository.findById(UUID.fromString(dto.localDevolucaoId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Local de devolução não encontrado"));
 
         Seguro seguro = null;
         BigDecimal totalSeguro = BigDecimal.ZERO;
@@ -83,6 +91,10 @@ public class ReservaService {
                 .cartao(cartao)
                 .dataRetirada(dto.dataRetirada())
                 .dataDevolucao(dto.dataDevolucao())
+                .horaRetirada(dto.horaRetirada())
+                .horaDevolucao(dto.horaDevolucao())
+                .localRetirada(localRetirada)
+                .localDevolucao(localDevolucao)
                 .totalDias((int) dias)
                 .precoPorDia(moto.getPrecoPorDia())
                 .caucao(moto.getCaucao())

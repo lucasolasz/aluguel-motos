@@ -1,23 +1,31 @@
 package com.ltech.backend.controllers;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ltech.backend.domain.dtos.ClienteDTO;
+import com.ltech.backend.domain.dtos.CreateLocalDTO;
+import com.ltech.backend.domain.dtos.LocalDTO;
 import com.ltech.backend.domain.dtos.ReservaAdminDTO;
 import com.ltech.backend.domain.dtos.UpdateReservaStatusDTO;
 import com.ltech.backend.domain.entities.StatusReserva;
 import com.ltech.backend.security.UsuarioDetails;
 import com.ltech.backend.services.AdminService;
+import com.ltech.backend.services.LocalService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -26,6 +34,7 @@ import lombok.AllArgsConstructor;
 public class AdminController {
 
     private AdminService adminService;
+    private LocalService localService;
 
     @GetMapping("/reservas")
     public ResponseEntity<List<ReservaAdminDTO>> listarTodasReservas(
@@ -53,5 +62,34 @@ public class AdminController {
             @PathVariable String id,
             @AuthenticationPrincipal UsuarioDetails userDetails) {
         return ResponseEntity.ok(adminService.buscarCliente(id));
+    }
+
+    @GetMapping("/locais")
+    public ResponseEntity<List<LocalDTO>> listarLocais(
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(localService.listarTodos());
+    }
+
+    @PostMapping("/locais")
+    public ResponseEntity<LocalDTO> criarLocal(
+            @Valid @RequestBody CreateLocalDTO dto,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(localService.criar(dto));
+    }
+
+    @PutMapping("/locais/{id}")
+    public ResponseEntity<LocalDTO> atualizarLocal(
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateLocalDTO dto,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(localService.atualizar(id, dto));
+    }
+
+    @DeleteMapping("/locais/{id}")
+    public ResponseEntity<Void> desativarLocal(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        localService.desativar(id);
+        return ResponseEntity.noContent().build();
     }
 }

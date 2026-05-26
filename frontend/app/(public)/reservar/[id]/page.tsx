@@ -2,6 +2,7 @@ import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { getAcessorios } from '@/services/acessorios.service'
+import { getLocais } from '@/services/locais.service'
 import { getMotoById } from '@/services/motos.service'
 import { getSeguros } from '@/services/seguros.service'
 import Link from 'next/link'
@@ -34,7 +35,18 @@ export default async function BookingPage({ params }: BookingPageProps) {
     )
   }
 
-  const [seguros, acessorios] = await Promise.all([getSeguros(), getAcessorios()])
+  const [seguros, acessorios, locais] = await Promise.all([
+    getSeguros(),
+    getAcessorios(),
+    getLocais(),
+  ])
 
-  return <BookingPageClient moto={moto} seguros={seguros} acessorios={acessorios} />
+  return (
+    <BookingPageClient
+      moto={moto}
+      seguros={seguros}
+      acessorios={acessorios}
+      locais={locais}
+    />
+  )
 }

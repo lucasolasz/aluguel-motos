@@ -3,6 +3,7 @@ package com.ltech.backend.domain.entities;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -60,6 +61,18 @@ public class Reserva {
     private LocalDate dataRetirada;
 
     private LocalDate dataDevolucao;
+
+    private LocalTime horaRetirada;
+
+    private LocalTime horaDevolucao;
+
+    @ManyToOne
+    @JoinColumn(name = "local_retirada_id")
+    private Local localRetirada;
+
+    @ManyToOne
+    @JoinColumn(name = "local_devolucao_id")
+    private Local localDevolucao;
 
     private int totalDias;
 

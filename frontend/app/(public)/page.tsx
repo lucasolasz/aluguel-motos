@@ -2,6 +2,7 @@ import { CategoriaCard } from "@/components/categoria-card";
 import { MotoCard } from "@/components/moto-card";
 import { Button } from "@/components/ui/button";
 import { getCategorias } from "@/services/categorias.service";
+import { getLocais } from "@/services/locais.service";
 import { getMotos } from "@/services/motos.service";
 import Link from "next/link";
 import { Features } from "./_components/features";
@@ -10,8 +11,11 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export default async function HomePage() {
-  const categorias = await getCategorias();
-  const motos = await getMotos();
+  const [categorias, motos, locais] = await Promise.all([
+    getCategorias(),
+    getMotos(),
+    getLocais(),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -32,7 +36,7 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="mx-auto mt-10 max-w-4xl">
-              <SearchForm categories={categorias} />
+              <SearchForm categories={categorias} locais={locais} />
             </div>
           </div>
         </section>

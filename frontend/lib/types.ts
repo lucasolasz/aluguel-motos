@@ -42,11 +42,35 @@ export interface UserProfile {
   createdAt: string
 }
 
+export interface LocalResumo {
+  id: string
+  nome: string
+  cidade: string
+  estado: string
+}
+
+export interface Local {
+  id: string
+  nome: string
+  cep: string
+  logradouro: string
+  numero: string
+  complemento: string | null
+  bairro: string
+  cidade: string
+  estado: string
+  ativo: boolean
+}
+
 export interface Reservation {
   id: string
   status: 'PENDENTE' | 'CONFIRMADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA'
   dataRetirada: string
   dataDevolucao: string
+  horaRetirada: string | null
+  horaDevolucao: string | null
+  localRetirada: LocalResumo | null
+  localDevolucao: LocalResumo | null
   totalDias: number
   moto: {
     id: string

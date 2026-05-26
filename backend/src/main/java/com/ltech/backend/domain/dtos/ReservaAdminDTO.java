@@ -1,5 +1,6 @@
 package com.ltech.backend.domain.dtos;
 
+import com.ltech.backend.domain.entities.Local;
 import com.ltech.backend.domain.entities.Reserva;
 
 public record ReservaAdminDTO(
@@ -7,6 +8,10 @@ public record ReservaAdminDTO(
         String status,
         java.time.LocalDate dataRetirada,
         java.time.LocalDate dataDevolucao,
+        java.time.LocalTime horaRetirada,
+        java.time.LocalTime horaDevolucao,
+        LocalResumoDTO localRetirada,
+        LocalResumoDTO localDevolucao,
         int totalDias,
         MotoResumoDTO moto,
         ClienteResumoDTO cliente,
@@ -25,6 +30,17 @@ public record ReservaAdminDTO(
     public record ClienteResumoDTO(String id, String nome, String email) {
     }
 
+    public record LocalResumoDTO(String id, String nome, String cidade, String estado) {
+        public static LocalResumoDTO from(Local local) {
+            if (local == null) return null;
+            return new LocalResumoDTO(
+                    local.getId().toString(),
+                    local.getNome(),
+                    local.getCidade(),
+                    local.getEstado());
+        }
+    }
+
     public static ReservaAdminDTO from(Reserva reserva) {
         java.util.List<String> imagens = reserva.getMoto().getFotos().stream()
                 .map(f -> f.getUrl())
@@ -39,6 +55,10 @@ public record ReservaAdminDTO(
                 reserva.getStatus().name(),
                 reserva.getDataRetirada(),
                 reserva.getDataDevolucao(),
+                reserva.getHoraRetirada(),
+                reserva.getHoraDevolucao(),
+                LocalResumoDTO.from(reserva.getLocalRetirada()),
+                LocalResumoDTO.from(reserva.getLocalDevolucao()),
                 reserva.getTotalDias(),
                 new MotoResumoDTO(
                         reserva.getMoto().getId().toString(),

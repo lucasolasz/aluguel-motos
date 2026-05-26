@@ -323,11 +323,29 @@ INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
 (gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900-side.png', 1, false);
 
 
+-- LOCAIS
+INSERT INTO locais (id, nome, cep, logradouro, numero, complemento, bairro, cidade, estado, ativo, created_at) VALUES (
+    gen_random_uuid(),
+    'RIO MULTIMARCAS OFICINA DAS MOTOS',
+    '22780-070',
+    'Estr. de Camorim',
+    '628',
+    NULL,
+    'Jacarepaguá',
+    'Rio de Janeiro',
+    'RJ',
+    true,
+    now()
+);
+
+
 -- PERMISSOES
 INSERT INTO permissao (nome) VALUES ('ADMIN_FULL');
 INSERT INTO permissao (nome) VALUES ('RESERVAS_LEITURA');
 INSERT INTO permissao (nome) VALUES ('RESERVAS_ESCRITA');
 INSERT INTO permissao (nome) VALUES ('USUARIOS_LEITURA');
+INSERT INTO permissao (nome) VALUES ('LOCAIS_LEITURA');
+INSERT INTO permissao (nome) VALUES ('LOCAIS_ESCRITA');
 
 -- GRUPOS
 INSERT INTO grupo (nome) VALUES ('DESENVOLVEDORES');
@@ -338,9 +356,9 @@ INSERT INTO grupo (nome) VALUES ('GERAL');
 INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
 SELECT g.id, p.id FROM grupo g, permissao p WHERE g.nome = 'DESENVOLVEDORES';
 
--- GRUPO_PERMISSOES: admins tem ADMIN_FULL + RESERVAS + USUARIOS
+-- GRUPO_PERMISSOES: admins tem ADMIN_FULL + RESERVAS + USUARIOS + LOCAIS
 INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
-SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('ADMIN_FULL', 'RESERVAS_LEITURA', 'RESERVAS_ESCRITA', 'USUARIOS_LEITURA')
+SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('ADMIN_FULL', 'RESERVAS_LEITURA', 'RESERVAS_ESCRITA', 'USUARIOS_LEITURA', 'LOCAIS_LEITURA', 'LOCAIS_ESCRITA')
 WHERE g.nome = 'ADMINS';
 
 -- GRUPO_PERMISSOES: geral tem RESERVAS_LEITURA e RESERVAS_ESCRITA (clientes)

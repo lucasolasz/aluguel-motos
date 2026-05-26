@@ -9,7 +9,7 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { getToken } from '@/lib/auth'
-import type { Acessorio, Moto, Seguro } from '@/lib/types'
+import type { Acessorio, Local, Moto, Seguro } from '@/lib/types'
 import { criarReserva } from '@/services/reservas.service'
 import { BookingStepper } from './booking-stepper'
 import { CompletionScreen } from './completion-screen'
@@ -38,15 +38,20 @@ interface BookingPageClientProps {
   moto: Moto
   seguros: Seguro[]
   acessorios: Acessorio[]
+  locais: Local[]
 }
 
-export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClientProps) {
+export function BookingPageClient({ moto, seguros, acessorios, locais }: BookingPageClientProps) {
   const router = useRouter()
   const defaultSeguroId = seguros.find((s) => s.basico)?.id ?? seguros[0]?.id ?? ''
 
   const [currentStep, setCurrentStep] = useState(1)
   const [pickupDate, setPickupDate] = useState<Date>()
   const [returnDate, setReturnDate] = useState<Date>()
+  const [horaRetirada, setHoraRetirada] = useState<string>('')
+  const [horaDevolucao, setHoraDevolucao] = useState<string>('')
+  const [localRetiradaId, setLocalRetiradaId] = useState<string>('')
+  const [localDevolucaoId, setLocalDevolucaoId] = useState<string>('')
   const [selectedSeguroId, setSelectedSeguroId] = useState(defaultSeguroId)
   const [selectedAcessorios, setSelectedAcessorios] = useState<
     { acessorioId: string; quantity: number }[]
@@ -61,13 +66,13 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const stepParam = params.get('step')
-    if (!stepParam) return
-    const step = parseInt(stepParam, 10)
-    if (isNaN(step) || step < 1 || step > steps.length) return
 
     let restoredPickup: Date | undefined
     let restoredReturn: Date | undefined
+    let restoredHoraRetirada = ''
+    let restoredHoraDevolucao = ''
+    let restoredLocalRetiradaId = ''
+    let restoredLocalDevolucaoId = ''
     let restoredSeguroId = defaultSeguroId
     let restoredAcessorios: { acessorioId: string; quantity: number }[] = []
     let completedSteps: number[] = []
@@ -78,11 +83,36 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
         const state = JSON.parse(saved)
         if (state.pickupDate) restoredPickup = new Date(state.pickupDate)
         if (state.returnDate) restoredReturn = new Date(state.returnDate)
+        if (state.horaRetirada) restoredHoraRetirada = state.horaRetirada
+        if (state.horaDevolucao) restoredHoraDevolucao = state.horaDevolucao
+        if (state.localRetiradaId) restoredLocalRetiradaId = state.localRetiradaId
+        if (state.localDevolucaoId) restoredLocalDevolucaoId = state.localDevolucaoId
         if (state.selectedSeguroId) restoredSeguroId = state.selectedSeguroId
         if (state.selectedAcessorios) restoredAcessorios = state.selectedAcessorios
         if (Array.isArray(state.completedSteps)) completedSteps = state.completedSteps
       } catch {}
     }
+
+    if (!restoredPickup && params.get('pickup')) restoredPickup = new Date(params.get('pickup')!)
+    if (!restoredReturn && params.get('return')) restoredReturn = new Date(params.get('return')!)
+    if (!restoredHoraRetirada && params.get('hora_retirada')) restoredHoraRetirada = params.get('hora_retirada')!
+    if (!restoredHoraDevolucao && params.get('hora_devolucao')) restoredHoraDevolucao = params.get('hora_devolucao')!
+    if (!restoredLocalRetiradaId && params.get('local_retirada')) restoredLocalRetiradaId = params.get('local_retirada')!
+    if (!restoredLocalDevolucaoId && params.get('local_devolucao')) restoredLocalDevolucaoId = params.get('local_devolucao')!
+
+    if (restoredPickup) setPickupDate(restoredPickup)
+    if (restoredReturn) setReturnDate(restoredReturn)
+    if (restoredHoraRetirada) setHoraRetirada(restoredHoraRetirada)
+    if (restoredHoraDevolucao) setHoraDevolucao(restoredHoraDevolucao)
+    if (restoredLocalRetiradaId) setLocalRetiradaId(restoredLocalRetiradaId)
+    if (restoredLocalDevolucaoId) setLocalDevolucaoId(restoredLocalDevolucaoId)
+    setSelectedSeguroId(restoredSeguroId)
+    setSelectedAcessorios(restoredAcessorios)
+
+    const stepParam = params.get('step')
+    if (!stepParam) return
+    const step = parseInt(stepParam, 10)
+    if (isNaN(step) || step < 1 || step > steps.length) return
 
     const maxCompletedStep = completedSteps.length > 0 ? Math.max(...completedSteps) : 0
     const allowedStep = Math.min(step, maxCompletedStep + 1)
@@ -92,10 +122,6 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
       return
     }
 
-    if (restoredPickup) setPickupDate(restoredPickup)
-    if (restoredReturn) setReturnDate(restoredReturn)
-    setSelectedSeguroId(restoredSeguroId)
-    setSelectedAcessorios(restoredAcessorios)
     setCurrentStep(allowedStep)
 
     if (allowedStep !== step) {
@@ -110,11 +136,25 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
       JSON.stringify({
         pickupDate: pickupDate.toISOString(),
         returnDate: returnDate.toISOString(),
+        horaRetirada,
+        horaDevolucao,
+        localRetiradaId,
+        localDevolucaoId,
         selectedSeguroId,
         selectedAcessorios,
       })
     )
-  }, [pickupDate, returnDate, selectedSeguroId, selectedAcessorios, moto.id])
+  }, [
+    pickupDate,
+    returnDate,
+    horaRetirada,
+    horaDevolucao,
+    localRetiradaId,
+    localDevolucaoId,
+    selectedSeguroId,
+    selectedAcessorios,
+    moto.id,
+  ])
 
   const days = pickupDate && returnDate ? calculateRentalDays(pickupDate, returnDate) : 0
   const selectedSeguro = seguros.find((s) => s.id === selectedSeguroId) ?? null
@@ -141,7 +181,16 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return pickupDate && returnDate && days > 0
+      case 1:
+        return (
+          !!pickupDate &&
+          !!returnDate &&
+          days > 0 &&
+          !!horaRetirada &&
+          !!horaDevolucao &&
+          !!localRetiradaId &&
+          !!localDevolucaoId
+        )
       case 2: return !!selectedSeguroId
       case 3: return true
       case 4: return true
@@ -200,6 +249,10 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
         seguroId: selectedSeguroId,
         dataRetirada: pickupDate!.toISOString().split('T')[0],
         dataDevolucao: returnDate!.toISOString().split('T')[0],
+        horaRetirada,
+        horaDevolucao,
+        localRetiradaId,
+        localDevolucaoId,
         cartaoId: step5.selectedCardId ?? undefined,
         acessorios: selectedAcessorios.map((a) => ({
           acessorioId: a.acessorioId,
@@ -252,10 +305,19 @@ export function BookingPageClient({ moto, seguros, acessorios }: BookingPageClie
 
                   {currentStep === 1 && (
                     <DatasStep
+                      locais={locais}
                       pickupDate={pickupDate}
                       returnDate={returnDate}
                       onPickupChange={setPickupDate}
                       onReturnChange={setReturnDate}
+                      horaRetirada={horaRetirada}
+                      horaDevolucao={horaDevolucao}
+                      onHoraRetiradaChange={setHoraRetirada}
+                      onHoraDevolucaoChange={setHoraDevolucao}
+                      localRetiradaId={localRetiradaId}
+                      localDevolucaoId={localDevolucaoId}
+                      onLocalRetiradaChange={setLocalRetiradaId}
+                      onLocalDevolucaoChange={setLocalDevolucaoId}
                       days={days}
                     />
                   )}
