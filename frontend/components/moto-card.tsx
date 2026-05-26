@@ -11,7 +11,9 @@ interface MotoCardProps {
 }
 
 export function MotoCard({ moto, reservationQs }: MotoCardProps) {
-  const detailHref = reservationQs ? `/motos/${moto.id}?${reservationQs}` : `/motos/${moto.id}`
+  const reservarHref = reservationQs
+    ? `/motos/${moto.id}?${reservationQs}`
+    : `/?search=open#search-form`
   const fotoUrl = moto.fotos.find(f => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
 
   return (
@@ -61,7 +63,7 @@ export function MotoCard({ moto, reservationQs }: MotoCardProps) {
             <p className="text-xs text-muted-foreground">por dia</p>
           </div>
           <Button asChild size="sm" disabled={!moto.disponivel}>
-            <Link href={detailHref}>
+            <Link href={reservarHref}>
               Reservar
             </Link>
           </Button>

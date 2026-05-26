@@ -57,7 +57,9 @@ export default async function MotorcycleDetailPage({ params, searchParams }: Mot
     const value = Array.isArray(v) ? v[0] : v
     if (value) qs.set(k, value)
   }
-  const reservarHref = qs.toString() ? `/reservar/${id}?${qs.toString()}` : `/reservar/${id}`
+  const reservarHref = qs.toString()
+    ? `/reservar/${id}?${qs.toString()}`
+    : `/?search=open#search-form`
 
   let moto
   try {

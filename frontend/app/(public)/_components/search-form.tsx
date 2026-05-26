@@ -21,7 +21,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, MapPin, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface SearchFormProps {
   categories?: Categoria[]
@@ -42,6 +42,28 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
   const [horaDevolucao, setHoraDevolucao] = useState<string>('')
   const [pickupOpen, setPickupOpen] = useState(false)
   const [returnOpen, setReturnOpen] = useState(false)
+  const [highlight, setHighlight] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const firstFieldRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const shouldOpen = url.searchParams.get('search') === 'open' || url.hash === '#search-form'
+    if (!shouldOpen) return
+
+    wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setHighlight(true)
+    setTimeout(() => firstFieldRef.current?.focus(), 400)
+
+    if (url.searchParams.get('search') === 'open') {
+      url.searchParams.delete('search')
+      const cleaned = `${url.pathname}${url.search ? url.search : ''}${url.hash || ''}`
+      window.history.replaceState(null, '', cleaned || '/')
+    }
+
+    const timer = setTimeout(() => setHighlight(false), 2500)
+    return () => clearTimeout(timer)
+  }, [])
 
   const showDevolucao = !!localRetiradaId && !!pickupDate && !!horaRetirada
 
@@ -69,8 +91,12 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
 
   return (
     <div
+      id="search-form"
+      ref={wrapperRef}
       className={cn(
         !isCompact && 'rounded-2xl border border-border bg-card p-6 shadow-lg',
+        'transition-all duration-300',
+        highlight && 'ring-4 ring-primary/50 ring-offset-2 ring-offset-background',
         className
       )}
     >
@@ -84,7 +110,7 @@ export function SearchForm({ locais, variant = 'default', className }: SearchFor
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Local</label>
               <Select value={localRetiradaId} onValueChange={setLocalRetiradaId}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger ref={firstFieldRef} className="w-full">
                   <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                   <SelectValue placeholder="Selecione o local" />
                 </SelectTrigger>
