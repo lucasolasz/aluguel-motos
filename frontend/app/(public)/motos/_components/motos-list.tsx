@@ -13,47 +13,39 @@ import { SlidersHorizontal, Grid, List, CalendarDays } from 'lucide-react'
 import { MotoCard } from '@/components/moto-card'
 import type { Moto, Categoria } from '@/lib/types'
 
+export interface SearchPeriod {
+  pickup: string
+  return: string
+  hora_retirada: string
+  hora_devolucao: string
+  local_retirada: string
+  local_devolucao: string
+}
+
 interface MotosListProps {
   motos: Moto[]
   categorias: Categoria[]
-  searchParams?: Record<string, string>
+  period: SearchPeriod | null
 }
 
-const FORWARDED_KEYS = [
-  'local_retirada',
-  'pickup',
-  'hora_retirada',
-  'local_devolucao',
-  'return',
-  'hora_devolucao',
-] as const
-
-export function MotosList({ motos, categorias, searchParams = {} }: MotosListProps) {
+export function MotosList({ motos, categorias, period }: MotosListProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('price-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const periodoLabel = useMemo(() => {
-    if (!searchParams.pickup || !searchParams.return) return null
+    if (!period?.pickup || !period?.return) return null
     try {
       const fmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-      const ini = fmt.format(new Date(searchParams.pickup))
-      const fim = fmt.format(new Date(searchParams.return))
-      const horaIni = searchParams.hora_retirada ? ` às ${searchParams.hora_retirada}` : ''
-      const horaFim = searchParams.hora_devolucao ? ` às ${searchParams.hora_devolucao}` : ''
+      const ini = fmt.format(new Date(period.pickup))
+      const fim = fmt.format(new Date(period.return))
+      const horaIni = period.hora_retirada ? ` às ${period.hora_retirada}` : ''
+      const horaFim = period.hora_devolucao ? ` às ${period.hora_devolucao}` : ''
       return `${ini}${horaIni} → ${fim}${horaFim}`
     } catch {
       return null
     }
-  }, [searchParams.pickup, searchParams.return, searchParams.hora_retirada, searchParams.hora_devolucao])
-
-  const reservationQs = useMemo(() => {
-    const qs = new URLSearchParams()
-    for (const k of FORWARDED_KEYS) {
-      if (searchParams[k]) qs.set(k, searchParams[k]!)
-    }
-    return qs.toString()
-  }, [searchParams])
+  }, [period])
 
   const filteredMotos = useMemo(() => {
     let filtered = [...motos]
@@ -163,7 +155,6 @@ export function MotosList({ motos, categorias, searchParams = {} }: MotosListPro
             <MotoCard
               key={moto.id}
               moto={moto}
-              reservationQs={reservationQs}
             />
           ))}
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowUpDown, Check, Cog, Fuel, Gauge, Weight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,25 +17,26 @@ import type { Moto } from '@/lib/types'
 
 interface MotoCardProps {
   moto: Moto
-  reservationQs?: string
   hideAction?: boolean
 }
 
-export function MotoCard({ moto, reservationQs, hideAction = false }: MotoCardProps) {
+export function MotoCard({ moto, hideAction = false }: MotoCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const router = useRouter()
 
   const fotoUrl =
     moto.fotos.find((f) => f.principal)?.url ||
     moto.fotos[0]?.url ||
     '/images/placeholder-moto.jpg'
 
-  const actionButton = reservationQs ? (
-    <Button asChild size="sm" disabled={!moto.disponivel}>
-      <Link href={`/reservar/${moto.id}?${reservationQs}`}>Escolher moto</Link>
-    </Button>
-  ) : (
-    <Button asChild size="sm" disabled={!moto.disponivel}>
-      <Link href="/?search=open">Reservar Agora</Link>
+  const handleReservar = () => {
+    sessionStorage.setItem('booking-moto-id', moto.id)
+    router.push('/reservar/passo-1')
+  }
+
+  const actionButton = (
+    <Button size="sm" disabled={!moto.disponivel} onClick={handleReservar}>
+      Reservar Agora
     </Button>
   )
 

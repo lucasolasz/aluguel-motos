@@ -39,13 +39,14 @@ interface BookingPageClientProps {
   seguros: Seguro[]
   acessorios: Acessorio[]
   locais: Local[]
+  initialStep?: number
 }
 
-export function BookingPageClient({ moto, seguros, acessorios, locais }: BookingPageClientProps) {
+export function BookingPageClient({ moto, seguros, acessorios, locais, initialStep }: BookingPageClientProps) {
   const router = useRouter()
   const defaultSeguroId = seguros.find((s) => s.basico)?.id ?? seguros[0]?.id ?? ''
 
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(initialStep ?? 1)
   const [pickupDate, setPickupDate] = useState<Date>()
   const [returnDate, setReturnDate] = useState<Date>()
   const [horaRetirada, setHoraRetirada] = useState<string>('')
@@ -75,8 +76,6 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
   const step5 = useStep5({ active: currentStep === 5 })
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-
     let restoredPickup: Date | undefined
     let restoredReturn: Date | undefined
     let restoredHoraRetirada = ''
@@ -87,12 +86,18 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
     let restoredAcessorios: { acessorioId: string; quantity: number }[] = []
     let completedSteps: number[] = []
 
-    if (params.get('pickup')) restoredPickup = new Date(params.get('pickup')!)
-    if (params.get('return')) restoredReturn = new Date(params.get('return')!)
-    if (params.get('hora_retirada')) restoredHoraRetirada = params.get('hora_retirada')!
-    if (params.get('hora_devolucao')) restoredHoraDevolucao = params.get('hora_devolucao')!
-    if (params.get('local_retirada')) restoredLocalRetiradaId = params.get('local_retirada')!
-    if (params.get('local_devolucao')) restoredLocalDevolucaoId = params.get('local_devolucao')!
+    const rawPeriod = sessionStorage.getItem('search-period')
+    if (rawPeriod) {
+      try {
+        const p = JSON.parse(rawPeriod)
+        if (p.pickup) { const d = new Date(p.pickup); if (!isNaN(d.getTime())) restoredPickup = d }
+        if (p.return) { const d = new Date(p.return); if (!isNaN(d.getTime())) restoredReturn = d }
+        if (p.hora_retirada) restoredHoraRetirada = p.hora_retirada
+        if (p.hora_devolucao) restoredHoraDevolucao = p.hora_devolucao
+        if (p.local_retirada) restoredLocalRetiradaId = p.local_retirada
+        if (p.local_devolucao) restoredLocalDevolucaoId = p.local_devolucao
+      } catch {}
+    }
 
     const saved = sessionStorage.getItem(`booking-state-${moto.id}`)
     if (saved) {
@@ -118,25 +123,6 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
     if (restoredLocalDevolucaoId) setLocalDevolucaoId(restoredLocalDevolucaoId)
     setSelectedSeguroId(restoredSeguroId)
     setSelectedAcessorios(restoredAcessorios)
-
-    const stepParam = params.get('step')
-    if (!stepParam) return
-    const step = parseInt(stepParam, 10)
-    if (isNaN(step) || step < 1 || step > steps.length) return
-
-    const maxCompletedStep = completedSteps.length > 0 ? Math.max(...completedSteps) : 0
-    const allowedStep = Math.min(step, maxCompletedStep + 1)
-
-    if (allowedStep >= 5 && !getToken()) {
-      router.push(`/login?redirect=${encodeURIComponent(`/reservar/${moto.id}?step=5`)}`)
-      return
-    }
-
-    setCurrentStep(allowedStep)
-
-    if (allowedStep !== step) {
-      window.history.replaceState(null, '', `/reservar/${moto.id}?step=${allowedStep}`)
-    }
   }, [])
 
   useEffect(() => {
@@ -219,7 +205,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
         if (!completedSteps.includes(4)) completedSteps.push(4)
         sessionStorage.setItem(storageKey, JSON.stringify({ ...state, completedSteps }))
       } catch {}
-      router.push(`/login?redirect=${encodeURIComponent(`/reservar/${moto.id}?step=5`)}`)
+      router.push(`/login?redirect=${encodeURIComponent('/reservar/passo-5')}`)
       return
     }
     if (currentStep < steps.length) {
@@ -234,7 +220,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
 
       const nextStep = currentStep + 1
       setCurrentStep(nextStep)
-      window.history.replaceState(null, '', `/reservar/${moto.id}?step=${nextStep}`)
+      window.history.replaceState(null, '', `/reservar/passo-${nextStep}`)
     }
   }
 
@@ -246,7 +232,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
     if (currentStep > 1) {
       const prevStep = currentStep - 1
       setCurrentStep(prevStep)
-      window.history.replaceState(null, '', `/reservar/${moto.id}?step=${prevStep}`)
+      window.history.replaceState(null, '', `/reservar/passo-${prevStep}`)
     }
   }
 

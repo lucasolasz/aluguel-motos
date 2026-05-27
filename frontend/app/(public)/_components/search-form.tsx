@@ -109,17 +109,17 @@ export function SearchForm({ locais, variant = 'default', className, initialValu
     !!returnDate &&
     !!horaDevolucao
 
-  const searchHref = useMemo(() => {
-    const params = new URLSearchParams()
-    if (localRetiradaId) params.set('local_retirada', localRetiradaId)
-    if (pickupDate) params.set('pickup', pickupDate.toISOString())
-    if (horaRetirada) params.set('hora_retirada', horaRetirada)
-    if (localDevolucaoId) params.set('local_devolucao', localDevolucaoId)
-    if (returnDate) params.set('return', returnDate.toISOString())
-    if (horaDevolucao) params.set('hora_devolucao', horaDevolucao)
-    const qs = params.toString()
-    return qs ? `/motos?${qs}` : '/motos'
-  }, [localRetiradaId, pickupDate, horaRetirada, localDevolucaoId, returnDate, horaDevolucao])
+  const handleSearch = () => {
+    sessionStorage.setItem('search-period', JSON.stringify({
+      pickup: pickupDate!.toISOString(),
+      return: returnDate!.toISOString(),
+      hora_retirada: horaRetirada,
+      hora_devolucao: horaDevolucao,
+      local_retirada: localRetiradaId,
+      local_devolucao: localDevolucaoId,
+    }))
+    router.push('/motos')
+  }
 
   const isCompact = variant === 'compact'
 
@@ -291,7 +291,7 @@ export function SearchForm({ locais, variant = 'default', className, initialValu
 
         <div className="flex justify-end pt-2">
           <Button
-            onClick={() => router.push(searchHref)}
+            onClick={handleSearch}
             disabled={!canSearch}
             size={isCompact ? 'default' : 'lg'}
             className="gap-2"
