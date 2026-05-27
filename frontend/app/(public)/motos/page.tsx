@@ -2,7 +2,6 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { getMotos } from '@/services/motos.service'
 import { getCategorias } from '@/services/categorias.service'
-import { getLocais } from '@/services/locais.service'
 import { MotosList } from './_components/motos-list'
 
 interface MotorcyclesPageProps {
@@ -27,10 +26,9 @@ export default async function MotorcyclesPage({ searchParams }: MotorcyclesPageP
     if (n) flatParams[k] = n
   }
 
-  const [motos, categorias, locais] = await Promise.all([
+  const [motos, categorias] = await Promise.all([
     getMotos({ dataRetirada, dataDevolucao }),
     getCategorias(),
-    getLocais(),
   ])
 
   return (
@@ -40,7 +38,7 @@ export default async function MotorcyclesPage({ searchParams }: MotorcyclesPageP
       <main className="flex-1">
         <section className="py-8 lg:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <MotosList motos={motos} categorias={categorias} searchParams={flatParams} locais={locais} />
+            <MotosList motos={motos} categorias={categorias} searchParams={flatParams} />
           </div>
         </section>
       </main>

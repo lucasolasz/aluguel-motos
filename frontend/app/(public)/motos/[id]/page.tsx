@@ -9,24 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getMotoById, getMotos } from '@/services/motos.service'
 import { getAcessorios } from '@/services/acessorios.service'
 import { getSeguros } from '@/services/seguros.service'
+import { getLocais } from '@/services/locais.service'
 import { ArrowLeft, Check, Shield, Gauge, Fuel, Weight, Cog, ArrowUpDown } from 'lucide-react'
+import { BookingWidget } from './_components/booking-widget'
+import { formatCurrency } from '@/lib/data'
 
 interface MotorcycleDetailPageProps {
   params: Promise<{ id: string }>
   searchParams?: Promise<Record<string, string | string[] | undefined>>
-}
-
-const FORWARDED_KEYS = [
-  'local_retirada',
-  'pickup',
-  'hora_retirada',
-  'local_devolucao',
-  'return',
-  'hora_devolucao',
-] as const
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
 
 export async function generateStaticParams() {
@@ -51,15 +41,10 @@ export default async function MotorcycleDetailPage({ params, searchParams }: Mot
   const { id } = await params
   const sp = searchParams ? await searchParams : {}
 
-  const qs = new URLSearchParams()
-  for (const k of FORWARDED_KEYS) {
-    const v = sp[k]
-    const value = Array.isArray(v) ? v[0] : v
-    if (value) qs.set(k, value)
+  function getParam(key: string): string | undefined {
+    const v = sp[key]
+    return Array.isArray(v) ? v[0] : v
   }
-  const reservarHref = qs.toString()
-    ? `/reservar/${id}?${qs.toString()}`
-    : `/?search=open#search-form`
 
   let moto
   try {
@@ -68,7 +53,11 @@ export default async function MotorcycleDetailPage({ params, searchParams }: Mot
     notFound()
   }
 
-  const [acessorios, seguros] = await Promise.all([getAcessorios(), getSeguros()])
+  const [acessorios, seguros, locais] = await Promise.all([
+    getAcessorios(),
+    getSeguros(),
+    getLocais(),
+  ])
 
   const fotoPrincipal =
     moto.fotos.find((f) => f.principal)?.url ||
@@ -132,31 +121,19 @@ export default async function MotorcycleDetailPage({ params, searchParams }: Mot
                   </h1>
                 </div>
 
-                {/* Price */}
-                <div className="rounded-xl border border-border shadow-sm bg-card p-6">
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <p className="text-3xl font-bold text-foreground">
-                        {formatCurrency(moto.precoPorDia)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">por dia</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Caução</p>
-                      <p className="text-lg font-semibold text-foreground">
-                        {formatCurrency(moto.caucao)}
-                      </p>
-                    </div>
-                  </div>
-                  <Button asChild size="lg" className="mt-6 w-full" disabled={!moto.disponivel}>
-                    <Link href={reservarHref}>
-                      {moto.disponivel ? 'Reservar Agora' : 'Indisponível'}
-                    </Link>
-                  </Button>
-                  <p className="mt-3 text-center text-xs text-muted-foreground">
-                    Seguro básico incluso no valor da diária
-                  </p>
-                </div>
+                {/* Booking Widget */}
+                <BookingWidget
+                  moto={moto}
+                  locais={locais}
+                  initialParams={{
+                    localRetirada: getParam('local_retirada'),
+                    pickup: getParam('pickup'),
+                    horaRetirada: getParam('hora_retirada'),
+                    localDevolucao: getParam('local_devolucao'),
+                    returnDate: getParam('return'),
+                    horaDevolucao: getParam('hora_devolucao'),
+                  }}
+                />
 
                 {/* Specifications */}
                 <Card className='shadow-sm'>
