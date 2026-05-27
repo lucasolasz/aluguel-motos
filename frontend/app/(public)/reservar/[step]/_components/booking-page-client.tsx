@@ -257,6 +257,8 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
       })
       setReservaId(result.id)
       sessionStorage.removeItem(`booking-state-${moto.id}`)
+      sessionStorage.removeItem('booking-moto-id')
+      sessionStorage.removeItem('search-period')
       setIsComplete(true)
     } catch {
       setFinalizationError('Erro ao finalizar reserva. Tente novamente.')

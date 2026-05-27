@@ -56,6 +56,11 @@ export function Header() {
 
   const handleLogout = () => {
     clearToken()
+    sessionStorage.removeItem('search-period')
+    sessionStorage.removeItem('booking-moto-id')
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith('booking-state-'))
+      .forEach((k) => sessionStorage.removeItem(k))
     setIsLoggedIn(false)
     router.push('/')
   }
