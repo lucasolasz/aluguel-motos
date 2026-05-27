@@ -34,8 +34,8 @@ export function MotoCard({
     )
   } else if (onNoperiodClick) {
     reservarButton = (
-      <Button size="sm" disabled={!moto.disponivel} onClick={onNoperiodClick}>
-        Reservar
+      <Button size="sm" variant="outline" disabled={!moto.disponivel} onClick={onNoperiodClick}>
+        Selecionar período
       </Button>
     )
   } else {

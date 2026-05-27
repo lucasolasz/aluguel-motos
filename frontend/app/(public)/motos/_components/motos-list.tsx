@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useCallback } from 'react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -36,13 +37,16 @@ export function MotosList({ motos, categorias, locais, searchParams = {} }: Moto
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const hasPeriodo = !!searchParams.pickup && !!searchParams.return
   const [showSearch, setShowSearch] = useState(!hasPeriodo)
+  const [highlightSearch, setHighlightSearch] = useState(false)
   const searchWrapperRef = useRef<HTMLDivElement>(null)
 
   const openAndScrollSearch = useCallback(() => {
     setShowSearch(true)
+    setHighlightSearch(true)
     setTimeout(() => {
       searchWrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 50)
+    setTimeout(() => setHighlightSearch(false), 2000)
   }, [])
 
   const reservationQs = useMemo(() => {
@@ -108,7 +112,13 @@ export function MotosList({ motos, categorias, locais, searchParams = {} }: Moto
 
   return (
     <>
-      <div ref={searchWrapperRef} className="mb-6 rounded-lg border border-border bg-card shadow-sm">
+      <div
+        ref={searchWrapperRef}
+        className={cn(
+          'mb-6 scroll-mt-20 rounded-lg border border-border bg-card shadow-sm transition-all duration-300',
+          highlightSearch && 'ring-4 ring-primary/50 ring-offset-2 ring-offset-background',
+        )}
+      >
         <button
           type="button"
           onClick={() => setShowSearch((v) => !v)}
