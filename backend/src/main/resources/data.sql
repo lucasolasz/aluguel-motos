@@ -76,6 +76,7 @@ INSERT INTO motos (
     peso,
     itens,
     disponivel,
+    destaque,
     categoria_id
 ) VALUES (
     '11111111-1111-1111-1111-111111111111'::uuid,
@@ -93,6 +94,7 @@ INSERT INTO motos (
     '764 mm',
     '132 kg',
     'Freios CBS, Painel Digital, Porta USB, Porta-malas 30L',
+    true,
     true,
     '2905c8df-e6c5-4877-a6ed-b2aa814bf587'
 );
@@ -115,6 +117,7 @@ INSERT INTO motos (
     peso,
     itens,
     disponivel,
+    destaque,
     categoria_id
 ) VALUES (
     '22222222-2222-2222-2222-222222222222'::uuid,
@@ -132,6 +135,7 @@ INSERT INTO motos (
     '765 mm',
     '127 kg',
     'ABS, Painel Digital TFT, Conectividade Bluetooth, LED',
+    true,
     true,
     '2905c8df-e6c5-4877-a6ed-b2aa814bf587'
 );
@@ -154,6 +158,7 @@ INSERT INTO motos (
     peso,
     itens,
     disponivel,
+    destaque,
     categoria_id
 ) VALUES (
     '33333333-3333-3333-3333-333333333333'::uuid,
@@ -171,6 +176,7 @@ INSERT INTO motos (
     '795 mm',
     '179 kg',
     'ABS, Controle de Tração, Painel TFT 7, Smart Key, Porta-malas 45L',
+    true,
     true,
     'fe460ec8-e080-452b-9d5f-b69238eba014'
 );
@@ -193,6 +199,7 @@ INSERT INTO motos (
     peso,
     itens,
     disponivel,
+    destaque,
     categoria_id
 ) VALUES (
     '44444444-4444-4444-4444-444444444444'::uuid,
@@ -210,6 +217,7 @@ INSERT INTO motos (
     '805 mm',
     '184 kg',
     'ABS, Painel Digital, Farol LED, Modos de Pilotagem',
+    true,
     true,
     'e71c9032-1fbc-49cf-89ca-a18ab051c259'
 );
@@ -232,6 +240,7 @@ INSERT INTO motos (
     peso,
     itens,
     disponivel,
+    destaque,
     categoria_id
 ) VALUES (
     '55555555-5555-5555-5555-555555555555'::uuid,
@@ -250,6 +259,7 @@ INSERT INTO motos (
     '212 kg',
     'ABS, Controle de Tração, Painel TFT, 4 Modos de Pilotagem',
     true,
+    false,
     'e71c9032-1fbc-49cf-89ca-a18ab051c259'
 );
 

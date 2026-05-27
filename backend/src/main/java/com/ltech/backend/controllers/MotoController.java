@@ -39,6 +39,12 @@ public class MotoController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/destaque")
+    public ResponseEntity<List<MotoDTO>> obterDestaques() {
+        List<MotoDTO> dtos = motoService.obterDestaques().stream().map(this::toMotoDTO).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MotoDTO> obterPorId(@PathVariable UUID id) {
         var moto = motoService.obterPorId(id);
@@ -63,6 +69,7 @@ public class MotoController {
             moto.getPeso(),
             moto.getItens(),
             moto.getDisponivel(),
+            moto.getDestaque(),
             moto.getFotos().stream()
                 .map(foto -> new MotoFotoDTO(
                     foto.getId(),

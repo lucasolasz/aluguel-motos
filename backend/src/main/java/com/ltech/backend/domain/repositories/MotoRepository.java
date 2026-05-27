@@ -11,6 +11,8 @@ public interface MotoRepository extends JpaRepository<Moto, UUID> {
 
     List<Moto> findByDisponivelTrue();
 
+    List<Moto> findByDestaqueTrue();
+
     List<Moto> findByCategoriaId(UUID categoriaId);
 
     List<Moto> findByMarcaIgnoreCase(String marca);

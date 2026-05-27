@@ -34,6 +34,7 @@ export interface MotoDTO {
   peso: string;
   itens: string;
   disponivel: boolean;
+  destaque?: boolean;
   fotos: MotoFotoDTO[];
   categoria: CategoriaDTO;
 }
@@ -83,6 +84,7 @@ export function mapMoto(dto: MotoDTO): Moto {
     // Converte a string separada por vírgula em array
     itens: dto.itens ? dto.itens.split(",").map((i) => i.trim()) : [],
     disponivel: dto.disponivel,
+    destaque: dto.destaque,
     fotos: dto.fotos.map(mapMotoFoto),
     categoria: mapCategoria(dto.categoria),
   };

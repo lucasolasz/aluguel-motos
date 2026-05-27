@@ -12,6 +12,7 @@ interface MotoCardProps {
   reservationQs?: string
   fallbackHref?: string
   onNoperiodClick?: () => void
+  hideAction?: boolean
 }
 
 export function MotoCard({
@@ -19,6 +20,7 @@ export function MotoCard({
   reservationQs,
   fallbackHref = '/?search=open#search-form',
   onNoperiodClick,
+  hideAction = false,
 }: MotoCardProps) {
   const fotoUrl =
     moto.fotos.find((f) => f.principal)?.url ||
@@ -86,7 +88,7 @@ export function MotoCard({
             </p>
             <p className="text-xs text-muted-foreground">por dia</p>
           </div>
-          {reservarButton}
+          {!hideAction && reservarButton}
         </div>
       </div>
     </div>

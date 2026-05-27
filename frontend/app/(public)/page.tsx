@@ -3,7 +3,7 @@ import { MotoCard } from "@/components/moto-card";
 import { Button } from "@/components/ui/button";
 import { getCategorias } from "@/services/categorias.service";
 import { getLocais } from "@/services/locais.service";
-import { getMotos } from "@/services/motos.service";
+import { getMotosDestaque } from "@/services/motos.service";
 import Link from "next/link";
 import { Features } from "./_components/features";
 import { SearchForm } from "./_components/search-form";
@@ -13,7 +13,7 @@ import { Footer } from "@/components/footer";
 export default async function HomePage() {
   const [categorias, motos, locais] = await Promise.all([
     getCategorias(),
-    getMotos(),
+    getMotosDestaque(),
     getLocais(),
   ]);
 
@@ -63,8 +63,8 @@ export default async function HomePage() {
               </Button>
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {motos.map((moto) => (
-                <MotoCard key={moto.id} moto={moto} />
+              {motos.slice(0, 4).map((moto) => (
+                <MotoCard key={moto.id} moto={moto} hideAction />
               ))}
             </div>
             <div className="mt-8 text-center sm:hidden">

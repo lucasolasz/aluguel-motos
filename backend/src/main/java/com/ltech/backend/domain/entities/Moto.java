@@ -66,6 +66,9 @@ public class Moto {
     private Boolean disponivel;
 
     @Default
+    private Boolean destaque = false;
+
+    @Default
     @OneToMany(mappedBy = "moto", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
     @ToString.Exclude

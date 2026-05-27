@@ -27,6 +27,10 @@ public class MotoService {
         return motoRepository.findAll();
     }
 
+    public List<Moto> obterDestaques() {
+        return motoRepository.findByDestaqueTrue();
+    }
+
     public Moto obterPorId(UUID id) {
         return motoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Moto não encontrada: " + id));

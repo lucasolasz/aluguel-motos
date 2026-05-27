@@ -21,6 +21,7 @@ public record MotoDTO(
     String peso,
     String itens,
     Boolean disponivel,
+    Boolean destaque,
     List<MotoFotoDTO> fotos,
     CategoriaDTO categoria
 ) {

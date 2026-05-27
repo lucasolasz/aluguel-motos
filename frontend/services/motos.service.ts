@@ -16,6 +16,11 @@ export async function getMotos(params?: GetMotosParams): Promise<Moto[]> {
   return mapMotos(dtos);
 }
 
+export async function getMotosDestaque(): Promise<Moto[]> {
+  const dtos = await apiFetch<MotoDTO[]>('/api/motos/destaque');
+  return mapMotos(dtos);
+}
+
 export async function getMotoById(id: string): Promise<Moto> {
   const dto = await apiFetch<MotoDTO>(`/api/motos/${id}`);
   return mapMoto(dto);

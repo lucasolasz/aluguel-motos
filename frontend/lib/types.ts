@@ -176,6 +176,7 @@ export interface Moto {
   peso: string;
   itens: string[]; // No front tratamos como array para facilitar exibição
   disponivel: boolean;
+  destaque?: boolean;
   fotos: MotoFoto[];
   categoria: Categoria;
 }
