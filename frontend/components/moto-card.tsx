@@ -92,7 +92,7 @@ export function MotoCard({ moto, reservationQs, hideAction = false }: MotoCardPr
             <button
               type="button"
               onClick={() => setDialogOpen(true)}
-              className="mt-3 w-full text-center text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              className="mt-3 w-full text-center text-xs underline underline-offset-2 hover:text-foreground hover:underline"
             >
               Mostrar detalhes
             </button>
