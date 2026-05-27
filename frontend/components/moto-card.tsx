@@ -1,3 +1,5 @@
+'use client'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/data'
@@ -8,13 +10,41 @@ import Link from 'next/link'
 interface MotoCardProps {
   moto: Moto
   reservationQs?: string
+  fallbackHref?: string
+  onNoperiodClick?: () => void
 }
 
-export function MotoCard({ moto, reservationQs }: MotoCardProps) {
-  const reservarHref = reservationQs
-    ? `/motos/${moto.id}?${reservationQs}`
-    : `/?search=open#search-form`
-  const fotoUrl = moto.fotos.find(f => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
+export function MotoCard({
+  moto,
+  reservationQs,
+  fallbackHref = '/?search=open#search-form',
+  onNoperiodClick,
+}: MotoCardProps) {
+  const fotoUrl =
+    moto.fotos.find((f) => f.principal)?.url ||
+    moto.fotos[0]?.url ||
+    '/images/placeholder-moto.jpg'
+
+  let reservarButton
+  if (reservationQs) {
+    reservarButton = (
+      <Button asChild size="sm" disabled={!moto.disponivel}>
+        <Link href={`/motos/${moto.id}?${reservationQs}`}>Reservar</Link>
+      </Button>
+    )
+  } else if (onNoperiodClick) {
+    reservarButton = (
+      <Button size="sm" disabled={!moto.disponivel} onClick={onNoperiodClick}>
+        Reservar
+      </Button>
+    )
+  } else {
+    reservarButton = (
+      <Button asChild size="sm" disabled={!moto.disponivel}>
+        <Link href={fallbackHref}>Reservar</Link>
+      </Button>
+    )
+  }
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-lg">
@@ -31,9 +61,7 @@ export function MotoCard({ moto, reservationQs }: MotoCardProps) {
         </Badge>
         {!moto.disponivel && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-            <span className="text-sm font-medium text-muted-foreground">
-              Indisponível
-            </span>
+            <span className="text-sm font-medium text-muted-foreground">Indisponível</span>
           </div>
         )}
       </div>
@@ -47,13 +75,9 @@ export function MotoCard({ moto, reservationQs }: MotoCardProps) {
           </div>
         </div>
         <div className="mb-4 flex flex-wrap gap-2">
-          <span className="text-xs text-muted-foreground">
-            {moto.motor}
-          </span>
+          <span className="text-xs text-muted-foreground">{moto.motor}</span>
           <span className="text-xs text-muted-foreground">•</span>
-          <span className="text-xs text-muted-foreground">
-            {moto.potencia}
-          </span>
+          <span className="text-xs text-muted-foreground">{moto.potencia}</span>
         </div>
         <div className="flex items-center justify-between">
           <div>
@@ -62,11 +86,7 @@ export function MotoCard({ moto, reservationQs }: MotoCardProps) {
             </p>
             <p className="text-xs text-muted-foreground">por dia</p>
           </div>
-          <Button asChild size="sm" disabled={!moto.disponivel}>
-            <Link href={reservarHref}>
-              Reservar
-            </Link>
-          </Button>
+          {reservarButton}
         </div>
       </div>
     </div>

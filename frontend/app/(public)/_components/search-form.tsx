@@ -27,22 +27,36 @@ import { CalendarIcon, MapPin, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+interface SearchFormInitialValues {
+  localRetiradaId?: string
+  pickup?: string
+  horaRetirada?: string
+  localDevolucaoId?: string
+  returnDate?: string
+  horaDevolucao?: string
+}
+
 interface SearchFormProps {
   categories?: Categoria[]
   locais: Local[]
   variant?: 'default' | 'compact'
   className?: string
+  initialValues?: SearchFormInitialValues
 }
 
-export function SearchForm({ locais, variant = 'default', className }: SearchFormProps) {
+export function SearchForm({ locais, variant = 'default', className, initialValues }: SearchFormProps) {
   const router = useRouter()
 
-  const [localRetiradaId, setLocalRetiradaId] = useState<string>('')
-  const [pickupDate, setPickupDate] = useState<Date | undefined>(undefined)
-  const [horaRetirada, setHoraRetirada] = useState<string>('')
-  const [localDevolucaoId, setLocalDevolucaoId] = useState<string>('')
-  const [returnDate, setReturnDate] = useState<Date | undefined>(undefined)
-  const [horaDevolucao, setHoraDevolucao] = useState<string>('')
+  const [localRetiradaId, setLocalRetiradaId] = useState<string>(() => initialValues?.localRetiradaId ?? '')
+  const [pickupDate, setPickupDate] = useState<Date | undefined>(() =>
+    initialValues?.pickup ? new Date(initialValues.pickup) : undefined
+  )
+  const [horaRetirada, setHoraRetirada] = useState<string>(() => initialValues?.horaRetirada ?? '')
+  const [localDevolucaoId, setLocalDevolucaoId] = useState<string>(() => initialValues?.localDevolucaoId ?? '')
+  const [returnDate, setReturnDate] = useState<Date | undefined>(() =>
+    initialValues?.returnDate ? new Date(initialValues.returnDate) : undefined
+  )
+  const [horaDevolucao, setHoraDevolucao] = useState<string>(() => initialValues?.horaDevolucao ?? '')
   const [pickupOpen, setPickupOpen] = useState(false)
   const [returnOpen, setReturnOpen] = useState(false)
   const [highlight, setHighlight] = useState(false)

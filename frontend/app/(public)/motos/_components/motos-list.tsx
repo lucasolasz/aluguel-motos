@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -9,13 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { SlidersHorizontal, Grid, List } from 'lucide-react'
+import { SlidersHorizontal, Grid, List, ChevronDown, ChevronUp, CalendarSearch } from 'lucide-react'
 import { MotoCard } from '@/components/moto-card'
-import type { Moto, Categoria } from '@/lib/types'
+import { SearchForm } from '@/app/(public)/_components/search-form'
+import type { Moto, Categoria, Local } from '@/lib/types'
 
 interface MotosListProps {
   motos: Moto[]
   categorias: Categoria[]
+  locais: Local[]
   searchParams?: Record<string, string>
 }
 
@@ -28,10 +30,20 @@ const FORWARDED_KEYS = [
   'hora_devolucao',
 ] as const
 
-export function MotosList({ motos, categorias, searchParams = {} }: MotosListProps) {
+export function MotosList({ motos, categorias, locais, searchParams = {} }: MotosListProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('price-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const hasPeriodo = !!searchParams.pickup && !!searchParams.return
+  const [showSearch, setShowSearch] = useState(!hasPeriodo)
+  const searchWrapperRef = useRef<HTMLDivElement>(null)
+
+  const openAndScrollSearch = useCallback(() => {
+    setShowSearch(true)
+    setTimeout(() => {
+      searchWrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }, [])
 
   const reservationQs = useMemo(() => {
     const qs = new URLSearchParams()
@@ -40,8 +52,6 @@ export function MotosList({ motos, categorias, searchParams = {} }: MotosListPro
     }
     return qs.toString()
   }, [searchParams])
-
-  const hasPeriodo = !!searchParams.pickup && !!searchParams.return
 
   const periodoLabel = useMemo(() => {
     if (!hasPeriodo) return ''
@@ -84,14 +94,55 @@ export function MotosList({ motos, categorias, searchParams = {} }: MotosListPro
     return filtered
   }, [motos, selectedCategory, sortBy])
 
+  const searchFormInitialValues = useMemo(
+    () => ({
+      localRetiradaId: searchParams.local_retirada,
+      pickup: searchParams.pickup,
+      horaRetirada: searchParams.hora_retirada,
+      localDevolucaoId: searchParams.local_devolucao,
+      returnDate: searchParams.return,
+      horaDevolucao: searchParams.hora_devolucao,
+    }),
+    [searchParams],
+  )
+
   return (
     <>
-      {hasPeriodo && periodoLabel && (
-        <div className="mb-4 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
-          <span className="text-muted-foreground">Período selecionado: </span>
-          <span className="font-medium text-foreground">{periodoLabel}</span>
-        </div>
-      )}
+      <div ref={searchWrapperRef} className="mb-6 rounded-lg border border-border bg-card shadow-sm">
+        <button
+          type="button"
+          onClick={() => setShowSearch((v) => !v)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm"
+        >
+          <div className="flex items-center gap-2">
+            <CalendarSearch className="h-4 w-4 text-primary" />
+            {hasPeriodo && periodoLabel ? (
+              <span>
+                <span className="text-muted-foreground">Período: </span>
+                <span className="font-medium text-foreground">{periodoLabel}</span>
+              </span>
+            ) : (
+              <span className="font-medium text-foreground">Selecionar período</span>
+            )}
+          </div>
+          {showSearch ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
+
+        {showSearch && (
+          <div className="border-t border-border px-4 pb-4 pt-4">
+            <SearchForm
+              locais={locais}
+              variant="compact"
+              initialValues={searchFormInitialValues}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Toolbar */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -162,7 +213,12 @@ export function MotosList({ motos, categorias, searchParams = {} }: MotosListPro
           }
         >
           {filteredMotos.map((moto) => (
-            <MotoCard key={moto.id} moto={moto} reservationQs={reservationQs} />
+            <MotoCard
+              key={moto.id}
+              moto={moto}
+              reservationQs={reservationQs}
+              onNoperiodClick={reservationQs ? undefined : openAndScrollSearch}
+            />
           ))}
         </div>
       ) : (
