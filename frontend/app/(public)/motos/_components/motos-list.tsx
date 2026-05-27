@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { SlidersHorizontal, Grid, List } from 'lucide-react'
+import { SlidersHorizontal, Grid, List, CalendarDays } from 'lucide-react'
 import { MotoCard } from '@/components/moto-card'
 import type { Moto, Categoria } from '@/lib/types'
 
@@ -32,6 +32,20 @@ export function MotosList({ motos, categorias, searchParams = {} }: MotosListPro
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('price-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const periodoLabel = useMemo(() => {
+    if (!searchParams.pickup || !searchParams.return) return null
+    try {
+      const fmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+      const ini = fmt.format(new Date(searchParams.pickup))
+      const fim = fmt.format(new Date(searchParams.return))
+      const horaIni = searchParams.hora_retirada ? ` às ${searchParams.hora_retirada}` : ''
+      const horaFim = searchParams.hora_devolucao ? ` às ${searchParams.hora_devolucao}` : ''
+      return `${ini}${horaIni} → ${fim}${horaFim}`
+    } catch {
+      return null
+    }
+  }, [searchParams.pickup, searchParams.return, searchParams.hora_retirada, searchParams.hora_devolucao])
 
   const reservationQs = useMemo(() => {
     const qs = new URLSearchParams()
@@ -68,6 +82,14 @@ export function MotosList({ motos, categorias, searchParams = {} }: MotosListPro
 
   return (
     <>
+      {periodoLabel && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm shadow-sm">
+          <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
+          <span className="text-muted-foreground">Período selecionado:</span>
+          <span className="font-medium text-foreground">{periodoLabel}</span>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">

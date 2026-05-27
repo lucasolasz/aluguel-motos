@@ -298,9 +298,9 @@ export function BookingPageClient({ moto, seguros, acessorios, locais }: Booking
       <main className="flex-1 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Button variant="ghost" size="sm" asChild className="mb-6 gap-2">
-            <Link href={`/motos/${moto.id}`}>
+            <Link href="/motos">
               <ArrowLeft className="h-4 w-4" />
-              Voltar para detalhes
+              Voltar para motos
             </Link>
           </Button>
 
