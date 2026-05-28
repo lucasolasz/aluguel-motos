@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Check } from 'lucide-react'
@@ -23,6 +24,10 @@ export function CompletionScreen({
   pickupDate,
   returnDate,
 }: CompletionScreenProps) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />

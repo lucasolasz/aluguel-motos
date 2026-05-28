@@ -154,6 +154,7 @@ export function useStep5({ active }: UseStep5Args) {
     setValidationDialogOpen(false)
     setNewCardPending(true)
     setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const closeValidationDialog = () => {
@@ -253,6 +254,7 @@ export function useStep5({ active }: UseStep5Args) {
 
       setNewAddressData(INITIAL_ADDRESS)
       setStep5Phase('selection')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setAddressSaving(false)
     }

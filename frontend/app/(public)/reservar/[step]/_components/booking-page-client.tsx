@@ -92,6 +92,10 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
   const step5 = useStep5({ active: currentStep === 5 })
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
+
+  useEffect(() => {
     let restoredPickup: Date | undefined
     let restoredReturn: Date | undefined
     let restoredHoraRetirada = ''
@@ -246,7 +250,6 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
       const nextStep = currentStep + 1
       setCurrentStep(nextStep)
       window.history.replaceState(null, '', `/reservar/passo-${nextStep}`)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -259,7 +262,6 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
       const prevStep = currentStep - 1
       setCurrentStep(prevStep)
       window.history.replaceState(null, '', `/reservar/passo-${prevStep}`)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
