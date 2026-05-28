@@ -32,4 +32,7 @@ public class Acessorio {
     private BigDecimal precoPorDia;
 
     private Integer quantidadeMaxima;
+
+    @Builder.Default
+    private Boolean ativo = true;
 }

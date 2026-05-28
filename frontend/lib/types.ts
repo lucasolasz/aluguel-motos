@@ -56,6 +56,15 @@ export interface Acessorio {
   descricao: string;
   precoPorDia: number;
   quantidadeMaxima: number;
+  ativo: boolean;
+}
+
+export interface AcessorioRequest {
+  nome: string;
+  descricao: string;
+  precoPorDia: number;
+  quantidadeMaxima: number;
+  ativo: boolean;
 }
 
 export type TipoCobrancaLavagem = 'VALOR_UNICO'

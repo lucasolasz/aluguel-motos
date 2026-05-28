@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Package,
   ShieldCheck,
   Users,
   X,
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Documentos', href: '/admin/documentos', icon: FileCheck },
   { name: 'Seguros', href: '/admin/seguros', icon: ShieldCheck },
   { name: 'Lavagem', href: '/admin/lavagens', icon: Droplets },
+  { name: 'Acessórios', href: '/admin/acessorios', icon: Package },
 ]
 
 export default function AdminLayout({

@@ -135,6 +135,7 @@ export interface AcessorioDTO {
   descricao: string;
   precoPorDia: number;
   quantidadeMaxima: number;
+  ativo: boolean;
 }
 
 export function mapAcessorio(dto: AcessorioDTO): Acessorio {
@@ -144,6 +145,7 @@ export function mapAcessorio(dto: AcessorioDTO): Acessorio {
     descricao: dto.descricao,
     precoPorDia: dto.precoPorDia,
     quantidadeMaxima: dto.quantidadeMaxima,
+    ativo: dto.ativo,
   };
 }
 
