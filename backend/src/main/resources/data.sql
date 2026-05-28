@@ -274,36 +274,41 @@ INSERT INTO acessorios (id, nome, descricao, preco_por_dia, quantidade_maxima) V
 
 
 -- SEGUROS
-INSERT INTO seguros (id, nome, slug, descricao, preco_por_dia, basico) VALUES
-('10000000-0000-0000-0000-000000000001'::uuid, 'Seguro Básico', 'seguro-basico', 'Cobertura básica incluída no valor da diária.', 0, true),
-('10000000-0000-0000-0000-000000000002'::uuid, 'Seguro Completo - Scooters', 'seguro-completo-scooters', 'Proteção total para scooters com franquia reduzida.', 38.9, false),
-('10000000-0000-0000-0000-000000000003'::uuid, 'Seguro Completo - Motos', 'seguro-completo-motos', 'Proteção máxima para motos de maior cilindrada.', 59.9, false);
+INSERT INTO seguros (id, nome, slug, descricao, preco_por_dia, basico, valor_original, valor_com_desconto, percentual_desconto, valor_total_pacote, max_parcelas_sem_juros, recomendado, ativo) VALUES
+('10000000-0000-0000-0000-000000000001'::uuid, 'Seguro Padrão', 'seguro-padrao', 'Cobertura básica para locação de motos.', 35.55, false, 39.90, 35.55, 10, 213.30, 3, false, true),
+('10000000-0000-0000-0000-000000000002'::uuid, 'Seguro Completo', 'seguro-completo', 'Proteção total com cobertura ampla para sua tranquilidade.', 74.89, false, 92.84, 74.89, 19, 449.34, 4, true, true),
+('10000000-0000-0000-0000-000000000003'::uuid, 'Seguro Premium', 'seguro-premium', 'A proteção mais completa disponível para locações premium.', 85.48, false, 160.73, 85.48, 46, 512.91, 6, false, true);
 
 -- SEGURO COBERTURAS
--- Seguro Básico
-INSERT INTO seguro_coberturas (id, seguro_id, descricao, ordem) VALUES
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Responsabilidade civil obrigatória', 0),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Assistência 24h', 1),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Guincho até 50km', 2);
+-- Seguro Padrão
+INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial em caso de avarias e perda total', 'PARCIAL', 0),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial para danos morais, corporais e materiais a terceiros', 'PARCIAL', 1),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial em caso de furto e roubo', 'PARCIAL', 2),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura para vidros e pneus', 'NAO_INCLUSO', 3),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Compensação de CO2', 'NAO_INCLUSO', 4),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Não pague a limpeza simples', 'NAO_INCLUSO', 5),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Compartilhe a direção com outros motoristas', 'NAO_INCLUSO', 6);
 
--- Seguro Completo - Scooters
-INSERT INTO seguro_coberturas (id, seguro_id, descricao, ordem) VALUES
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura contra roubo e furto', 0),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Danos a terceiros', 1),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Franquia reduzida (R$ 500)', 2),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Assistência 24h premium', 3),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Guincho ilimitado', 4),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Carro reserva por 3 dias', 5);
+-- Seguro Completo
+INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura total em caso de avarias e perda total', 'INCLUSO', 0),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura total para danos morais, corporais e materiais a terceiros', 'INCLUSO', 1),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura parcial em caso de furto e roubo', 'INCLUSO', 2),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura para vidros e pneus', 'INCLUSO', 3),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Compensação de CO2', 'INCLUSO', 4),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Não pague a limpeza simples', 'NAO_INCLUSO', 5),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Compartilhe a direção com outros motoristas', 'NAO_INCLUSO', 6);
 
--- Seguro Completo - Motos
-INSERT INTO seguro_coberturas (id, seguro_id, descricao, ordem) VALUES
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura contra roubo e furto', 0),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Danos a terceiros até R$ 100.000', 1),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Franquia reduzida (R$ 1.000)', 2),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Assistência 24h VIP', 3),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Guincho ilimitado', 4),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Moto reserva por 5 dias', 5),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura de equipamentos', 6);
+-- Seguro Premium
+INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura total em caso de avarias e perda total', 'INCLUSO', 0),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura total para danos morais, corporais e materiais a terceiros', 'INCLUSO', 1),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura parcial em caso de furto e roubo', 'INCLUSO', 2),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura para vidros e pneus', 'INCLUSO', 3),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Compensação de CO2', 'INCLUSO', 4),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Não pague a limpeza simples', 'INCLUSO', 5),
+(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Compartilhe a direção com outros motoristas', 'INCLUSO', 6);
 
 
 -- MOTO FOTOS

@@ -8,6 +8,42 @@ export interface Seguro {
   coberturas: string[];
 }
 
+export type TipoCobertura = 'INCLUSO' | 'PARCIAL' | 'NAO_INCLUSO'
+
+export interface SeguroCoberturaAdmin {
+  id: string;
+  nome: string;
+  tipo: TipoCobertura;
+}
+
+export interface SeguroAdmin {
+  id: string;
+  nome: string;
+  slug: string;
+  descricao: string;
+  valorOriginal: number;
+  valorComDesconto: number;
+  percentualDesconto: number;
+  valorTotalPacote: number;
+  maxParcelasSemJuros: number;
+  recomendado: boolean;
+  ativo: boolean;
+  coberturas: SeguroCoberturaAdmin[];
+}
+
+export interface SeguroRequest {
+  nome: string;
+  descricao: string;
+  valorOriginal: number;
+  valorComDesconto: number;
+  percentualDesconto: number;
+  valorTotalPacote: number;
+  maxParcelasSemJuros: number;
+  recomendado: boolean;
+  ativo: boolean;
+  coberturas: { nome: string; tipo: string }[];
+}
+
 export interface Acessorio {
   id: string;
   nome: string;

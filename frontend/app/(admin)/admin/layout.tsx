@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ShieldCheck,
   Users,
   X,
 } from 'lucide-react'
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Reservas', href: '/admin/reservas', icon: Calendar },
   { name: 'Clientes', href: '/admin/clientes', icon: Users },
   { name: 'Documentos', href: '/admin/documentos', icon: FileCheck },
+  { name: 'Seguros', href: '/admin/seguros', icon: ShieldCheck },
 ]
 
 export default function AdminLayout({

@@ -44,6 +44,22 @@ public class Seguro {
 
     private Boolean basico;
 
+    private BigDecimal valorOriginal;
+
+    private BigDecimal valorComDesconto;
+
+    private Integer percentualDesconto;
+
+    private BigDecimal valorTotalPacote;
+
+    private Integer maxParcelasSemJuros;
+
+    @Builder.Default
+    private Boolean recomendado = false;
+
+    @Builder.Default
+    private Boolean ativo = true;
+
     @Default
     @OneToMany(mappedBy = "seguro", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
