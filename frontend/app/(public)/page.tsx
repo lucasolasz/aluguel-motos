@@ -10,12 +10,29 @@ import { SearchForm } from "./_components/search-form";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
-export default async function HomePage() {
-  const [categorias, motos, locais] = await Promise.all([
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const [sp, categorias, motos, locais] = await Promise.all([
+    searchParams,
     getCategorias(),
     getMotosDestaque(),
     getLocais(),
   ]);
+
+  const searchFormInitialValues =
+    sp.search === 'open' && (sp.pickup || sp.local_retirada)
+      ? {
+          localRetiradaId: sp.local_retirada,
+          pickup: sp.pickup,
+          horaRetirada: sp.hora_retirada,
+          localDevolucaoId: sp.local_devolucao,
+          returnDate: sp.return,
+          horaDevolucao: sp.hora_devolucao,
+        }
+      : undefined;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -36,7 +53,7 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="mx-auto mt-10 max-w-4xl">
-              <SearchForm categories={categorias} locais={locais} />
+              <SearchForm categories={categorias} locais={locais} initialValues={searchFormInitialValues} />
             </div>
           </div>
         </section>

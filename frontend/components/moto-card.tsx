@@ -30,6 +30,10 @@ export function MotoCard({ moto, hideAction = false }: MotoCardProps) {
     '/images/placeholder-moto.jpg'
 
   const handleReservar = () => {
+    if (!sessionStorage.getItem('search-period')) {
+      router.push('/?search=open')
+      return
+    }
     sessionStorage.setItem('booking-moto-id', moto.id)
     router.push('/reservar/passo-1')
   }

@@ -62,8 +62,6 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
   const [isComplete, setIsComplete] = useState(false)
   const [reservaId, setReservaId] = useState<string>('')
   const [finalizationError, setFinalizationError] = useState('')
-  const [editingStep1, setEditingStep1] = useState(false)
-
   const isStep1Prefilled =
     !!localRetiradaId &&
     !!pickupDate &&
@@ -71,7 +69,17 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
     !!localDevolucaoId &&
     !!returnDate &&
     !!horaDevolucao
-  const readOnlyStep1 = isStep1Prefilled && !editingStep1
+
+  const handleEditDates = () => {
+    const params = new URLSearchParams({ search: 'open' })
+    if (pickupDate) params.set('pickup', pickupDate.toISOString())
+    if (returnDate) params.set('return', returnDate.toISOString())
+    if (horaRetirada) params.set('hora_retirada', horaRetirada)
+    if (horaDevolucao) params.set('hora_devolucao', horaDevolucao)
+    if (localRetiradaId) params.set('local_retirada', localRetiradaId)
+    if (localDevolucaoId) params.set('local_devolucao', localDevolucaoId)
+    router.push(`/?${params.toString()}`)
+  }
 
   const step5 = useStep5({ active: currentStep === 5 })
 
@@ -317,8 +325,8 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                       onLocalRetiradaChange={setLocalRetiradaId}
                       onLocalDevolucaoChange={setLocalDevolucaoId}
                       days={days}
-                      readOnly={readOnlyStep1}
-                      onEdit={() => setEditingStep1(true)}
+                      readOnly={isStep1Prefilled}
+                      onEdit={handleEditDates}
                     />
                   )}
 
