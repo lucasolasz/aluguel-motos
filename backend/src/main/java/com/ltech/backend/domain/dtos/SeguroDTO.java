@@ -12,6 +12,8 @@ public record SeguroDTO(
     BigDecimal precoPorDia,
     Boolean basico,
     Integer percentualDesconto,
-    List<String> coberturas
+    List<CoberturaDTO> coberturas
 ) {
+    public record CoberturaDTO(String nome, String tipo) {
+    }
 }

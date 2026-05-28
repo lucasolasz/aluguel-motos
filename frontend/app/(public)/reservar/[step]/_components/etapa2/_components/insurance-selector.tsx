@@ -112,12 +112,26 @@ export function InsuranceSelector({
 
               {seguro.coberturas.length > 0 && (
                 <div className="mt-3 flex flex-col gap-1.5">
-                  {seguro.coberturas.map((item) => (
-                    <div key={item} className="flex items-center gap-1.5 text-xs text-gray-400">
-                      <Shield className="h-3 w-3 shrink-0 text-[#2E7D32]" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
+                  {seguro.coberturas.map((item) => {
+                    const naoIncluso = item.tipo === 'NAO_INCLUSO'
+                    return (
+                      <div
+                        key={item.nome}
+                        className={cn(
+                          'flex items-center gap-1.5 text-xs',
+                          naoIncluso ? 'text-black line-through' : 'text-gray-400'
+                        )}
+                      >
+                        <Shield
+                          className={cn(
+                            'h-3 w-3 shrink-0',
+                            naoIncluso ? 'text-black' : 'text-[#2E7D32]'
+                          )}
+                        />
+                        <span>{item.nome}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

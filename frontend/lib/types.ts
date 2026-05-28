@@ -1,3 +1,10 @@
+export type TipoCobertura = 'INCLUSO' | 'PARCIAL' | 'NAO_INCLUSO'
+
+export interface SeguroCobertura {
+  nome: string;
+  tipo: TipoCobertura;
+}
+
 export interface Seguro {
   id: string;
   nome: string;
@@ -6,10 +13,8 @@ export interface Seguro {
   precoPorDia: number;
   basico: boolean;
   percentualDesconto: number;
-  coberturas: string[];
+  coberturas: SeguroCobertura[];
 }
-
-export type TipoCobertura = 'INCLUSO' | 'PARCIAL' | 'NAO_INCLUSO'
 
 export interface SeguroCoberturaAdmin {
   id: string;

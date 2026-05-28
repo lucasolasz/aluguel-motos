@@ -90,7 +90,9 @@ public class SeguroController {
                 seguro.getBasico(),
                 seguro.getPercentualDesconto(),
                 seguro.getCoberturas().stream()
-                        .map(c -> c.getNome())
+                        .map(c -> new SeguroDTO.CoberturaDTO(
+                                c.getNome(),
+                                c.getTipo() != null ? c.getTipo().name() : null))
                         .toList()
         );
     }

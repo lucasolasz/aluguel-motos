@@ -13,6 +13,7 @@ import { getLocais } from '@/services/locais.service'
 import { ArrowLeft, Check, Shield, Gauge, Fuel, Weight, Cog, ArrowUpDown } from 'lucide-react'
 import { BookingWidget } from './_components/booking-widget'
 import { formatCurrency } from '@/lib/data'
+import { cn } from '@/lib/utils'
 
 interface MotorcycleDetailPageProps {
   params: Promise<{ id: string }>
@@ -202,12 +203,26 @@ export default async function MotorcycleDetailPage({ params, searchParams }: Mot
                         )}
                       </div>
                       <ul className="space-y-2">
-                        {seguro.coberturas.map((item) => (
-                          <li key={item} className="flex items-start gap-2 text-sm">
-                            <Shield className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                            <span className="text-muted-foreground">{item}</span>
-                          </li>
-                        ))}
+                        {seguro.coberturas.map((item) => {
+                          const naoIncluso = item.tipo === 'NAO_INCLUSO'
+                          return (
+                            <li key={item.nome} className="flex items-start gap-2 text-sm">
+                              <Shield
+                                className={cn(
+                                  'mt-0.5 h-4 w-4 shrink-0',
+                                  naoIncluso ? 'text-black' : 'text-green-500'
+                                )}
+                              />
+                              <span
+                                className={cn(
+                                  naoIncluso ? 'text-black line-through' : 'text-muted-foreground'
+                                )}
+                              >
+                                {item.nome}
+                              </span>
+                            </li>
+                          )
+                        })}
                       </ul>
                     </CardContent>
                   </Card>

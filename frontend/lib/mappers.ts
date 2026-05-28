@@ -95,6 +95,11 @@ export function mapMotos(dtos: MotoDTO[]): Moto[] {
 }
 
 // DTOs de Seguro
+export interface SeguroCoberturaDTO {
+  nome: string;
+  tipo: 'INCLUSO' | 'PARCIAL' | 'NAO_INCLUSO';
+}
+
 export interface SeguroDTO {
   id: string;
   nome: string;
@@ -103,7 +108,7 @@ export interface SeguroDTO {
   precoPorDia: number;
   basico: boolean;
   percentualDesconto: number;
-  coberturas: string[];
+  coberturas: SeguroCoberturaDTO[];
 }
 
 export function mapSeguro(dto: SeguroDTO): Seguro {
@@ -115,7 +120,7 @@ export function mapSeguro(dto: SeguroDTO): Seguro {
     precoPorDia: dto.precoPorDia,
     basico: dto.basico,
     percentualDesconto: dto.percentualDesconto ?? 0,
-    coberturas: dto.coberturas,
+    coberturas: dto.coberturas.map((c) => ({ nome: c.nome, tipo: c.tipo })),
   };
 }
 
