@@ -9,7 +9,7 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { getToken } from '@/lib/auth'
-import type { Acessorio, Local, Moto, Seguro } from '@/lib/types'
+import type { Acessorio, LavagemServico, Local, Moto, Seguro } from '@/lib/types'
 import { criarReserva } from '@/services/reservas.service'
 import { BookingStepper } from './booking-stepper'
 import { CompletionScreen } from './completion-screen'
@@ -39,11 +39,12 @@ interface BookingPageClientProps {
   moto: Moto
   seguros: Seguro[]
   acessorios: Acessorio[]
+  lavagens: LavagemServico[]
   locais: Local[]
   initialStep?: number
 }
 
-export function BookingPageClient({ moto, seguros, acessorios, locais, initialStep }: BookingPageClientProps) {
+export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais, initialStep }: BookingPageClientProps) {
   const router = useRouter()
   const defaultSeguroId =
     seguros.find((s) => s.nome.toLowerCase().includes('completo'))?.id ??
@@ -63,6 +64,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
     { acessorioId: string; quantity: number }[]
   >([])
   const [selectedQuilometragem, setSelectedQuilometragem] = useState<QuilometragemPlano>('economica')
+  const [lavagemSelected, setLavagemSelected] = useState(false)
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
@@ -126,6 +128,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
         if (state.selectedSeguroId) restoredSeguroId = state.selectedSeguroId
         if (state.selectedAcessorios) restoredAcessorios = state.selectedAcessorios
         if (state.selectedQuilometragem === 'economica' || state.selectedQuilometragem === 'ilimitada') setSelectedQuilometragem(state.selectedQuilometragem)
+        if (typeof state.lavagemSelected === 'boolean') setLavagemSelected(state.lavagemSelected)
         if (Array.isArray(state.completedSteps)) completedSteps = state.completedSteps
       } catch {}
     }
@@ -154,6 +157,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
         selectedSeguroId,
         selectedAcessorios,
         selectedQuilometragem,
+        lavagemSelected,
       })
     )
   }, [
@@ -166,11 +170,15 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
     selectedSeguroId,
     selectedAcessorios,
     selectedQuilometragem,
+    lavagemSelected,
     moto.id,
   ])
 
   const days = pickupDate && returnDate ? calculateRentalDays(pickupDate, returnDate) : 0
   const selectedSeguro = seguros.find((s) => s.id === selectedSeguroId) ?? null
+  const isSeguroPremium = (selectedSeguro?.slug ?? '').toLowerCase().includes('premium')
+  const lavagem = lavagens.find((l) => l.ativo) ?? lavagens[0] ?? null
+  const lavagemContratada = !!lavagem && lavagemSelected && !isSeguroPremium
   const acessoriosWithDetails = selectedAcessorios
     .map((item) => ({
       acessorio: acessorios.find((a) => a.id === item.acessorioId)!,
@@ -267,6 +275,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
         localRetiradaId,
         localDevolucaoId,
         cartaoId: step5.selectedCardId ?? undefined,
+        lavagemServicoId: lavagemContratada ? lavagem!.id : undefined,
         acessorios: selectedAcessorios.map((a) => ({
           acessorioId: a.acessorioId,
           quantidade: a.quantity,
@@ -357,6 +366,10 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                       days={days}
                       selectedQuilometragem={selectedQuilometragem}
                       onQuilometragemChange={setSelectedQuilometragem}
+                      lavagem={lavagem}
+                      lavagemSelected={lavagemSelected}
+                      onLavagemToggle={setLavagemSelected}
+                      showLavagem={!isSeguroPremium}
                     />
                   )}
 
@@ -368,6 +381,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                       days={days}
                       selectedSeguro={selectedSeguro}
                       acessoriosWithDetails={acessoriosWithDetails}
+                      lavagem={lavagemContratada ? lavagem : null}
                     />
                   )}
 
@@ -422,6 +436,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                   days={days}
                   seguro={selectedSeguro}
                   acessorios={acessoriosWithDetails}
+                  lavagem={lavagemContratada ? lavagem : null}
                   quilometragem={selectedQuilometragem}
                   pickupDate={pickupDate}
                   returnDate={returnDate}

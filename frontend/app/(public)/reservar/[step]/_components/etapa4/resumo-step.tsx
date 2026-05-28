@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import type { Acessorio, Moto, Seguro } from '@/lib/types'
+import type { Acessorio, LavagemServico, Moto, Seguro } from '@/lib/types'
 
 interface ResumoStepProps {
   moto: Moto
@@ -11,6 +11,7 @@ interface ResumoStepProps {
   days: number
   selectedSeguro: Seguro | null
   acessoriosWithDetails: { acessorio: Acessorio; quantity: number }[]
+  lavagem: LavagemServico | null
 }
 
 export function ResumoStep({
@@ -20,6 +21,7 @@ export function ResumoStep({
   days,
   selectedSeguro,
   acessoriosWithDetails,
+  lavagem,
 }: ResumoStepProps) {
   return (
     <div className="space-y-6">
@@ -49,6 +51,12 @@ export function ResumoStep({
             <p className="font-medium text-foreground">
               {acessoriosWithDetails.map((item) => `${item.acessorio.nome} x${item.quantity}`).join(', ')}
             </p>
+          </div>
+        )}
+        {lavagem && (
+          <div className="rounded-lg border border-border p-4">
+            <p className="text-sm text-muted-foreground">Limpeza garantida</p>
+            <p className="font-medium text-foreground">{lavagem.nome}</p>
           </div>
         )}
       </div>

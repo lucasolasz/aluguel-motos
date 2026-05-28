@@ -1,8 +1,9 @@
 'use client'
 
-import type { Acessorio } from '@/lib/types'
+import type { Acessorio, LavagemServico } from '@/lib/types'
 import { KilometragemSelector, type QuilometragemPlano } from './_components/kilometragem-selector'
 import { AccessorySelector } from './_components/accessory-selector'
+import { LavagemSelector } from './_components/lavagem-selector'
 
 interface AcessoriosStepProps {
   acessorios: Acessorio[]
@@ -12,6 +13,10 @@ interface AcessoriosStepProps {
   days: number
   selectedQuilometragem: QuilometragemPlano
   onQuilometragemChange: (plano: QuilometragemPlano) => void
+  lavagem: LavagemServico | null
+  lavagemSelected: boolean
+  onLavagemToggle: (selected: boolean) => void
+  showLavagem: boolean
 }
 
 export function AcessoriosStep({
@@ -22,6 +27,10 @@ export function AcessoriosStep({
   days,
   selectedQuilometragem,
   onQuilometragemChange,
+  lavagem,
+  lavagemSelected,
+  onLavagemToggle,
+  showLavagem,
 }: AcessoriosStepProps) {
   return (
     <div className="space-y-8">
@@ -31,6 +40,17 @@ export function AcessoriosStep({
           Escolha o plano de quilometragem e adicione itens extras
         </p>
       </div>
+
+      {showLavagem && lavagem && (
+        <div>
+          <h3 className="mb-3 text-base font-semibold text-foreground">Limpeza garantida</h3>
+          <LavagemSelector
+            lavagem={lavagem}
+            selected={lavagemSelected}
+            onToggle={onLavagemToggle}
+          />
+        </div>
+      )}
 
       <div>
         <h3 className="mb-3 text-base font-semibold text-foreground">Quilometragem</h3>

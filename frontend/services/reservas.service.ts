@@ -11,6 +11,7 @@ export interface CreateReservaPayload {
   localRetiradaId: string
   localDevolucaoId: string
   cartaoId?: string
+  lavagemServicoId?: string
   acessorios: { acessorioId: string; quantidade: number }[]
 }
 

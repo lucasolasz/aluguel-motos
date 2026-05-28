@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import type { Moto, Seguro, Acessorio, Local } from '@/lib/types'
+import type { Moto, Seguro, Acessorio, LavagemServico, Local } from '@/lib/types'
 import type { QuilometragemPlano } from './etapa3/_components/kilometragem-selector'
 import { formatCurrency, formatDate } from '@/lib/data'
 
@@ -12,6 +12,7 @@ interface PriceSummaryProps {
   days: number
   seguro: Seguro | null
   acessorios: { acessorio: Acessorio; quantity: number }[]
+  lavagem?: LavagemServico | null
   quilometragem?: QuilometragemPlano
   pickupDate?: Date
   returnDate?: Date
@@ -26,6 +27,7 @@ export function PriceSummary({
   days,
   seguro,
   acessorios,
+  lavagem = null,
   quilometragem = 'economica',
   pickupDate,
   returnDate,
@@ -48,7 +50,8 @@ export function PriceSummary({
     (total, item) => total + item.acessorio.precoPorDia * item.quantity * days,
     0
   )
-  const subtotal = dailyRate + insuranceCost + accessoriesCost
+  const lavagemCost = lavagem ? lavagem.valor : 0
+  const subtotal = dailyRate + insuranceCost + accessoriesCost + lavagemCost
   const fotoPrincipal =
     moto.fotos.find((f) => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
 
@@ -148,9 +151,16 @@ export function PriceSummary({
               ))}
             </>
           )}
+
+          {lavagem && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{lavagem.nome}</span>
+              <span className="text-foreground">{formatCurrency(lavagemCost)}</span>
+            </div>
+          )}
         </div>
 
-        {(seguro || acessorios.length > 0) && <Separator />}
+        {(seguro || acessorios.length > 0 || lavagem) && <Separator />}
 
         {/* Subtotal */}
         <div className="flex justify-between">

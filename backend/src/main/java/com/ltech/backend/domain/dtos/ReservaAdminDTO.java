@@ -20,6 +20,7 @@ public record ReservaAdminDTO(
         java.math.BigDecimal totalAluguel,
         java.math.BigDecimal totalSeguro,
         java.math.BigDecimal totalAcessorios,
+        java.math.BigDecimal totalLavagem,
         java.math.BigDecimal total,
         String cartaoNumeroMascarado,
         java.time.LocalDateTime createdAt) {
@@ -73,6 +74,7 @@ public record ReservaAdminDTO(
                 reserva.getTotalAluguel(),
                 reserva.getTotalSeguro(),
                 reserva.getTotalAcessorios(),
+                reserva.getTotalLavagem(),
                 reserva.getTotal(),
                 cartaoNumeroMascarado,
                 reserva.getCreatedAt());

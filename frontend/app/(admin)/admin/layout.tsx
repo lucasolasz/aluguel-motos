@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import {
   Bike,
   Calendar,
+  Droplets,
   FileCheck,
   LayoutDashboard,
   LogOut,
@@ -24,6 +25,7 @@ const navigation = [
   { name: 'Clientes', href: '/admin/clientes', icon: Users },
   { name: 'Documentos', href: '/admin/documentos', icon: FileCheck },
   { name: 'Seguros', href: '/admin/seguros', icon: ShieldCheck },
+  { name: 'Lavagem', href: '/admin/lavagens', icon: Droplets },
 ]
 
 export default function AdminLayout({

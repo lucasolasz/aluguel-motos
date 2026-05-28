@@ -18,6 +18,7 @@ import com.ltech.backend.domain.dtos.CreateReservaDTO;
 import com.ltech.backend.domain.dtos.ReservaDTO;
 import com.ltech.backend.domain.entities.Acessorio;
 import com.ltech.backend.domain.entities.Cartao;
+import com.ltech.backend.domain.entities.LavagemServico;
 import com.ltech.backend.domain.entities.Local;
 import com.ltech.backend.domain.entities.Moto;
 import com.ltech.backend.domain.entities.Reserva;
@@ -27,6 +28,7 @@ import com.ltech.backend.domain.entities.StatusReserva;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.AcessorioRepository;
 import com.ltech.backend.domain.repositories.CartaoRepository;
+import com.ltech.backend.domain.repositories.LavagemServicoRepository;
 import com.ltech.backend.domain.repositories.LocalRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
@@ -46,6 +48,7 @@ public class ReservaService {
     private AcessorioRepository acessorioRepository;
     private CartaoRepository cartaoRepository;
     private LocalRepository localRepository;
+    private LavagemServicoRepository lavagemServicoRepository;
 
     public List<ReservaDTO> listarMinhasReservas(String usuarioId) {
         return reservaRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId)
@@ -101,11 +104,28 @@ public class ReservaService {
             }
         }
 
+        boolean seguroPremium = seguro != null && seguro.getSlug() != null
+                && seguro.getSlug().toLowerCase().contains("premium");
+
+        LavagemServico lavagem = null;
+        BigDecimal totalLavagem = BigDecimal.ZERO;
+        if (!seguroPremium && dto.lavagemServicoId() != null && !dto.lavagemServicoId().isBlank()) {
+            lavagem = lavagemServicoRepository.findById(parseUuid(dto.lavagemServicoId(), "lavagemServicoId"))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Serviço de lavagem não encontrado"));
+            if (!Boolean.TRUE.equals(lavagem.getAtivo())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Serviço de lavagem indisponível");
+            }
+            totalLavagem = lavagem.getValor();
+        }
+
         Reserva reserva = Reserva.builder()
                 .usuario(usuario)
                 .moto(moto)
                 .seguro(seguro)
                 .cartao(cartao)
+                .lavagemServico(lavagem)
+                .totalLavagem(totalLavagem)
                 .dataRetirada(dto.dataRetirada())
                 .dataDevolucao(dto.dataDevolucao())
                 .horaRetirada(dto.horaRetirada())
@@ -149,7 +169,7 @@ public class ReservaService {
         }
 
         reserva.setTotalAcessorios(totalAcessorios);
-        reserva.setTotal(totalAluguel.add(totalSeguro).add(totalAcessorios));
+        reserva.setTotal(totalAluguel.add(totalSeguro).add(totalAcessorios).add(totalLavagem));
         reserva.getAcessorios().addAll(items);
 
         return ReservaDTO.from(reservaRepository.save(reserva));

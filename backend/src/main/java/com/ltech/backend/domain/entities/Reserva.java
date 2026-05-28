@@ -58,6 +58,10 @@ public class Reserva {
     @JoinColumn(name = "cartao_id", nullable = true)
     private Cartao cartao;
 
+    @ManyToOne
+    @JoinColumn(name = "lavagem_servico_id", nullable = true)
+    private LavagemServico lavagemServico;
+
     private LocalDate dataRetirada;
 
     private LocalDate dataDevolucao;
@@ -89,6 +93,8 @@ public class Reserva {
     private BigDecimal totalSeguro;
 
     private BigDecimal totalAcessorios;
+
+    private BigDecimal totalLavagem;
 
     private BigDecimal total;
 

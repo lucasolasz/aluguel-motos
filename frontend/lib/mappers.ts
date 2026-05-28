@@ -1,4 +1,4 @@
-import { Acessorio, Categoria, Moto, MotoFoto, Seguro } from "./types";
+import { Acessorio, Categoria, LavagemServico, Moto, MotoFoto, Seguro } from "./types";
 
 
 // DTOs para tipagem do parâmetro de entrada
@@ -149,4 +149,29 @@ export function mapAcessorio(dto: AcessorioDTO): Acessorio {
 
 export function mapAcessorios(dtos: AcessorioDTO[]): Acessorio[] {
   return dtos.map(mapAcessorio);
+}
+
+// DTOs de Lavagem
+export interface LavagemServicoDTO {
+  id: string;
+  nome: string;
+  descricao: string;
+  valor: number;
+  tipoCobranca: 'VALOR_UNICO';
+  ativo: boolean;
+}
+
+export function mapLavagem(dto: LavagemServicoDTO): LavagemServico {
+  return {
+    id: dto.id,
+    nome: dto.nome,
+    descricao: dto.descricao,
+    valor: dto.valor,
+    tipoCobranca: dto.tipoCobranca,
+    ativo: dto.ativo,
+  };
+}
+
+export function mapLavagens(dtos: LavagemServicoDTO[]): LavagemServico[] {
+  return dtos.map(mapLavagem);
 }

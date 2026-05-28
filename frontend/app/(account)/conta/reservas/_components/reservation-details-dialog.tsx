@@ -157,6 +157,23 @@ export function ReservationDetailsDialog({
             </>
           )}
 
+          {reservation.lavagem && (
+            <>
+              <Separator />
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Limpeza garantida
+                </h3>
+                <div className="flex items-center justify-between text-sm">
+                  <p className="font-medium text-foreground">{reservation.lavagem.nome}</p>
+                  <span className="font-semibold text-foreground">
+                    {formatCurrency(reservation.totalLavagem)}
+                  </span>
+                </div>
+              </section>
+            </>
+          )}
+
           <Separator />
 
           <section className="space-y-3">

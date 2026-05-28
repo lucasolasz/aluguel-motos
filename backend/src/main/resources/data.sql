@@ -273,6 +273,11 @@ INSERT INTO acessorios (id, nome, descricao, preco_por_dia, quantidade_maxima) V
 ('20000000-0000-0000-0000-000000000006'::uuid, 'Suporte para Celular', 'Suporte universal com carregador USB.', 12, 1);
 
 
+-- LAVAGEM (serviços opcionais)
+INSERT INTO lavagem_servicos (id, nome, descricao, valor, tipo_cobranca, ativo) VALUES
+('30000000-0000-0000-0000-000000000001'::uuid, 'Limpeza Garantida', 'O carro deve ser devolvido limpo, mas com a Limpeza Garantida você não precisa se preocupar com isso. Mas para casos de sujeira excessiva (lama, areia, manchas, pelos de animais, odores fortes e similares), a lavagem vai custar R$ 110,00.', 41.95, 'VALOR_UNICO', true);
+
+
 -- SEGUROS
 INSERT INTO seguros (id, nome, slug, descricao, preco_por_dia, basico, valor_original, valor_com_desconto, percentual_desconto, valor_total_pacote, max_parcelas_sem_juros, recomendado, ativo) VALUES
 ('10000000-0000-0000-0000-000000000001'::uuid, 'Seguro Padrão', 'seguro-padrao', 'Cobertura básica para locação de motos.', 35.55, false, 39.90, 35.55, 10, 213.30, 3, false, true),

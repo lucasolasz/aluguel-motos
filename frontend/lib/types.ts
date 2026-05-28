@@ -58,6 +58,25 @@ export interface Acessorio {
   quantidadeMaxima: number;
 }
 
+export type TipoCobrancaLavagem = 'VALOR_UNICO'
+
+export interface LavagemServico {
+  id: string;
+  nome: string;
+  descricao: string;
+  valor: number;
+  tipoCobranca: TipoCobrancaLavagem;
+  ativo: boolean;
+}
+
+export interface LavagemServicoRequest {
+  nome: string;
+  descricao: string;
+  valor: number;
+  tipoCobranca: TipoCobrancaLavagem;
+  ativo: boolean;
+}
+
 export interface Categoria {
   id: string;
   nome: string;
@@ -136,11 +155,17 @@ export interface Reservation {
     precoPorDia: number
     subtotal: number
   }[]
+  lavagem: {
+    id: string
+    nome: string
+    valor: number
+  } | null
   precoPorDia: number
   caucao: number
   totalAluguel: number
   totalSeguro: number
   totalAcessorios: number
+  totalLavagem: number
   total: number
   cartaoNumeroMascarado: string | null
   createdAt: string

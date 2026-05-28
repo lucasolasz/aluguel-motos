@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.ltech.backend.domain.entities.LavagemServico;
 import com.ltech.backend.domain.entities.Local;
 import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.ReservaAcessorioItem;
@@ -24,11 +25,13 @@ public record ReservaDTO(
         MotoResumoDTO moto,
         SeguroResumoDTO seguro,
         List<AcessorioItemDTO> acessorios,
+        LavagemResumoDTO lavagem,
         BigDecimal precoPorDia,
         BigDecimal caucao,
         BigDecimal totalAluguel,
         BigDecimal totalSeguro,
         BigDecimal totalAcessorios,
+        BigDecimal totalLavagem,
         BigDecimal total,
         String cartaoNumeroMascarado,
         LocalDateTime createdAt) {
@@ -68,6 +71,16 @@ public record ReservaDTO(
                     seguro.getId().toString(),
                     seguro.getNome(),
                     seguro.getPrecoPorDia());
+        }
+    }
+
+    public record LavagemResumoDTO(String id, String nome, BigDecimal valor) {
+        public static LavagemResumoDTO from(LavagemServico lavagem) {
+            if (lavagem == null) return null;
+            return new LavagemResumoDTO(
+                    lavagem.getId().toString(),
+                    lavagem.getNome(),
+                    lavagem.getValor());
         }
     }
 
@@ -119,11 +132,13 @@ public record ReservaDTO(
                         imagens),
                 SeguroResumoDTO.from(reserva.getSeguro()),
                 acessorios,
+                LavagemResumoDTO.from(reserva.getLavagemServico()),
                 reserva.getPrecoPorDia(),
                 reserva.getCaucao(),
                 reserva.getTotalAluguel(),
                 reserva.getTotalSeguro(),
                 reserva.getTotalAcessorios(),
+                reserva.getTotalLavagem(),
                 reserva.getTotal(),
                 cartaoNumeroMascarado,
                 reserva.getCreatedAt());

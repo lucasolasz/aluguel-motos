@@ -6,15 +6,17 @@ import { Loader2 } from 'lucide-react'
 import { getMotoById } from '@/services/motos.service'
 import { getSeguros } from '@/services/seguros.service'
 import { getAcessorios } from '@/services/acessorios.service'
+import { getLavagens } from '@/services/lavagens.service'
 import { getLocais } from '@/services/locais.service'
 import { getToken } from '@/lib/auth'
 import { BookingPageClient } from './booking-page-client'
-import type { Moto, Seguro, Acessorio, Local } from '@/lib/types'
+import type { Moto, Seguro, Acessorio, Local, LavagemServico } from '@/lib/types'
 
 interface BookingData {
   moto: Moto
   seguros: Seguro[]
   acessorios: Acessorio[]
+  lavagens: LavagemServico[]
   locais: Local[]
 }
 
@@ -54,8 +56,9 @@ export function BookingLoader({ initialStep }: BookingLoaderProps) {
     }
     setResolvedStep(allowed)
 
-    Promise.all([getMotoById(motoId), getSeguros(), getAcessorios(), getLocais()])
-      .then(([moto, seguros, acessorios, locais]) => setData({ moto, seguros, acessorios, locais }))
+    Promise.all([getMotoById(motoId), getSeguros(), getAcessorios(), getLavagens(), getLocais()])
+      .then(([moto, seguros, acessorios, lavagens, locais]) =>
+        setData({ moto, seguros, acessorios, lavagens, locais }))
       .catch(() => router.push('/motos'))
   }, [])
 
@@ -72,6 +75,7 @@ export function BookingLoader({ initialStep }: BookingLoaderProps) {
       moto={data.moto}
       seguros={data.seguros}
       acessorios={data.acessorios}
+      lavagens={data.lavagens}
       locais={data.locais}
       initialStep={resolvedStep}
     />
