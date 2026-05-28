@@ -4,6 +4,16 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { ReservationCard } from './_components/reservation-card'
 import { ReservationDetailsDialog } from './_components/reservation-details-dialog'
 import { getMinhasReservas, cancelarReserva } from '@/services/reservas.service'
@@ -15,6 +25,8 @@ export default function ReservationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
+  const [cancelingId, setCancelingId] = useState<string | null>(null)
+  const [canceling, setCanceling] = useState(false)
 
   useEffect(() => {
     getMinhasReservas()
@@ -30,13 +42,21 @@ export default function ReservationsPage() {
     ['CONCLUIDA', 'CANCELADA'].includes(r.status)
   )
 
-  const handleCancel = async (id: string) => {
-    if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return
+  const handleCancel = (id: string) => {
+    setCancelingId(id)
+  }
+
+  const confirmCancel = async () => {
+    if (!cancelingId) return
+    setCanceling(true)
     try {
-      const updated = await cancelarReserva(id)
-      setReservations((prev) => prev.map((r) => (r.id === id ? updated : r)))
+      const updated = await cancelarReserva(cancelingId)
+      setReservations((prev) => prev.map((r) => (r.id === cancelingId ? updated : r)))
     } catch {
       alert('Erro ao cancelar reserva.')
+    } finally {
+      setCanceling(false)
+      setCancelingId(null)
     }
   }
 
@@ -123,6 +143,27 @@ export default function ReservationsPage() {
         open={!!selectedReservation}
         onOpenChange={(o) => !o && setSelectedReservation(null)}
       />
+
+      <AlertDialog open={!!cancelingId} onOpenChange={(o) => !o && setCancelingId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar reserva?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A reserva será cancelada permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={canceling}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancel}
+              disabled={canceling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {canceling ? 'Cancelando...' : 'Confirmar cancelamento'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
