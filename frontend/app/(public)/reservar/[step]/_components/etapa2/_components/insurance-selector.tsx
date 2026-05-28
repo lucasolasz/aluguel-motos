@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/data'
-import { Shield } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import type { Seguro } from '@/lib/types'
 
 interface InsuranceSelectorProps {
@@ -119,15 +119,14 @@ export function InsuranceSelector({
                         key={item.nome}
                         className={cn(
                           'flex items-center gap-1.5 text-xs',
-                          naoIncluso ? 'text-black line-through' : 'text-gray-400'
+                          naoIncluso ? 'text-gray-300 line-through' : 'text-gray-400'
                         )}
                       >
-                        <Shield
-                          className={cn(
-                            'h-3 w-3 shrink-0',
-                            naoIncluso ? 'text-black' : 'text-[#2E7D32]'
-                          )}
-                        />
+                        {naoIncluso ? (
+                          <X className="h-3 w-3 shrink-0 text-gray-300" />
+                        ) : (
+                          <Check className="h-3 w-3 shrink-0 text-[#2E7D32]" />
+                        )}
                         <span>{item.nome}</span>
                       </div>
                     )

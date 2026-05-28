@@ -10,7 +10,7 @@ import { getMotoById, getMotos } from '@/services/motos.service'
 import { getAcessorios } from '@/services/acessorios.service'
 import { getSeguros } from '@/services/seguros.service'
 import { getLocais } from '@/services/locais.service'
-import { ArrowLeft, Check, Shield, Gauge, Fuel, Weight, Cog, ArrowUpDown } from 'lucide-react'
+import { ArrowLeft, Check, X, Gauge, Fuel, Weight, Cog, ArrowUpDown } from 'lucide-react'
 import { BookingWidget } from './_components/booking-widget'
 import { formatCurrency } from '@/lib/data'
 import { cn } from '@/lib/utils'
@@ -207,15 +207,14 @@ export default async function MotorcycleDetailPage({ params, searchParams }: Mot
                           const naoIncluso = item.tipo === 'NAO_INCLUSO'
                           return (
                             <li key={item.nome} className="flex items-start gap-2 text-sm">
-                              <Shield
-                                className={cn(
-                                  'mt-0.5 h-4 w-4 shrink-0',
-                                  naoIncluso ? 'text-black' : 'text-green-500'
-                                )}
-                              />
+                              {naoIncluso ? (
+                                <X className="mt-0.5 h-4 w-4 shrink-0 text-gray-300" />
+                              ) : (
+                                <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                              )}
                               <span
                                 className={cn(
-                                  naoIncluso ? 'text-black line-through' : 'text-muted-foreground'
+                                  naoIncluso ? 'text-gray-300 line-through' : 'text-muted-foreground'
                                 )}
                               >
                                 {item.nome}
