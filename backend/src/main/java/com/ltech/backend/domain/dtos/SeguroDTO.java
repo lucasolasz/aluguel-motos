@@ -11,6 +11,7 @@ public record SeguroDTO(
     String descricao,
     BigDecimal precoPorDia,
     Boolean basico,
+    Integer percentualDesconto,
     List<String> coberturas
 ) {
 }

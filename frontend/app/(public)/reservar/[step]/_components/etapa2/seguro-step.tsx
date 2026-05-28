@@ -10,5 +10,13 @@ interface SeguroStepProps {
 }
 
 export function SeguroStep({ seguros, selectedId, onSelect }: SeguroStepProps) {
-  return <InsuranceSelector seguros={seguros} selectedId={selectedId} onSelect={onSelect} />
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-bold text-foreground">Escolha seu Seguro</h2>
+        <p className="mt-1 text-muted-foreground">Selecione a proteção ideal para sua viagem</p>
+      </div>
+      <InsuranceSelector seguros={seguros} selectedId={selectedId} onSelect={onSelect} />
+    </div>
+  )
 }

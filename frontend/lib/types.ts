@@ -5,6 +5,7 @@ export interface Seguro {
   descricao: string;
   precoPorDia: number;
   basico: boolean;
+  percentualDesconto: number;
   coberturas: string[];
 }
 

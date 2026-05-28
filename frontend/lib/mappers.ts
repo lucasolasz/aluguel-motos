@@ -102,6 +102,7 @@ export interface SeguroDTO {
   descricao: string;
   precoPorDia: number;
   basico: boolean;
+  percentualDesconto: number;
   coberturas: string[];
 }
 
@@ -113,6 +114,7 @@ export function mapSeguro(dto: SeguroDTO): Seguro {
     descricao: dto.descricao,
     precoPorDia: dto.precoPorDia,
     basico: dto.basico,
+    percentualDesconto: dto.percentualDesconto ?? 0,
     coberturas: dto.coberturas,
   };
 }

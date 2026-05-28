@@ -88,6 +88,7 @@ public class SeguroController {
                 seguro.getDescricao(),
                 seguro.getPrecoPorDia(),
                 seguro.getBasico(),
+                seguro.getPercentualDesconto(),
                 seguro.getCoberturas().stream()
                         .map(c -> c.getNome())
                         .toList()

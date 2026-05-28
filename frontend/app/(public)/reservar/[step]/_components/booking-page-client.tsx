@@ -45,7 +45,11 @@ interface BookingPageClientProps {
 
 export function BookingPageClient({ moto, seguros, acessorios, locais, initialStep }: BookingPageClientProps) {
   const router = useRouter()
-  const defaultSeguroId = seguros.find((s) => s.basico)?.id ?? seguros[0]?.id ?? ''
+  const defaultSeguroId =
+    seguros.find((s) => s.nome.toLowerCase().includes('completo'))?.id ??
+    seguros.find((s) => s.basico)?.id ??
+    seguros[0]?.id ??
+    ''
 
   const [currentStep, setCurrentStep] = useState(initialStep ?? 1)
   const [pickupDate, setPickupDate] = useState<Date>()
