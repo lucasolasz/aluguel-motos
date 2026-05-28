@@ -26,7 +26,7 @@ export function CompletionScreen({
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex flex-1 items-center justify-center py-12">
+      <main className="flex flex-1 items-center justify-center py-12 px-12">
         <div className="mx-auto max-w-lg text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-600">
             <Check className="h-8 w-8 text-accent-foreground" />
