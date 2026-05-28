@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { Reservation } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/data'
-import { Calendar, X } from 'lucide-react'
+import { Calendar, Eye, X } from 'lucide-react'
 
 interface ReservationCardProps {
   reservation: Reservation
   onCancel?: (id: string) => void
+  onShowDetails?: (reservation: Reservation) => void
 }
 
 const statusLabels: Record<string, string> = {
@@ -27,7 +28,7 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
   CANCELADA: 'destructive',
 }
 
-export function ReservationCard({ reservation, onCancel }: ReservationCardProps) {
+export function ReservationCard({ reservation, onCancel, onShowDetails }: ReservationCardProps) {
   const canCancel = ['PENDENTE', 'CONFIRMADA'].includes(reservation.status)
   const imagemUrl = reservation.moto.imagens[0] ?? '/images/placeholder-moto.jpg'
 
@@ -79,6 +80,17 @@ export function ReservationCard({ reservation, onCancel }: ReservationCardProps)
             </div>
 
             <div className="flex flex-wrap items-start gap-2 sm:flex-col">
+              {onShowDetails && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => onShowDetails(reservation)}
+                >
+                  <Eye className="h-4 w-4" />
+                  Ver detalhes
+                </Button>
+              )}
               {canCancel && onCancel && (
                 <Button
                   variant="ghost"

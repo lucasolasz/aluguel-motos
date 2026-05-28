@@ -45,6 +45,11 @@ export interface UserProfile {
 export interface LocalResumo {
   id: string
   nome: string
+  cep: string
+  logradouro: string
+  numero: string
+  complemento: string | null
+  bairro: string
   cidade: string
   estado: string
 }
@@ -77,6 +82,18 @@ export interface Reservation {
     nome: string
     imagens: string[]
   }
+  seguro: {
+    id: string
+    nome: string
+    precoPorDia: number
+  } | null
+  acessorios: {
+    id: string
+    nome: string
+    quantidade: number
+    precoPorDia: number
+    subtotal: number
+  }[]
   precoPorDia: number
   caucao: number
   totalAluguel: number

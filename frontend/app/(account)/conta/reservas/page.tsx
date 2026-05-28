@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReservationCard } from './_components/reservation-card'
+import { ReservationDetailsDialog } from './_components/reservation-details-dialog'
 import { getMinhasReservas, cancelarReserva } from '@/services/reservas.service'
 import type { Reservation } from '@/lib/types'
 import { Plus } from 'lucide-react'
@@ -13,6 +14,7 @@ export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
 
   useEffect(() => {
     getMinhasReservas()
@@ -86,6 +88,7 @@ export default function ReservationsPage() {
                 key={reservation.id}
                 reservation={reservation}
                 onCancel={handleCancel}
+                onShowDetails={setSelectedReservation}
               />
             ))
           ) : (
@@ -101,7 +104,11 @@ export default function ReservationsPage() {
         <TabsContent value="history" className="space-y-4">
           {pastReservations.length > 0 ? (
             pastReservations.map((reservation) => (
-              <ReservationCard key={reservation.id} reservation={reservation} />
+              <ReservationCard
+                key={reservation.id}
+                reservation={reservation}
+                onShowDetails={setSelectedReservation}
+              />
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-border py-12 text-center">
@@ -110,6 +117,12 @@ export default function ReservationsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <ReservationDetailsDialog
+        reservation={selectedReservation}
+        open={!!selectedReservation}
+        onOpenChange={(o) => !o && setSelectedReservation(null)}
+      />
     </div>
   )
 }
