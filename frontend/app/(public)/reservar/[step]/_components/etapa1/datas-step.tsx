@@ -175,10 +175,10 @@ export function DatasStep({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">
           Retirada
         </h3>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Local</Label>
-            <Select value={localRetiradaId} onValueChange={onLocalRetiradaChange}>
+<div className="grid gap-4 md:grid-cols-3">
+           <div className="min-w-0 space-y-1.5">
+             <Label className="text-xs">Local</Label>
+             <Select value={localRetiradaId} onValueChange={onLocalRetiradaChange}>
               <SelectTrigger className="w-full">
                 <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                 <SelectValue placeholder="Selecione" />
@@ -244,10 +244,10 @@ export function DatasStep({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">
           Devolução
         </h3>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs">Local</Label>
-            <Select value={localDevolucaoId} onValueChange={onLocalDevolucaoChange}>
+<div className="grid gap-4 md:grid-cols-3">
+           <div className="min-w-0 space-y-1.5">
+             <Label className="text-xs">Local</Label>
+             <Select value={localDevolucaoId} onValueChange={onLocalDevolucaoChange}>
               <SelectTrigger className="w-full">
                 <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                 <SelectValue placeholder="Selecione" />

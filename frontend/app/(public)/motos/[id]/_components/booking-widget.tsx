@@ -106,7 +106,7 @@ export function BookingWidget({ moto, locais, initialParams = {} }: BookingWidge
 
       <div className="border-t border-border" />
 
-      <div className="space-y-2">
+      <div className="min-w-0 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Retirada
         </p>
@@ -162,7 +162,7 @@ export function BookingWidget({ moto, locais, initialParams = {} }: BookingWidge
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="min-w-0 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Devolução
         </p>

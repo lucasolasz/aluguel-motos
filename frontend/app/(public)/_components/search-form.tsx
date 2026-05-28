@@ -141,7 +141,7 @@ export function SearchForm({ locais, variant = 'default', className, initialValu
             Retirada
           </h3>
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Local</label>
               <Select value={localRetiradaId} onValueChange={setLocalRetiradaId}>
                 <SelectTrigger ref={firstFieldRef} className="w-full">
@@ -217,7 +217,7 @@ export function SearchForm({ locais, variant = 'default', className, initialValu
               Devolução
             </h3>
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Local</label>
                 <Select value={localDevolucaoId} onValueChange={setLocalDevolucaoId}>
                   <SelectTrigger className="w-full">
