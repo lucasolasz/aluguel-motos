@@ -24,13 +24,6 @@ export function AccessorySelector({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-foreground">Acessórios Opcionais</h2>
-        <p className="mt-1 text-muted-foreground">
-          Adicione itens extras para melhorar sua experiência
-        </p>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2">
         {acessorios.map((acessorio) => {
           const quantity = getQuantity(acessorio.id)

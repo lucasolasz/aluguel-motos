@@ -17,6 +17,7 @@ import { PriceSummary } from './price-summary'
 import { DatasStep } from './etapa1/datas-step'
 import { SeguroStep } from './etapa2/seguro-step'
 import { AcessoriosStep } from './etapa3/acessorios-step'
+import type { QuilometragemPlano } from './etapa3/_components/kilometragem-selector'
 import { ResumoStep } from './etapa4/resumo-step'
 import { DadosStep } from './etapa5/dados-step'
 import { useStep5 } from './etapa5/use-step5'
@@ -24,7 +25,7 @@ import { useStep5 } from './etapa5/use-step5'
 const steps = [
   { id: 1, name: 'Datas' },
   { id: 2, name: 'Seguro' },
-  { id: 3, name: 'Acessórios' },
+  { id: 3, name: 'Tarifas e adicionais' },
   { id: 4, name: 'Resumo' },
   { id: 5, name: 'Dados' },
 ]
@@ -57,6 +58,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
   const [selectedAcessorios, setSelectedAcessorios] = useState<
     { acessorioId: string; quantity: number }[]
   >([])
+  const [selectedQuilometragem, setSelectedQuilometragem] = useState<QuilometragemPlano>('economica')
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
@@ -119,6 +121,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
         if (!restoredLocalDevolucaoId && state.localDevolucaoId) restoredLocalDevolucaoId = state.localDevolucaoId
         if (state.selectedSeguroId) restoredSeguroId = state.selectedSeguroId
         if (state.selectedAcessorios) restoredAcessorios = state.selectedAcessorios
+        if (state.selectedQuilometragem === 'economica' || state.selectedQuilometragem === 'ilimitada') setSelectedQuilometragem(state.selectedQuilometragem)
         if (Array.isArray(state.completedSteps)) completedSteps = state.completedSteps
       } catch {}
     }
@@ -146,6 +149,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
         localDevolucaoId,
         selectedSeguroId,
         selectedAcessorios,
+        selectedQuilometragem,
       })
     )
   }, [
@@ -157,6 +161,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
     localDevolucaoId,
     selectedSeguroId,
     selectedAcessorios,
+    selectedQuilometragem,
     moto.id,
   ])
 
@@ -343,6 +348,10 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                       acessorios={acessorios}
                       selected={selectedAcessorios}
                       onUpdate={handleAcessorioUpdate}
+                      precoPorDia={moto.precoPorDia}
+                      days={days}
+                      selectedQuilometragem={selectedQuilometragem}
+                      onQuilometragemChange={setSelectedQuilometragem}
                     />
                   )}
 
@@ -408,6 +417,13 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                   days={days}
                   seguro={selectedSeguro}
                   acessorios={acessoriosWithDetails}
+                  quilometragem={selectedQuilometragem}
+                  pickupDate={pickupDate}
+                  returnDate={returnDate}
+                  horaRetirada={horaRetirada || undefined}
+                  horaDevolucao={horaDevolucao || undefined}
+                  localRetirada={locais.find((l) => l.id === localRetiradaId) ?? null}
+                  localDevolucao={locais.find((l) => l.id === localDevolucaoId) ?? null}
                 />
               </div>
             </div>
