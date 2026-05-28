@@ -48,6 +48,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/motos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/categorias", "/api/categorias/**").hasRole("ADMIN_FULL")
+                        .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasRole("ADMIN_FULL")
+                        .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.GET, "/api/acessorios/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/acessorios", "/api/acessorios/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.PUT, "/api/acessorios/**").hasRole("ADMIN_FULL")

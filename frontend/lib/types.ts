@@ -94,6 +94,13 @@ export interface Categoria {
   imageUrl: string;
 }
 
+export interface CategoriaRequest {
+  nome: string;
+  descricao: string;
+  slug: string;
+  imageUrl: string;
+}
+
 export interface MotoFoto {
   id: string;
   url: string;
