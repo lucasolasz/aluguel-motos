@@ -126,41 +126,59 @@ export function PriceSummary({
 
         <Separator />
 
-        {/* Outros custos */}
-        <div className="space-y-2">
-          {seguro && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{seguro.nome}</span>
-              <span className="text-foreground">
-                {insuranceCost === 0 ? 'Incluso' : formatCurrency(insuranceCost)}
-              </span>
+        {seguro && (
+          <>
+            <Separator />
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">{seguro.nome}</span>
+                <span className="text-sm font-semibold text-foreground">
+                  {insuranceCost === 0 ? 'Incluso' : formatCurrency(insuranceCost)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {formatCurrency(seguro.precoPorDia)}/dia × {days} {days === 1 ? 'dia' : 'dias'}
+              </p>
             </div>
-          )}
+          </>
+        )}
 
-          {acessorios.length > 0 && (
-            <>
-              {acessorios.map((item) => (
-                <div key={item.acessorio.id} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {item.acessorio.nome} x{item.quantity}
-                  </span>
-                  <span className="text-foreground">
-                    {formatCurrency(item.acessorio.precoPorDia * item.quantity * days)}
-                  </span>
-                </div>
-              ))}
-            </>
-          )}
-
-          {lavagem && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{lavagem.nome}</span>
-              <span className="text-foreground">{formatCurrency(lavagemCost)}</span>
+        {acessorios.map((item) => (
+          <div key={item.acessorio.id}>
+            <Separator />
+            <div className="space-y-1 mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">
+                  {item.acessorio.nome} ×{item.quantity}
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {formatCurrency(item.acessorio.precoPorDia * item.quantity * days)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {formatCurrency(item.acessorio.precoPorDia)}/dia × {item.quantity}{' '}
+                {item.quantity === 1 ? 'un' : 'un'} × {days} {days === 1 ? 'dia' : 'dias'}
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        ))}
 
-        {(seguro || acessorios.length > 0 || lavagem) && <Separator />}
+        {lavagem && (
+          <>
+            <Separator />
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">{lavagem.nome}</span>
+                <span className="text-sm font-semibold text-foreground">
+                  {formatCurrency(lavagemCost)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">Valor único</p>
+            </div>
+          </>
+        )}
+
+        <Separator />
 
         {/* Subtotal */}
         <div className="flex justify-between">
