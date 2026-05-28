@@ -9,6 +9,7 @@ interface InsuranceSelectorProps {
   seguros: Seguro[]
   selectedId: string
   onSelect: (seguroId: string) => void
+  days: number
 }
 
 const SORT_ORDER: Record<string, number> = {
@@ -30,6 +31,7 @@ export function InsuranceSelector({
   seguros,
   selectedId,
   onSelect,
+  days,
 }: InsuranceSelectorProps) {
   const sorted = [...seguros].sort((a, b) => getSortKey(a.nome) - getSortKey(b.nome))
 
@@ -95,11 +97,16 @@ export function InsuranceSelector({
               {seguro.basico ? (
                 <p className="mt-3 text-2xl font-bold text-gray-900">Gratuito</p>
               ) : (
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(seguro.precoPorDia)}
-                  </span>
-                  <span className="text-sm text-gray-500">/dia</span>
+                <div className="mt-3">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(seguro.precoPorDia)}
+                    </span>
+                    <span className="text-sm text-gray-500">/dia</span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Total do pacote: <span className="font-semibold text-gray-700">{formatCurrency(seguro.precoPorDia * days)}</span>
+                  </p>
                 </div>
               )}
 

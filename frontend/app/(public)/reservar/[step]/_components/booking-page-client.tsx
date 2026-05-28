@@ -344,6 +344,7 @@ export function BookingPageClient({ moto, seguros, acessorios, locais, initialSt
                       seguros={seguros}
                       selectedId={selectedSeguroId}
                       onSelect={setSelectedSeguroId}
+                      days={days}
                     />
                   )}
 
