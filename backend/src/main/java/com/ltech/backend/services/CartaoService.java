@@ -15,6 +15,7 @@ import com.ltech.backend.domain.entities.EnderecoCobranca;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.CartaoRepository;
 import com.ltech.backend.domain.repositories.EnderecoCobrancaRepository;
+import com.ltech.backend.domain.repositories.ReservaRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -24,12 +25,19 @@ public class CartaoService {
 
     private CartaoRepository cartaoRepository;
     private EnderecoCobrancaRepository enderecoCobrancaRepository;
+    private ReservaRepository reservaRepository;
     private CartaoFingerprintService cartaoFingerprintService;
 
     public List<CartaoDTO> listarMeusCartoes(String usuarioId) {
-        return cartaoRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId)
-                .stream()
-                .map(CartaoDTO::from)
+        List<Cartao> cartoes = cartaoRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId);
+        if (cartoes.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> cartaoIds = cartoes.stream().map(Cartao::getId).toList();
+        List<UUID> comReservas = reservaRepository.findCartaoIdsWithReservas(cartaoIds);
+        java.util.Set<UUID> reservados = new java.util.HashSet<>(comReservas);
+        return cartoes.stream()
+                .map(c -> CartaoDTO.from(c, reservados.contains(c.getId())))
                 .toList();
     }
 
@@ -67,6 +75,9 @@ public class CartaoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cartão não encontrado"));
         if (!cartao.getUsuario().getId().equals(usuarioId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sem permissão");
+        }
+        if (reservaRepository.existsByCartaoId(UUID.fromString(cartaoId))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cartão vinculado a reservas. Não pode ser excluído.");
         }
         cartaoRepository.deleteById(UUID.fromString(cartaoId));
     }

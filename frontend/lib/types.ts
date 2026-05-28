@@ -225,6 +225,7 @@ export interface Cartao {
   validade: string
   cpf: string
   enderecoCobranca: EnderecoCobranca | null
+  vinculadoAReservas: boolean
   createdAt: string
 }
 

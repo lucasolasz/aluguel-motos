@@ -6,12 +6,22 @@ import { Button } from '@/components/ui/button'
 import { CreditCard, Trash2 } from 'lucide-react'
 import { getMeusCartoes, deletarCartao } from '@/services/cartao.service'
 import type { Cartao } from '@/lib/types'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export default function CartoesPage() {
   const [cartoes, setCartoes] = useState<Cartao[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deletando, setDeletando] = useState<string | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogMessage, setDialogMessage] = useState('')
 
   useEffect(() => {
     getMeusCartoes()
@@ -26,8 +36,9 @@ export default function CartoesPage() {
     try {
       await deletarCartao(id)
       setCartoes((prev) => prev.filter((c) => c.id !== id))
-    } catch {
-      alert('Erro ao excluir cartão.')
+    } catch (err: any) {
+      setDialogMessage(err?.message || 'Erro ao excluir cartão.')
+      setDialogOpen(true)
     } finally {
       setDeletando(null)
     }
@@ -92,8 +103,9 @@ export default function CartoesPage() {
                     variant="ghost"
                     size="icon"
                     className="text-muted-foreground hover:text-destructive"
-                    disabled={deletando === cartao.id}
+                    disabled={deletando === cartao.id || cartao.vinculadoAReservas}
                     onClick={() => handleDelete(cartao.id)}
+                    title={cartao.vinculadoAReservas ? 'Cartão vinculado a reservas' : 'Excluir'}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -103,6 +115,18 @@ export default function CartoesPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Erro</AlertDialogTitle>
+            <AlertDialogDescription>{dialogMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={() => setDialogOpen(false)}>Fechar</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

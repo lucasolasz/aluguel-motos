@@ -12,6 +12,8 @@ import com.ltech.backend.domain.entities.Reserva;
 
 public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
 
+    boolean existsByCartaoId(UUID cartaoId);
+
     List<Reserva> findByUsuarioIdOrderByCreatedAtDesc(String usuarioId);
 
     List<Reserva> findAllByOrderByCreatedAtDesc();
@@ -54,4 +56,10 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
     List<UUID> findMotoIdsOcupados(
             @Param("inicio") LocalDate inicio,
             @Param("fim") LocalDate fim);
+
+    @Query("""
+        SELECT DISTINCT r.cartao.id FROM Reserva r
+        WHERE r.cartao IS NOT NULL AND r.cartao.id IN :cartaoIds
+    """)
+    List<UUID> findCartaoIdsWithReservas(@Param("cartaoIds") List<UUID> cartaoIds);
 }
