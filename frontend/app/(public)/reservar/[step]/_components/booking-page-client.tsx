@@ -64,7 +64,7 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
     { acessorioId: string; quantity: number }[]
   >([])
   const [selectedQuilometragem, setSelectedQuilometragem] = useState<QuilometragemPlano>('economica')
-  const [lavagemSelected, setLavagemSelected] = useState(false)
+  const [lavagemSelected, setLavagemSelected] = useState(true)
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
