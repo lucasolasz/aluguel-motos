@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.1.33"],
+  allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.1.33", "10.34.6.112"],
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "aluguel-motos.web.ltech.app.br" },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.ltech.backend.domain.dtos.MotoFotoRequestDTO;
 import com.ltech.backend.domain.dtos.MotoRequestDTO;
 import com.ltech.backend.domain.entities.Categoria;
 import com.ltech.backend.domain.entities.Moto;
@@ -15,18 +16,25 @@ import com.ltech.backend.domain.entities.MotoFoto;
 import com.ltech.backend.domain.repositories.CategoriaRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
+import com.ltech.backend.services.storage.StorageService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class MotoService {
 
     private final MotoRepository motoRepository;
     private final ReservaRepository reservaRepository;
     private final CategoriaRepository categoriaRepository;
+    private final StorageService storageService;
 
-    public MotoService(MotoRepository motoRepository, ReservaRepository reservaRepository, CategoriaRepository categoriaRepository) {
+    public MotoService(MotoRepository motoRepository, ReservaRepository reservaRepository,
+            CategoriaRepository categoriaRepository, StorageService storageService) {
         this.motoRepository = motoRepository;
         this.reservaRepository = reservaRepository;
         this.categoriaRepository = categoriaRepository;
+        this.storageService = storageService;
     }
 
     public List<Moto> obterTodas() {
@@ -118,8 +126,13 @@ public class MotoService {
         moto.setDestaque(dto.destaque() != null ? dto.destaque() : moto.getDestaque());
         moto.setCategoria(categoria);
 
+        Set<String> urlsAntigas = moto.getFotos().stream()
+                .map(MotoFoto::getUrl)
+                .collect(Collectors.toSet());
+
         // Atualiza fotos: limpa e recria
         moto.getFotos().clear();
+        Set<String> urlsNovas = new java.util.HashSet<>();
         if (dto.fotos() != null) {
             for (var f : dto.fotos()) {
                 MotoFoto foto = MotoFoto.builder()
@@ -129,14 +142,35 @@ public class MotoService {
                         .moto(moto)
                         .build();
                 moto.getFotos().add(foto);
+                urlsNovas.add(f.url());
             }
         }
 
-        return motoRepository.save(moto);
+        Moto salva = motoRepository.save(moto);
+
+        // Remove do storage as fotos que deixaram de ser referenciadas
+        urlsAntigas.stream()
+                .filter(url -> !urlsNovas.contains(url))
+                .forEach(this::removerDoStorage);
+
+        return salva;
     }
 
     public void excluir(UUID id) {
         Moto moto = obterPorId(id);
+        List<String> urls = moto.getFotos().stream().map(MotoFoto::getUrl).toList();
         motoRepository.delete(moto);
+        urls.forEach(this::removerDoStorage);
+    }
+
+    /** Remove um objeto do storage de forma best-effort: falha não interrompe o fluxo. */
+    private void removerDoStorage(String url) {
+        storageService.keyFromPublicUrl(url).ifPresent(key -> {
+            try {
+                storageService.delete(key);
+            } catch (RuntimeException e) {
+                log.warn("Falha ao remover foto órfã do storage: key={}", key, e);
+            }
+        });
     }
 }

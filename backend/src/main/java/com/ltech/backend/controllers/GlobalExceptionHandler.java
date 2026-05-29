@@ -2,10 +2,14 @@ package com.ltech.backend.controllers;
 
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.ltech.backend.services.storage.StorageException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -16,6 +20,24 @@ public class GlobalExceptionHandler {
                 .body(Map.of(
                         "status", ex.getStatusCode().value(),
                         "message", ex.getReason() != null ? ex.getReason() : ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(Map.of(
+                        "status", HttpStatus.PAYLOAD_TOO_LARGE.value(),
+                        "message", "Arquivo excede o tamanho máximo permitido"
+                ));
+    }
+
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<Map<String, Object>> handleStorage(StorageException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_GATEWAY.value(),
+                        "message", ex.getMessage()
                 ));
     }
 }

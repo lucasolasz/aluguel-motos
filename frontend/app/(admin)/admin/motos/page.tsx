@@ -56,6 +56,7 @@ import {
   adminDeleteMoto,
 } from '@/services/motos.service'
 import { adminGetCategorias } from '@/services/categorias.service'
+import { uploadMotoFoto, deleteUpload } from '@/services/upload.service'
 import { MARCAS, TRANSMISSOES, ANOS } from '@/lib/constants'
 import { Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
 
@@ -219,6 +220,11 @@ export default function AdminMotorcyclesPage() {
   const [form, setForm] = useState<MotoRequest>(emptyForm())
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingFotos, setUploadingFotos] = useState(false)
+  const [fotoError, setFotoError] = useState<string | null>(null)
+  // Uploads feitos nesta sessão do dialog ainda não persistidos — limpáveis na hora.
+  const [pendingUploads, setPendingUploads] = useState<{ url: string; key: string }[]>([])
 
   useEffect(() => {
     loadData()
@@ -255,11 +261,15 @@ export default function AdminMotorcyclesPage() {
     setEditingId(null)
     setForm(emptyForm())
     setSaveError(null)
+    setFotoError(null)
+    setPendingUploads([])
     setDialogOpen(true)
   }
 
   function openEdit(moto: Moto) {
     setEditingId(moto.id)
+    setFotoError(null)
+    setPendingUploads([])
     setForm({
       nome: moto.nome,
       slug: moto.slug,
@@ -300,12 +310,23 @@ export default function AdminMotorcyclesPage() {
         const created = await adminCreateMoto(form)
         setMotos((prev) => [...prev, created])
       }
+      // Persistido: backend passa a ser dono dessas fotos.
+      setPendingUploads([])
       setDialogOpen(false)
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : 'Erro ao salvar moto.')
     } finally {
       setIsSaving(false)
     }
+  }
+
+  // Fecha o dialog sem salvar: remove do Garage os uploads desta sessão não persistidos.
+  function handleCloseDialog() {
+    pendingUploads.forEach((u) => {
+      deleteUpload(u.key).catch(() => {})
+    })
+    setPendingUploads([])
+    setDialogOpen(false)
   }
 
   async function handleDelete() {
@@ -321,24 +342,40 @@ export default function AdminMotorcyclesPage() {
     }
   }
 
-  function addFoto() {
-    setForm((prev) => ({
-      ...prev,
-      fotos: [...prev.fotos, { url: '', ordem: prev.fotos.length, principal: prev.fotos.length === 0 }],
-    }))
+  async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    setFotoError(null)
+    setUploadingFotos(true)
+    try {
+      for (const file of files) {
+        const { url, key } = await uploadMotoFoto(file)
+        setPendingUploads((prev) => [...prev, { url, key }])
+        setForm((prev) => ({
+          ...prev,
+          fotos: [...prev.fotos, { url, ordem: prev.fotos.length, principal: prev.fotos.length === 0 }],
+        }))
+      }
+    } catch (err) {
+      setFotoError(err instanceof Error ? err.message : 'Erro ao enviar imagem.')
+    } finally {
+      setUploadingFotos(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   function removeFoto(index: number) {
+    const url = form.fotos[index]?.url
+    const pending = pendingUploads.find((u) => u.url === url)
+    if (pending) {
+      // Upload desta sessão, não persistido: pode apagar do Garage na hora.
+      deleteUpload(pending.key).catch(() => {})
+      setPendingUploads((prev) => prev.filter((u) => u.url !== url))
+    }
+    // Fotos pré-existentes: backend limpa no save (diff de URLs).
     setForm((prev) => ({
       ...prev,
       fotos: prev.fotos.filter((_, i) => i !== index).map((f, i) => ({ ...f, ordem: i })),
-    }))
-  }
-
-  function updateFoto(index: number, url: string) {
-    setForm((prev) => ({
-      ...prev,
-      fotos: prev.fotos.map((f, i) => (i === index ? { ...f, url } : f)),
     }))
   }
 
@@ -451,7 +488,7 @@ export default function AdminMotorcyclesPage() {
       </Card>
 
       {/* ─── Create / Edit Dialog ─── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleCloseDialog() }}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>
@@ -669,48 +706,70 @@ export default function AdminMotorcyclesPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-semibold">Fotos</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addFoto}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingFotos}
+                >
                   <Plus className="mr-1 h-3 w-3" />
-                  Adicionar URL
+                  {uploadingFotos ? 'Enviando...' : 'Adicionar foto'}
                 </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleFilesSelected}
+                />
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Upload de imagens desabilitado. Adicione URLs manualmente. A primeira foto definida como principal será usada como capa.
+                Envie JPG, PNG ou WEBP (máx 5MB). A foto marcada como principal será usada como capa.
               </p>
 
-              {form.fotos.length === 0 && (
+              {fotoError && <p className="text-sm text-destructive">{fotoError}</p>}
+
+              {form.fotos.length === 0 && !uploadingFotos && (
                 <p className="text-sm text-muted-foreground">
                   Nenhuma foto adicionada.
                 </p>
               )}
 
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {form.fotos.map((foto, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <Input
-                      className="flex-1"
-                      value={foto.url}
-                      onChange={(e) => updateFoto(index, e.target.value)}
-                      placeholder="https://..."
-                    />
-                    <Button
-                      type="button"
-                      variant={foto.principal ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPrincipal(index)}
-                      className="shrink-0"
-                    >
-                      {foto.principal ? 'Principal' : 'Tornar principal'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeFoto(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                  <div key={index} className="overflow-hidden rounded-lg border">
+                    <div className="relative aspect-video bg-muted">
+                      <Image
+                        src={foto.url}
+                        alt={`Foto ${index + 1}`}
+                        fill
+                        sizes="200px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 p-1.5">
+                      <Button
+                        type="button"
+                        variant={foto.principal ? 'default' : 'outline'}
+                        size="sm"
+                        className="h-7 flex-1 text-xs"
+                        onClick={() => setPrincipal(index)}
+                      >
+                        {foto.principal ? 'Principal' : 'Tornar principal'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => removeFoto(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -721,7 +780,7 @@ export default function AdminMotorcyclesPage() {
             )}
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button variant="outline" onClick={handleCloseDialog}>
                 Cancelar
               </Button>
               <Button onClick={handleSave} disabled={isSaving}>
