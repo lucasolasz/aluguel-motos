@@ -306,25 +306,27 @@ export default function AdminMotorcyclesPage() {
       let formToSave = { ...form }
 
       if (newFiles.length > 0) {
+        const fotosExistentes = form.fotos.filter(f => !f.url.startsWith('blob:'))
+
         if (!motoId) {
-          const created = await adminCreateMoto({ ...form, fotos: [] })
+          const created = await adminCreateMoto({ ...form, fotos: fotosExistentes })
           motoId = created.id
           setMotos((prev) => [...prev, created])
         }
 
         setUploadingFotos(true)
-        const uploadedUrls: { url: string; ordem: number; principal: boolean }[] = []
+        const fotosNovas: { url: string; ordem: number; principal: boolean }[] = []
         
         for (let i = 0; i < newFiles.length; i++) {
           const { url } = await uploadMotoFoto(newFiles[i].file, motoId)
-          const ordemBase = form.fotos.length + i
-          const isPrincipal = form.fotos.length === 0 && i === 0
-          uploadedUrls.push({ url, ordem: ordemBase, principal: isPrincipal })
+          const ordemBase = fotosExistentes.length + i
+          const isPrincipal = fotosExistentes.length === 0 && i === 0
+          fotosNovas.push({ url, ordem: ordemBase, principal: isPrincipal })
         }
 
         formToSave = {
           ...form,
-          fotos: [...form.fotos, ...uploadedUrls],
+          fotos: [...fotosExistentes, ...fotosNovas],
         }
         setUploadingFotos(false)
 
