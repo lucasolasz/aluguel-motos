@@ -1,45 +1,65 @@
 # Aluguel Motos
 
 ## Stack
-- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL (localhost:5432, DB: `aluguel-moto`)
-- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui
-- **Auth**: JWT via `com.auth0:java-jwt:4.4.0`, cookie `auth-token`
+- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL — porta **8090**
+- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui — porta 3000
+- **Auth**: JWT via `com.auth0:java-jwt:4.4.0`, cookie `auth-token` (max-age 24h)
+- **Storage**: Garage (S3-compatible) via AWS SDK v2 — upload de imagens
 
 ## Setup
 ```bash
 # PostgreSQL via Docker
 docker run --name postgres-aluguel -e POSTGRES_PASSWORD=lucas123 -p 5432:5432 postgres
 
-# Backend (port 8080)
+# Backend (porta 8090)
 cd backend && mvn spring-boot:run
 
-# Frontend (port 3000)
+# Frontend (porta 3000)
 cd frontend && npm install && npm run dev
 ```
 
 DB recria do zero a cada restart (`create-drop` + `data.sql`).
 
+### Profiles (Spring)
+- `application.properties` — base; `spring.profiles.active=dev`, `server.port=8090`
+- `application-dev.properties` — DB `jdbc:postgresql://localhost:5432/postgres` (user `postgres` / `lucas123`), secret JWT inline, storage S3
+- `application-prod.properties` — tudo via variáveis de ambiente (`DB_*`, `JWT_SECRET`, `CORS_ORIGINS`, `S3_*`)
+
+### Build (esta máquina)
+Defaults da máquina apontam p/ JDK antigo. Use: `JAVA_HOME=C:\Desenvolvimento Lucas\Java\jdk-21.0.5`, o wrapper `.\mvnw.cmd` (mvn do sistema é velho), e limpe `MAVEN_OPTS` antes (tem `MaxPermSize` inválido).
+
 ## Auth Flow
-1. `POST /auth/login` → `{ token }` → `setToken(token)` cookie `auth-token`
-2. `proxy.ts` protege `/conta/**` → redireciona p/ `/login?redirect=<path>`
-3. Client components: `apiFetch()` de `lib/auth.ts` (Bearer token)
-4. Server components públicos: `services/*.service.ts` direto (sem auth)
+1. `POST /auth/login` (username = e-mail) → `{ token }` → `setToken(token)` cookie `auth-token`
+2. `proxy.ts` protege **apenas** `/conta/**` → redireciona p/ `/login?redirect=<path>`. Rotas `/admin/**` não passam pelo proxy — dependem do token + checagem de role no backend.
+3. Client components: `apiFetch()` de `lib/auth.ts` (Bearer token, trata 401 → logout)
+4. Server components públicos: `services/*.service.ts` via `services/api.ts` (sem auth)
 
 ## Data Flow
-- **Server Components**: `services/api.ts` → `API_URL=http://localhost:8080/api`
-- **Client Components**: `lib/auth.ts apiFetch()` → `NEXT_PUBLIC_API_URL=http://localhost:8080`
+- Base URL única: `lib/config.ts` → `API_URL = NEXT_PUBLIC_API_URL ?? http://localhost:8090`
+- Prefixos `/api/...` e `/auth/...` ficam no path de cada chamada (não na base)
+- `services/api.ts apiFetch()` — sem auth (público). `lib/auth.ts apiFetch()` — com Bearer
 
-## .env.local
+## .env.local (frontend)
 ```
-API_URL=http://localhost:8080/api
-NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://localhost:8090
 ```
 
-## Grupos
+## Usuários seed (dev — data.sql)
+- `lucas@admin.com` / `lucas123` — grupo DESENVOLVEDORES
+- `danilo@admin.com` / `admin123` — grupo ADMINS
+
+## Grupos e Permissões
+Permissões: `ADMIN_FULL`, `RESERVAS_LEITURA`, `RESERVAS_ESCRITA`, `USUARIOS_LEITURA`, `LOCAIS_LEITURA`, `LOCAIS_ESCRITA`
 - **DESENVOLVEDORES** — todas as permissões
-- **ADMINS** — ADMIN_FULL, RESERVAS_*
-- **GERAL** — clientes (RESERVAS_LEITURA, RESERVAS_ESCRITA)
+- **ADMINS** — ADMIN_FULL, RESERVAS_*, USUARIOS_LEITURA, LOCAIS_*
+- **GERAL** — RESERVAS_LEITURA, RESERVAS_ESCRITA (clientes)
+
+## Storage / Upload (Garage S3)
+- Backend: módulo desacoplado por interface (`StorageService` → `S3StorageService`). Detalhes em `backend/CLAUDE.md`.
+- Endpoint: `POST /api/uploads/motos` (multipart `file`, role ADMIN_FULL) → `{ key, url, contentType, size }`. CRUD de motos continua guardando só a URL String.
+- Garage: path-style, region `us-east-1`, endpoint `https://s3.ltech.app.br`. URL pública servida pelo web endpoint `https://<bucket>.web.ltech.app.br/<key>` (requer Traefik router p/ porta 3901 + DNS wildcard `*.web`).
+- Para exibir imagem externa no `next/image`, adicionar o host em `images.remotePatterns` no `next.config.ts`.
 
 ## Projetos
-- `backend/` — API Spring Boot (entities, endpoints, services) → ver `backend/CLAUDE.md`
-- `frontend/` — App Next.js (components, pages, services, types) → ver `frontend/CLAUDE.md`
+- `backend/` — API Spring Boot → ver `backend/CLAUDE.md`
+- `frontend/` — App Next.js → ver `frontend/CLAUDE.md`

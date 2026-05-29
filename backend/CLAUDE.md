@@ -1,92 +1,127 @@
 # Backend — Spring Boot API
 
+Porta **8090**. Pacote raiz `com.ltech.backend`. Lombok em todas as entities/DTOs.
+
+## Estrutura
+```
+config/           StorageProperties, S3Config
+controllers/      *Controller + GlobalExceptionHandler
+domain/dtos/      records (request + response DTOs)
+domain/entities/  @Entity + enums
+domain/repositories/  Spring Data JPA
+security/         SecurityConfig, SecurityFilter, TokenService, UsuarioDetails(+Service), handlers
+services/         *Service
+services/storage/ StorageService (interface), S3StorageService, StorageException
+```
+
 ## Entities
 
 ### Usuario
-```java
-id (UUID), username, password, enabled
-nomeCompleto, email, telefone, cpf (unique), numeroCnh
-fotoPerfil (String URL — nunca binário)
-grupo (ManyToOne → Grupo)
-createdAt
+```
+id (String UUID), username (= e-mail), password, enabled
+nomeCompleto, telefone, cpf (unique), numeroCnh
+fotoPerfil (String URL), createdAt, grupo (ManyToOne)
+```
+> NÃO tem campo `email` — o `username` É o e-mail.
+
+### Grupo / Permissao
+```
+Grupo: id (Long), nome, permissoes (ManyToMany EAGER → Permissao)
+Permissao: id (Long), nome
 ```
 
 ### Moto
-```java
+```
 id (UUID), nome, slug, marca, modelo, ano
 precoPorDia, caucao (BigDecimal)
-motor, potencia, transmissao, capacidadeTanque, alturaAssento, peso
-itens (String CSV → frontend converte para array)
-disponivel, fotos (OneToMany MotoFoto), categoria (ManyToOne)
+motor, potencia, transmissao, capacidadeTanque, alturaAssento, peso (String)
+itens (String CSV → frontend converte p/ array)
+disponivel, destaque (Boolean)
+fotos (OneToMany MotoFoto, cascade ALL, orphanRemoval, @OrderBy ordem)
+categoria (ManyToOne)
+```
+
+### MotoFoto
+```
+id (UUID), moto (ManyToOne), url, ordem (Integer), principal (Boolean)
 ```
 
 ### Categoria
-```java
-id (UUID), nome, slug, descricao, icone
+```
+id (UUID), nome, descricao, slug (unique), imageUrl
 ```
 
 ### Acessorio
-```java
-id (UUID), nome, descricao, precoPorDia (BigDecimal), icone, disponivel
+```
+id (UUID), nome, descricao, precoPorDia (BigDecimal), quantidadeMaxima (Integer), ativo (Boolean)
 ```
 
 ### Seguro
-```java
-id (UUID), nome, descricao, preco (BigDecimal)
-coberturas (OneToMany → SeguroCobertura)
+```
+id (UUID), nome, slug (unique), descricao, precoPorDia (BigDecimal)
+basico (Boolean), valorOriginal, valorComDesconto, valorTotalPacote (BigDecimal)
+percentualDesconto, maxParcelasSemJuros (Integer), recomendado, ativo (Boolean)
+coberturas (OneToMany SeguroCobertura, @OrderBy ordem)
 ```
 
 ### SeguroCobertura
-```java
-id (UUID), seguro (ManyToOne), descricao
+```
+id (UUID), nome, tipo (TipoCobertura: INCLUSO|PARCIAL|NAO_INCLUSO), ordem (Integer), seguro (ManyToOne)
+```
+
+### LavagemServico
+```
+id (UUID), nome, descricao, valor (BigDecimal)
+tipoCobranca (TipoCobrancaLavagem: VALOR_UNICO), ativo (Boolean)
+```
+
+### Local
+```
+id (UUID), nome (unique), cep, logradouro, numero, complemento, bairro, cidade, estado
+ativo (Boolean), createdAt
 ```
 
 ### Reserva
-```java
-id (UUID), usuario (ManyToOne), moto (ManyToOne), seguro (ManyToOne, nullable)
-dataRetirada, dataDevolucao (LocalDate), totalDias
-status: PENDENTE | CONFIRMADA | EM_ANDAMENTO | CONCLUIDA | CANCELADA
-precoPorDia, caucao, totalAluguel, totalSeguro, totalAcessorios, total (BigDecimal)
-acessorios (OneToMany → ReservaAcessorioItem)
-cartaoNumeroMascarado (String, nullable)
-createdAt
+```
+id (UUID), usuario, moto, seguro (nullable), cartao (nullable), lavagemServico (nullable) — todos ManyToOne
+dataRetirada, dataDevolucao (LocalDate), horaRetirada, horaDevolucao (LocalTime)
+localRetirada, localDevolucao (ManyToOne Local)
+totalDias (int), status (StatusReserva: PENDENTE|CONFIRMADA|EM_ANDAMENTO|CONCLUIDA|CANCELADA)
+precoPorDia, caucao, totalAluguel, totalSeguro, totalAcessorios, totalLavagem, total (BigDecimal)
+acessorios (OneToMany ReservaAcessorioItem), createdAt
 ```
 
 ### ReservaAcessorioItem
-```java
-id (UUID), reserva (ManyToOne), acessorio (ManyToOne)
-quantidade (int), precoPorDia (BigDecimal — snapshot no momento da reserva)
+```
+id (UUID), reserva (ManyToOne, @JsonIgnore), acessorio (ManyToOne)
+quantidade (int), precoPorDia (BigDecimal — snapshot)
 ```
 
 ### Cnh
-```java
-id (UUID), usuario (OneToOne)
-numero, categoria (String), dataExpiracao (LocalDate)
-createdAt
+```
+id (UUID), usuario (ManyToOne)
+rg, numeroRegistro, numeroCnh, estado (String)
+dataNascimento, dataValidade (LocalDate), createdAt
 ```
 
 ### Documento (KYC)
-```java
+```
 id (UUID), usuario (ManyToOne)
-tipo: CNH_FRENTE | CNH_VERSO | SELFIE_COM_DOCUMENTO
-url (String — URL do arquivo)
-status: PENDENTE | VERIFICADO | RECUSADO
-createdAt
+tipo (TipoDocumento: CNH_FRENTE|CNH_VERSO|SELFIE_COM_DOCUMENTO)
+url (String), status (StatusDocumento: PENDENTE|VERIFICADO|RECUSADO), createdAt
 ```
 
 ### Cartao
-```java
-id (UUID), usuario (ManyToOne), enderecoCobranca (ManyToOne, nullable)
+```
+id (UUID), usuario, enderecoCobranca (ManyToOne, nullable)
 nome, numeroMascarado, validade, cpf
-createdAt
+fingerprint (String, unique por usuario_id+fingerprint), createdAt
 ```
 
 ### EnderecoCobranca
-```java
+```
 id (UUID), usuario (ManyToOne)
-cep, logradouro, numero, semNumero (boolean), complemento
-estado, cidade, bairro
-createdAt
+cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairro, createdAt
 ```
 
 ## Endpoints
@@ -96,47 +131,63 @@ createdAt
 |--------|------|-----------|
 | POST | `/auth/login` | Login → `{ token }` |
 | POST | `/auth/register/cliente` | Auto-registro (grupo GERAL) |
-| POST | `/auth/register` | Admin only |
-| GET | `/api/motos/**` | Listagem e detalhe |
-| GET | `/api/categorias/**` | Categorias |
-| GET | `/api/acessorios/**` | Acessórios |
-| GET | `/api/seguros/**` | Seguros |
+| GET | `/api/motos` `/api/motos/{id}` `/api/motos/destaque` | Listagem/detalhe/destaques |
+| GET | `/api/categorias` `/api/categorias/{id}` | Categorias |
+| GET | `/api/acessorios` `/api/acessorios/{id}` | Acessórios |
+| GET | `/api/seguros` `/api/seguros/{id}` `/api/seguros/slug/{slug}` | Seguros |
+| GET | `/api/lavagens` | Serviços de lavagem |
+| GET | `/api/locais` `/api/locais/{id}` | Locais retirada/devolução |
 
 ### Autenticados (Bearer token)
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| GET | `/api/usuarios/me` | Perfil usuário logado |
-| PUT | `/api/usuarios/me` | Atualiza perfil |
+| GET/PUT | `/api/usuarios/me` | Perfil do usuário logado |
 | GET | `/api/reservas/me` | Reservas do usuário |
 | POST | `/api/reservas` | Criar reserva |
-| PATCH | `/api/reservas/{id}/cancelar` | Cancelar (PENDENTE/CONFIRMADA) |
-| GET | `/api/documentos/me` | Documentos KYC |
-| POST | `/api/documentos` | Upsert por tipo |
-| DELETE | `/api/documentos/{id}` | Excluir |
+| PATCH | `/api/reservas/{id}/cancelar` | Cancelar |
+| GET/POST/DELETE | `/api/documentos/me` `/api/documentos` `/api/documentos/{id}` | KYC (upsert por tipo) |
 | GET | `/api/cartoes/me` | Cartões |
 | POST | `/api/cartoes` | Criar cartão |
+| POST | `/api/cartoes/validar` | Validar cartão |
+| DELETE | `/api/cartoes/{id}` | Excluir cartão |
 | PATCH | `/api/cartoes/{id}/endereco` | Associar endereço |
-| GET | `/api/enderecos-cobranca/me` | Endereços |
-| POST | `/api/enderecos-cobranca` | Criar endereço |
-| GET | `/api/cnh/me` | CNH do usuário |
-| POST | `/api/cnh` | Cadastrar/atualizar CNH |
+| GET/POST | `/api/enderecos-cobranca/me` `/api/enderecos-cobranca` | Endereços de cobrança |
+| GET/POST | `/api/cnh/me` `/api/cnh` | CNH do usuário |
 
-### Admin (requer ADMIN_FULL)
+### Admin / ADMIN_FULL (regras em SecurityConfig)
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| GET | `/api/admin/clientes` | Lista todos clientes |
-| GET | `/api/admin/reservas` | Lista todas reservas |
-| PATCH | `/api/admin/reservas/{id}/status` | Atualiza status reserva |
+| POST/PUT/DELETE | `/api/motos/**` | CRUD motos (+ `GET /api/motos/admin`) |
+| POST/PUT/DELETE | `/api/categorias/**` | CRUD categorias (+ `GET /admin`, `/admin/{id}`) |
+| POST/PUT/DELETE | `/api/acessorios/**` | CRUD acessórios (+ `GET /admin`) |
+| POST/PUT/DELETE | `/api/seguros/**` | CRUD seguros (+ `GET /admin`) |
+| POST/PUT/DELETE | `/api/lavagens/**` | CRUD lavagens (+ `GET /admin`) |
+| POST | `/api/uploads/motos` | Upload de imagem (multipart `file`) |
+| DELETE | `/api/uploads?key=` | Remover objeto do storage |
 
-## Grupos e Permissões (data.sql)
-- **DESENVOLVEDORES** — todas
-- **ADMINS** — ADMIN_FULL, RESERVAS_*
-- **GERAL** — RESERVAS_LEITURA, RESERVAS_ESCRITA (clientes)
+### Admin reservas/clientes/locais (`/api/admin/**`, autenticado)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/admin/reservas` | Todas as reservas |
+| PATCH | `/api/admin/reservas/{id}/status` | Atualiza status |
+| GET | `/api/admin/clientes` `/api/admin/clientes/{id}` | Clientes |
+| GET/POST/PUT/DELETE | `/api/admin/locais` `/api/admin/locais/{id}` | CRUD locais |
+
+> `POST /auth/register` requer role ADMINS ou DESENVOLVEDORES.
+
+## Storage / Upload (Garage S3)
+- **Interface** `services/storage/StorageService`: `upload(file, prefix)`, `delete(key)`, `publicUrl(key)`, `presignedGetUrl(key, expiry)`.
+- **Impl** `S3StorageService`: valida extensão/content-type/tamanho, gera key `prefix/yyyy/MM/uuid.ext`, `putObject`, monta URL pública, auto-cria bucket no startup.
+- **Config** `config/S3Config` (beans `S3Client` + `S3Presigner`) + `config/StorageProperties` (`storage.s3.*`).
+- **Garage**: `forcePathStyle(true)`, `region=us-east-1`, `endpointOverride`. Checksums em `WHEN_REQUIRED` (SDK ≥2.30 quebra no Garage por padrão).
+- **Erros**: validação → `ResponseStatusException` (400/413); infra → `StorageException` (502). Ambos tratados no `GlobalExceptionHandler`.
+- **Env**: dev `GARAGE_ACCESS_KEY`/`GARAGE_SECRET_KEY`; prod `S3_ACCESS_KEY`/`S3_SECRET_KEY`/`S3_*`.
 
 ## Key Patterns
-1. `@AuthenticationPrincipal UsuarioDetails` para pegar usuário do JWT
+1. `@AuthenticationPrincipal UsuarioDetails` para pegar o usuário do JWT
 2. Reserva calcula totais no `ReservaService` (não no frontend)
 3. Documentos: upsert por tipo — 1 doc por tipo por usuário
-4. Cartao ↔ Endereco: ManyToOne opcional
-5. `CartaoFingerprintService` — deduplica cartões por fingerprint
-6. `GlobalExceptionHandler` — trata exceções globalmente
+4. `CartaoFingerprintService` — deduplica cartões por fingerprint (unique usuario+fingerprint)
+5. `GlobalExceptionHandler` — `ResponseStatusException`, `StorageException`, `MaxUploadSizeExceededException`
+6. Controllers mapeiam entity→DTO com records em `domain/dtos`
+7. CRUD admin de catálogo (motos/categorias/etc) tem `GET /admin` separado do público
