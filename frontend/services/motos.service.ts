@@ -1,5 +1,6 @@
-import { apiFetch } from "./api";
-import { Moto } from "@/lib/types";
+import { apiFetch as serverFetch } from "./api";
+import { apiFetch } from "@/lib/auth";
+import { Moto, MotoRequest } from "@/lib/types";
 import { mapMoto, mapMotos, type MotoDTO } from "@/lib/mappers";
 
 export interface GetMotosParams {
@@ -29,4 +30,31 @@ export async function getMotoById(id: string): Promise<Moto> {
 export async function getMotosByCategoriaSlug(slug: string): Promise<Moto[]> {
   const motos = await getMotos();
   return motos.filter((m) => m.categoria?.slug === slug);
+}
+
+// ─── Admin ───────────────────────────────────────────────────────────
+
+export async function adminGetMotos(): Promise<Moto[]> {
+  const dtos = await apiFetch<MotoDTO[]>("/api/motos/admin");
+  return mapMotos(dtos);
+}
+
+export async function adminCreateMoto(data: MotoRequest): Promise<Moto> {
+  const dto = await apiFetch<MotoDTO>("/api/motos", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return mapMoto(dto);
+}
+
+export async function adminUpdateMoto(id: string, data: MotoRequest): Promise<Moto> {
+  const dto = await apiFetch<MotoDTO>(`/api/motos/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return mapMoto(dto);
+}
+
+export async function adminDeleteMoto(id: string): Promise<void> {
+  await apiFetch<void>(`/api/motos/${id}`, { method: "DELETE" });
 }

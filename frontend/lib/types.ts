@@ -281,3 +281,24 @@ export interface Moto {
   fotos: MotoFoto[];
   categoria: Categoria;
 }
+
+export interface MotoRequest {
+  nome: string;
+  slug: string;
+  marca: string;
+  modelo: string;
+  ano: number;
+  precoPorDia: number;
+  caucao: number;
+  motor: string;
+  potencia: string;
+  transmissao: string;
+  capacidadeTanque: string;
+  alturaAssento: string;
+  peso: string;
+  itens: string; // CSV no backend
+  disponivel: boolean;
+  destaque: boolean;
+  categoriaId: string;
+  fotos: { url: string; ordem: number; principal: boolean }[];
+}

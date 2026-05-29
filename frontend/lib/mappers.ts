@@ -1,5 +1,4 @@
-import { Acessorio, Categoria, LavagemServico, Moto, MotoFoto, Seguro } from "./types";
-
+import { Moto, MotoFoto, Categoria, Seguro, Acessorio, LavagemServico } from "./types";
 
 // DTOs para tipagem do parâmetro de entrada
 export interface CategoriaDTO {

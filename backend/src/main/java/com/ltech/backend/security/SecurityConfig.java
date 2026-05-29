@@ -47,6 +47,9 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/motos/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/motos", "/api/motos/**").hasRole("ADMIN_FULL")
+                        .requestMatchers(HttpMethod.PUT, "/api/motos/**").hasRole("ADMIN_FULL")
+                        .requestMatchers(HttpMethod.DELETE, "/api/motos/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/categorias", "/api/categorias/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasRole("ADMIN_FULL")

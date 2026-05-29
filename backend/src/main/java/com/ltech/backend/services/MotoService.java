@@ -8,7 +8,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.ltech.backend.domain.dtos.MotoRequestDTO;
+import com.ltech.backend.domain.entities.Categoria;
 import com.ltech.backend.domain.entities.Moto;
+import com.ltech.backend.domain.entities.MotoFoto;
+import com.ltech.backend.domain.repositories.CategoriaRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
 
@@ -17,10 +21,12 @@ public class MotoService {
 
     private final MotoRepository motoRepository;
     private final ReservaRepository reservaRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public MotoService(MotoRepository motoRepository, ReservaRepository reservaRepository) {
+    public MotoService(MotoRepository motoRepository, ReservaRepository reservaRepository, CategoriaRepository categoriaRepository) {
         this.motoRepository = motoRepository;
         this.reservaRepository = reservaRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     public List<Moto> obterTodas() {
@@ -44,5 +50,93 @@ public class MotoService {
                 .filter(m -> Boolean.TRUE.equals(m.getDisponivel()))
                 .filter(m -> !ocupados.contains(m.getId()))
                 .toList();
+    }
+
+    public Moto criar(MotoRequestDTO dto) {
+        Categoria categoria = categoriaRepository.findById(dto.categoriaId())
+                .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada: " + dto.categoriaId()));
+
+        List<MotoFoto> fotos = (dto.fotos() != null ? dto.fotos() : List.<MotoFotoRequestDTO>of())
+                .stream()
+                .map(f -> MotoFoto.builder()
+                        .url(f.url())
+                        .ordem(f.ordem() != null ? f.ordem() : 0)
+                        .principal(f.principal() != null ? f.principal() : false)
+                        .build())
+                .toList();
+
+        Moto moto = Moto.builder()
+                .nome(dto.nome())
+                .slug(dto.slug())
+                .marca(dto.marca())
+                .modelo(dto.modelo())
+                .ano(dto.ano())
+                .precoPorDia(dto.precoPorDia())
+                .caucao(dto.caucao())
+                .motor(dto.motor())
+                .potencia(dto.potencia())
+                .transmissao(dto.transmissao())
+                .capacidadeTanque(dto.capacidadeTanque())
+                .alturaAssento(dto.alturaAssento())
+                .peso(dto.peso())
+                .itens(dto.itens())
+                .disponivel(dto.disponivel() != null ? dto.disponivel() : true)
+                .destaque(dto.destaque() != null ? dto.destaque() : false)
+                .categoria(categoria)
+                .fotos(fotos)
+                .build();
+
+        // Associa o moto em cada foto para a relação bidirecional
+        for (MotoFoto foto : fotos) {
+            foto.setMoto(moto);
+        }
+
+        return motoRepository.save(moto);
+    }
+
+    public Moto atualizar(UUID id, MotoRequestDTO dto) {
+        Moto moto = obterPorId(id);
+
+        Categoria categoria = categoriaRepository.findById(dto.categoriaId())
+                .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada: " + dto.categoriaId()));
+
+        moto.setNome(dto.nome());
+        moto.setSlug(dto.slug());
+        moto.setMarca(dto.marca());
+        moto.setModelo(dto.modelo());
+        moto.setAno(dto.ano());
+        moto.setPrecoPorDia(dto.precoPorDia());
+        moto.setCaucao(dto.caucao());
+        moto.setMotor(dto.motor());
+        moto.setPotencia(dto.potencia());
+        moto.setTransmissao(dto.transmissao());
+        moto.setCapacidadeTanque(dto.capacidadeTanque());
+        moto.setAlturaAssento(dto.alturaAssento());
+        moto.setPeso(dto.peso());
+        moto.setItens(dto.itens());
+        moto.setDisponivel(dto.disponivel() != null ? dto.disponivel() : moto.getDisponivel());
+        moto.setDestaque(dto.destaque() != null ? dto.destaque() : moto.getDestaque());
+        moto.setCategoria(categoria);
+
+        // Atualiza fotos: limpa e recria
+        moto.getFotos().clear();
+        if (dto.fotos() != null) {
+            for (var f : dto.fotos()) {
+                MotoFoto foto = MotoFoto.builder()
+                        .url(f.url())
+                        .ordem(f.ordem() != null ? f.ordem() : 0)
+                        .principal(f.principal() != null ? f.principal() : false)
+                        .moto(moto)
+                        .build();
+                moto.getFotos().add(foto);
+            }
+        }
+
+        return motoRepository.save(moto);
+    }
+
+    public void excluir(UUID id) {
+        Moto moto = obterPorId(id);
+        motoRepository.delete(moto);
     }
 }
