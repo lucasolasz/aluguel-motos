@@ -2,6 +2,7 @@ package com.ltech.backend.services.storage;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +19,11 @@ public interface StorageService {
      * a chave gerada e a URL pública.
      */
     UploadResultDTO upload(MultipartFile file, String prefix);
+
+    /**
+     * Envia um arquivo de foto de moto para o path {@code motos/{motoId}/{uuid}.ext}.
+     */
+    UploadResultDTO upload(MultipartFile file, UUID motoId);
 
     /** Remove o objeto identificado pela chave. Idempotente. */
     void delete(String key);

@@ -8,10 +8,10 @@ export interface UploadResult {
   size: number;
 }
 
-// Não usa apiFetch: multipart precisa que o browser defina o boundary do Content-Type.
-export async function uploadMotoFoto(file: File): Promise<UploadResult> {
+export async function uploadMotoFoto(file: File, motoId: string): Promise<UploadResult> {
   const form = new FormData();
   form.append("file", file);
+  form.append("motoId", motoId);
 
   const res = await fetch(`${API_URL}/api/uploads/motos`, {
     method: "POST",

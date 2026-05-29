@@ -77,6 +77,33 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    public UploadResultDTO upload(MultipartFile file, UUID motoId) {
+        validate(file);
+
+        String extension = resolveExtension(file);
+        String contentType = resolveContentType(file);
+        String key = "motos/" + motoId + "/" + UUID.randomUUID() + "." + extension;
+
+        try {
+            s3.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(props.getBucket())
+                            .key(key)
+                            .contentType(contentType)
+                            .contentLength(file.getSize())
+                            .build(),
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        } catch (IOException | SdkException e) {
+            log.error("Falha ao enviar arquivo '{}' para o bucket '{}'", key, props.getBucket(), e);
+            throw new StorageException("Falha ao enviar arquivo para o storage", e);
+        }
+
+        String url = publicUrl(key);
+        log.info("Upload concluído: key={} size={}B contentType={}", key, file.getSize(), contentType);
+        return new UploadResultDTO(key, url, contentType, file.getSize());
+    }
+
+    @Override
     public void delete(String key) {
         if (!StringUtils.hasText(key)) {
             return;

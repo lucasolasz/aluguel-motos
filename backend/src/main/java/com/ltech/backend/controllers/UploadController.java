@@ -1,5 +1,7 @@
 package com.ltech.backend.controllers;
 
+import java.util.UUID;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,8 +25,10 @@ public class UploadController {
     }
 
     @PostMapping(value = "/motos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UploadResultDTO> uploadFotoMoto(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(storageService.upload(file, "motos"));
+    public ResponseEntity<UploadResultDTO> uploadFotoMoto(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("motoId") UUID motoId) {
+        return ResponseEntity.ok(storageService.upload(file, motoId));
     }
 
     @DeleteMapping

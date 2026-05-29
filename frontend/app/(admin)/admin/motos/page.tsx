@@ -56,7 +56,7 @@ import {
   adminDeleteMoto,
 } from '@/services/motos.service'
 import { adminGetCategorias } from '@/services/categorias.service'
-import { uploadMotoFoto, deleteUpload } from '@/services/upload.service'
+import { uploadMotoFoto } from '@/services/upload.service'
 import { MARCAS, TRANSMISSOES, ANOS } from '@/lib/constants'
 import { Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
 
@@ -223,8 +223,7 @@ export default function AdminMotorcyclesPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingFotos, setUploadingFotos] = useState(false)
   const [fotoError, setFotoError] = useState<string | null>(null)
-  // Uploads feitos nesta sessão do dialog ainda não persistidos — limpáveis na hora.
-  const [pendingUploads, setPendingUploads] = useState<{ url: string; key: string }[]>([])
+  const [newFiles, setNewFiles] = useState<{ file: File; previewUrl: string }[]>([])
 
   useEffect(() => {
     loadData()
@@ -262,14 +261,14 @@ export default function AdminMotorcyclesPage() {
     setForm(emptyForm())
     setSaveError(null)
     setFotoError(null)
-    setPendingUploads([])
+    setNewFiles([])
     setDialogOpen(true)
   }
 
   function openEdit(moto: Moto) {
     setEditingId(moto.id)
     setFotoError(null)
-    setPendingUploads([])
+    setNewFiles([])
     setForm({
       nome: moto.nome,
       slug: moto.slug,
@@ -303,29 +302,56 @@ export default function AdminMotorcyclesPage() {
     setSaveError(null)
     setIsSaving(true)
     try {
-      if (editingId) {
-        const updated = await adminUpdateMoto(editingId, form)
+      let motoId = editingId
+      let formToSave = { ...form }
+
+      if (newFiles.length > 0) {
+        if (!motoId) {
+          const created = await adminCreateMoto({ ...form, fotos: [] })
+          motoId = created.id
+          setMotos((prev) => [...prev, created])
+        }
+
+        setUploadingFotos(true)
+        const uploadedUrls: { url: string; ordem: number; principal: boolean }[] = []
+        
+        for (let i = 0; i < newFiles.length; i++) {
+          const { url } = await uploadMotoFoto(newFiles[i].file, motoId)
+          const ordemBase = form.fotos.length + i
+          const isPrincipal = form.fotos.length === 0 && i === 0
+          uploadedUrls.push({ url, ordem: ordemBase, principal: isPrincipal })
+        }
+
+        formToSave = {
+          ...form,
+          fotos: [...form.fotos, ...uploadedUrls],
+        }
+        setUploadingFotos(false)
+
+        const updated = await adminUpdateMoto(motoId, formToSave)
+        setMotos((prev) => prev.map((m) => (m.id === motoId ? updated : m)))
+      } else if (editingId) {
+        const updated = await adminUpdateMoto(editingId, formToSave)
         setMotos((prev) => prev.map((m) => (m.id === editingId ? updated : m)))
       } else {
-        const created = await adminCreateMoto(form)
+        const created = await adminCreateMoto(formToSave)
         setMotos((prev) => [...prev, created])
       }
-      // Persistido: backend passa a ser dono dessas fotos.
-      setPendingUploads([])
+
+      newFiles.forEach((nf) => URL.revokeObjectURL(nf.previewUrl))
+      setNewFiles([])
       setDialogOpen(false)
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : 'Erro ao salvar moto.')
     } finally {
       setIsSaving(false)
+      setUploadingFotos(false)
     }
   }
 
-  // Fecha o dialog sem salvar: remove do Garage os uploads desta sessão não persistidos.
   function handleCloseDialog() {
-    pendingUploads.forEach((u) => {
-      deleteUpload(u.key).catch(() => {})
-    })
-    setPendingUploads([])
+    newFiles.forEach((nf) => URL.revokeObjectURL(nf.previewUrl))
+    setNewFiles([])
     setDialogOpen(false)
   }
 
@@ -342,37 +368,40 @@ export default function AdminMotorcyclesPage() {
     }
   }
 
-  async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     if (files.length === 0) return
     setFotoError(null)
-    setUploadingFotos(true)
-    try {
-      for (const file of files) {
-        const { url, key } = await uploadMotoFoto(file)
-        setPendingUploads((prev) => [...prev, { url, key }])
-        setForm((prev) => ({
-          ...prev,
-          fotos: [...prev.fotos, { url, ordem: prev.fotos.length, principal: prev.fotos.length === 0 }],
-        }))
-      }
-    } catch (err) {
-      setFotoError(err instanceof Error ? err.message : 'Erro ao enviar imagem.')
-    } finally {
-      setUploadingFotos(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
+
+    const newEntries: { file: File; previewUrl: string }[] = []
+    const newFotos: { url: string; ordem: number; principal: boolean }[] = []
+
+    files.forEach((file, i) => {
+      const previewUrl = URL.createObjectURL(file)
+      newEntries.push({ file, previewUrl })
+      const ordemBase = form.fotos.length + i
+      const isPrincipal = form.fotos.length === 0 && i === 0
+      newFotos.push({ url: previewUrl, ordem: ordemBase, principal: isPrincipal })
+    })
+
+    setNewFiles((prev) => [...prev, ...newEntries])
+    setForm((prev) => ({
+      ...prev,
+      fotos: [...prev.fotos, ...newFotos],
+    }))
+
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   function removeFoto(index: number) {
     const url = form.fotos[index]?.url
-    const pending = pendingUploads.find((u) => u.url === url)
-    if (pending) {
-      // Upload desta sessão, não persistido: pode apagar do Garage na hora.
-      deleteUpload(pending.key).catch(() => {})
-      setPendingUploads((prev) => prev.filter((u) => u.url !== url))
+    const newFileIndex = newFiles.findIndex((nf) => nf.previewUrl === url)
+    
+    if (newFileIndex !== -1) {
+      URL.revokeObjectURL(newFiles[newFileIndex].previewUrl)
+      setNewFiles((prev) => prev.filter((_, i) => i !== newFileIndex))
     }
-    // Fotos pré-existentes: backend limpa no save (diff de URLs).
+
     setForm((prev) => ({
       ...prev,
       fotos: prev.fotos.filter((_, i) => i !== index).map((f, i) => ({ ...f, ordem: i })),
@@ -432,9 +461,9 @@ export default function AdminMotorcyclesPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="relative h-10 w-14 overflow-hidden rounded bg-muted">
-                          {moto.fotos[0]?.url ? (
+                          {(moto.fotos.find(f => f.principal)?.url ?? moto.fotos[0]?.url) ? (
                             <Image
-                              src={moto.fotos[0].url}
+                              src={moto.fotos.find(f => f.principal)?.url ?? moto.fotos[0].url}
                               alt={moto.nome}
                               fill
                               sizes="56px"
@@ -742,13 +771,21 @@ export default function AdminMotorcyclesPage() {
                 {form.fotos.map((foto, index) => (
                   <div key={index} className="overflow-hidden rounded-lg border">
                     <div className="relative aspect-video bg-muted">
-                      <Image
-                        src={foto.url}
-                        alt={`Foto ${index + 1}`}
-                        fill
-                        sizes="200px"
-                        className="object-cover"
-                      />
+                      {foto.url.startsWith('blob:') ? (
+                        <img
+                          src={foto.url}
+                          alt={`Foto ${index + 1}`}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src={foto.url}
+                          alt={`Foto ${index + 1}`}
+                          fill
+                          sizes="200px"
+                          className="object-cover"
+                        />
+                      )}
                     </div>
                     <div className="flex items-center gap-1 p-1.5">
                       <Button
