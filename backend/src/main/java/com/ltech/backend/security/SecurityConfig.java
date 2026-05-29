@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register/cliente").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").hasAnyRole("ADMINS", "DESENVOLVEDORES")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN_FULL")
                         .requestMatchers("/api/reservas/**").authenticated()
                         .requestMatchers("/api/documentos/**").authenticated()
                         .requestMatchers("/api/usuarios/**").authenticated()

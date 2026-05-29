@@ -58,6 +58,13 @@ public class StorageProperties {
 
     private Timeouts timeouts = new Timeouts();
 
+    private Ssl ssl = new Ssl();
+
+    @Data
+    public static class Ssl {
+        private boolean trustAll = false;
+    }
+
     @Data
     public static class Timeouts {
         /** Timeout para estabelecer a conexão TCP. */
