@@ -45,8 +45,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { formatCurrency } from '@/lib/utils'
 import { Moto, MotoRequest, Categoria } from '@/lib/types'
 import {
@@ -56,9 +56,74 @@ import {
   adminDeleteMoto,
 } from '@/services/motos.service'
 import { adminGetCategorias } from '@/services/categorias.service'
+import { MARCAS, TRANSMISSOES, ANOS } from '@/lib/constants'
 import { Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
 
-// ─── Currency input ──────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function parseUnitValue(value: string, unit: string): string {
+  if (!value) return ''
+  const suffix = ` ${unit}`
+  if (value.endsWith(suffix)) return value.slice(0, -suffix.length)
+  return value
+}
+
+// ─── Unit input ──────────────────────────────────────────────────────────────
+
+interface UnitInputProps {
+  value: string
+  onChange: (v: string) => void
+  unit: string
+  allowDecimal?: boolean
+  placeholder?: string
+}
+
+function UnitInput({ value, onChange, unit, allowDecimal = false, placeholder = '0' }: UnitInputProps) {
+  const display = parseUnitValue(value, unit)
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let raw = e.target.value
+    if (allowDecimal) {
+      raw = raw.replace(/[^\d.]/g, '')
+      const parts = raw.split('.')
+      if (parts.length > 2) {
+        raw = parts[0] + '.' + parts.slice(1).join('')
+      }
+    } else {
+      raw = raw.replace(/\D/g, '')
+    }
+    if (!raw || raw === '.') {
+      onChange('')
+      return
+    }
+    onChange(`${raw} ${unit}`)
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        value={display}
+        onChange={handleChange}
+        placeholder={placeholder}
+        inputMode={allowDecimal ? 'decimal' : 'numeric'}
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+        {unit}
+      </span>
+    </div>
+  )
+}
+
+// ─── Currency input (reused from seguros pattern) ────────────────────────────
 
 function numberToDisplay(n: number): string {
   if (!n) return ''
@@ -118,7 +183,7 @@ function CurrencyInput({ value, onChange, placeholder = '0,00' }: CurrencyInputP
   )
 }
 
-// ─── Empty form ─────────────────────────────────────────────────────────────
+// ─── Empty form ────────────────────────────────────────────────────────────────
 
 const emptyForm = (): MotoRequest => ({
   nome: '',
@@ -141,7 +206,7 @@ const emptyForm = (): MotoRequest => ({
   fotos: [],
 })
 
-// ─── Page ──────────────────────────────────────────────────────────────────
+// ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AdminMotorcyclesPage() {
   const [motos, setMotos] = useState<Moto[]>([])
@@ -158,6 +223,18 @@ export default function AdminMotorcyclesPage() {
   useEffect(() => {
     loadData()
   }, [])
+
+  // ─── Auto-generate nome & slug when marca/modelo change ────────────
+  useEffect(() => {
+    const parts = [form.marca, form.modelo].filter(Boolean)
+    const nome = parts.join(' ')
+    const slug = slugify(nome)
+    setForm((prev) => ({
+      ...prev,
+      nome,
+      slug,
+    }))
+  }, [form.marca, form.modelo])
 
   async function loadData() {
     try {
@@ -272,11 +349,6 @@ export default function AdminMotorcyclesPage() {
     }))
   }
 
-  function handleIntegerField(field: keyof MotoRequest, value: string) {
-    const digitsOnly = value.replace(/\D/g, '')
-    setForm((prev) => ({ ...prev, [field]: parseInt(digitsOnly || '0', 10) }))
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -388,35 +460,31 @@ export default function AdminMotorcyclesPage() {
           </DialogHeader>
 
           <div className="space-y-5 pt-1 min-w-0">
-            {/* Nome + Slug */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Nome</Label>
-                <Input
-                  value={form.nome}
-                  onChange={(e) => setForm((p) => ({ ...p, nome: e.target.value }))}
-                  placeholder="Ex: Honda PCX 160"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Slug</Label>
-                <Input
-                  value={form.slug}
-                  onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
-                  placeholder="Ex: honda-pcx-160"
-                />
-              </div>
+            {/* Nome (disabled, auto-generated) */}
+            <div className="space-y-1.5">
+              <Label>Nome (auto-gerado)</Label>
+              <Input value={form.nome} disabled />
             </div>
 
-            {/* Marca + Modelo + Ano */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Marca + Modelo */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Marca</Label>
-                <Input
+                <Select
                   value={form.marca}
-                  onChange={(e) => setForm((p) => ({ ...p, marca: e.target.value }))}
-                  placeholder="Ex: Honda"
-                />
+                  onValueChange={(v) => setForm((p) => ({ ...p, marca: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a marca" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {MARCAS.map((marca) => (
+                      <SelectItem key={marca} value={marca}>
+                        {marca}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label>Modelo</Label>
@@ -426,19 +494,28 @@ export default function AdminMotorcyclesPage() {
                   placeholder="Ex: PCX 160"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Ano</Label>
-                <Input
-                  value={form.ano === 0 ? '' : String(form.ano)}
-                  onChange={(e) => handleIntegerField('ano', e.target.value)}
-                  placeholder="2024"
-                  inputMode="numeric"
-                />
-              </div>
             </div>
 
-            {/* Categoria + Preço + Caução */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Ano + Categoria */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Ano</Label>
+                <Select
+                  value={String(form.ano)}
+                  onValueChange={(v) => setForm((p) => ({ ...p, ano: parseInt(v, 10) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o ano" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60" position="popper">
+                    {ANOS.map((ano) => (
+                      <SelectItem key={ano} value={String(ano)}>
+                        {ano}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1.5">
                 <Label>Categoria</Label>
                 <Select
@@ -448,7 +525,7 @@ export default function AdminMotorcyclesPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     {categorias.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.nome}
@@ -457,6 +534,10 @@ export default function AdminMotorcyclesPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Preço + Caução */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Preço por dia</Label>
                 <CurrencyInput
@@ -481,50 +562,69 @@ export default function AdminMotorcyclesPage() {
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Motor</Label>
-                <Input
+                <UnitInput
                   value={form.motor}
-                  onChange={(e) => setForm((p) => ({ ...p, motor: e.target.value }))}
-                  placeholder="Ex: 160cc"
+                  onChange={(v) => setForm((p) => ({ ...p, motor: v }))}
+                  unit="cc"
+                  placeholder="157"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Potência</Label>
-                <Input
+                <UnitInput
                   value={form.potencia}
-                  onChange={(e) => setForm((p) => ({ ...p, potencia: e.target.value }))}
-                  placeholder="Ex: 16,5 cv"
+                  onChange={(v) => setForm((p) => ({ ...p, potencia: v }))}
+                  unit="cv"
+                  allowDecimal
+                  placeholder="15.8"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Transmissão</Label>
-                <Input
+                <Select
                   value={form.transmissao}
-                  onChange={(e) => setForm((p) => ({ ...p, transmissao: e.target.value }))}
-                  placeholder="Ex: CVT"
-                />
+                  onValueChange={(v) => setForm((p) => ({ ...p, transmissao: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {TRANSMISSOES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label>Capacidade do tanque</Label>
-                <Input
+                <UnitInput
                   value={form.capacidadeTanque}
-                  onChange={(e) => setForm((p) => ({ ...p, capacidadeTanque: e.target.value }))}
-                  placeholder="Ex: 8,1 L"
+                  onChange={(v) => setForm((p) => ({ ...p, capacidadeTanque: v }))}
+                  unit="L"
+                  allowDecimal
+                  placeholder="8.1"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Altura do assento</Label>
-                <Input
+                <UnitInput
                   value={form.alturaAssento}
-                  onChange={(e) => setForm((p) => ({ ...p, alturaAssento: e.target.value }))}
-                  placeholder="Ex: 764 mm"
+                  onChange={(v) => setForm((p) => ({ ...p, alturaAssento: v }))}
+                  unit="mm"
+                  allowDecimal
+                  placeholder="80"
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Peso</Label>
-                <Input
+                <UnitInput
                   value={form.peso}
-                  onChange={(e) => setForm((p) => ({ ...p, peso: e.target.value }))}
-                  placeholder="Ex: 130 kg"
+                  onChange={(v) => setForm((p) => ({ ...p, peso: v }))}
+                  unit="kg"
+                  allowDecimal
+                  placeholder="80"
                 />
               </div>
             </div>
@@ -547,17 +647,19 @@ export default function AdminMotorcyclesPage() {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <Switch
+                  id="disponivel"
                   checked={form.disponivel}
                   onCheckedChange={(v) => setForm((p) => ({ ...p, disponivel: v }))}
                 />
-                <Label>Disponível</Label>
+                <Label htmlFor="disponivel">Disponível</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
+                  id="destaque"
                   checked={form.destaque}
                   onCheckedChange={(v) => setForm((p) => ({ ...p, destaque: v }))}
                 />
-                <Label>Destaque</Label>
+                <Label htmlFor="destaque">Destaque</Label>
               </div>
             </div>
 
