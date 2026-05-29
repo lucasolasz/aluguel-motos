@@ -319,28 +319,23 @@ INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
 -- MOTO FOTOS
 -- Honda PCX 160
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '11111111-1111-1111-1111-111111111111'::uuid, '/images/motos/pcx-160.jpg', 0, true),
-(gen_random_uuid(), '11111111-1111-1111-1111-111111111111'::uuid, '/images/motos/pcx-160-side.jpg', 1, false);
+(gen_random_uuid(), '11111111-1111-1111-1111-111111111111'::uuid, '/images/motos/pcx-160.jpg', 0, true);
 
 -- Yamaha NMAX 160
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '22222222-2222-2222-2222-222222222222'::uuid, '/images/motos/nmax-160.png', 0, true),
-(gen_random_uuid(), '22222222-2222-2222-2222-222222222222'::uuid, '/images/motos/nmax-160-side.png', 1, false);
+(gen_random_uuid(), '22222222-2222-2222-2222-222222222222'::uuid, '/images/motos/nmax-160.png', 0, true);
 
 -- Yamaha XMAX 250
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '33333333-3333-3333-3333-333333333333'::uuid, '/images/motos/xmax-250.png', 0, true),
-(gen_random_uuid(), '33333333-3333-3333-3333-333333333333'::uuid, '/images/motos/xmax-250-side.png', 1, false);
+(gen_random_uuid(), '33333333-3333-3333-3333-333333333333'::uuid, '/images/motos/xmax-250.png', 0, true);
 
 -- Yamaha MT-07
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '44444444-4444-4444-4444-444444444444'::uuid, '/images/motos/mt-07.png', 0, true),
-(gen_random_uuid(), '44444444-4444-4444-4444-444444444444'::uuid, '/images/motos/mt-07-side.png', 1, false);
+(gen_random_uuid(), '44444444-4444-4444-4444-444444444444'::uuid, '/images/motos/mt-07.png', 0, true);
 
 -- Kawasaki Z900
 INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900.png', 0, true),
-(gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900-side.png', 1, false);
+(gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900.png', 0, true);
 
 
 -- LOCAIS
