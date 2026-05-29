@@ -20,10 +20,14 @@ cd frontend && npm install && npm run dev
 
 DB recria do zero a cada restart (`create-drop` + `data.sql`).
 
-### Profiles (Spring)
-- `application.properties` — base; `spring.profiles.active=dev`, `server.port=8090`
-- `application-dev.properties` — DB `jdbc:postgresql://localhost:5432/postgres` (user `postgres` / `lucas123`), secret JWT inline, storage S3
-- `application-prod.properties` — tudo via variáveis de ambiente (`DB_*`, `JWT_SECRET`, `CORS_ORIGINS`, `S3_*`)
+### Profiles (Spring) — VALORES via `.env`, COMPORTAMENTO via profile
+- `application.properties` — base: placeholders `${VAR:default}` (valores) + `spring.config.import=optional:file:.env[.properties]` + `spring.profiles.active=${SPRING_PROFILES_ACTIVE:dev}`. Segredos sem default: `DB_PASSWORD`, `JWT_SECRET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`.
+- `application-dev.properties` — só comportamento: `ddl-auto=create-drop`, `show-sql=true`, `sql.init.mode=always`.
+- `application-prod.properties` — só comportamento: `show-sql=false`, `sql.init.mode=never`, `ssl.trust-all=false`.
+- **`.env`** (backend/, gitignored) — valores/segredos de dev. Copie de `backend/.env.example`. Em prod, o `.env` não existe e os `${VAR}` resolvem das variáveis de ambiente reais.
+- **Bypass de cert TLS** = `S3_SSL_TRUST_ALL` no `.env` (padrão `false`). Só a máquina do tribunal (rede com MITM) liga `=true`; casa (macbook) e prod não têm a linha → validam cert normal. Não há mais profile de truststore no `pom.xml`.
+- Trocar dev↔prod: `SPRING_PROFILES_ACTIVE=prod` + definir as env vars.
+- ⚠️ Prod com `update`+`never` não roda `data.sql` — primeiro deploy precisa de seed inicial (admin/grupos) por outro meio (futuro: Flyway).
 
 ### Build (esta máquina)
 Defaults da máquina apontam p/ JDK antigo. Use: `JAVA_HOME=C:\Desenvolvimento Lucas\Java\jdk-21.0.5`, o wrapper `.\mvnw.cmd` (mvn do sistema é velho), e limpe `MAVEN_OPTS` antes (tem `MaxPermSize` inválido).

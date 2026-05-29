@@ -181,7 +181,9 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 - **Config** `config/S3Config` (beans `S3Client` + `S3Presigner`) + `config/StorageProperties` (`storage.s3.*`).
 - **Garage**: `forcePathStyle(true)`, `region=us-east-1`, `endpointOverride`. Checksums em `WHEN_REQUIRED` (SDK ≥2.30 quebra no Garage por padrão).
 - **Erros**: validação → `ResponseStatusException` (400/413); infra → `StorageException` (502). Ambos tratados no `GlobalExceptionHandler`.
-- **Env**: dev `GARAGE_ACCESS_KEY`/`GARAGE_SECRET_KEY`; prod `S3_ACCESS_KEY`/`S3_SECRET_KEY`/`S3_*`.
+- **Validação** desacoplada em `StorageFileValidator` (regra de negócio, reaproveitável): tamanho, extensão e content-type. Tipo genérico (`null`/`application/octet-stream`) → deriva da extensão.
+- **Env/config**: valores via `.env` (gitignored, copie de `backend/.env.example`); profile só define comportamento. Segredos: `S3_ACCESS_KEY`/`S3_SECRET_KEY` (sem default — exigidos).
+- **Bypass de cert TLS**: `S3_SSL_TRUST_ALL` no `.env` (padrão `false`). Liga `=true` só na máquina atrás de MITM corporativo (tribunal); casa/prod validam cert. Mecanismo único — não há mais profile `dev-corp-truststore` no `pom.xml`.
 
 ## Key Patterns
 1. `@AuthenticationPrincipal UsuarioDetails` para pegar o usuário do JWT
