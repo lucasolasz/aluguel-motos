@@ -56,7 +56,7 @@ import {
   adminDeleteMoto,
 } from '@/services/motos.service'
 import { adminGetCategorias } from '@/services/categorias.service'
-import { uploadMotoFoto } from '@/services/upload.service'
+import { uploadMotoFoto, deleteUpload } from '@/services/upload.service'
 import { MARCAS, TRANSMISSOES, ANOS } from '@/lib/constants'
 import { Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
 
@@ -301,8 +301,12 @@ export default function AdminMotorcyclesPage() {
   async function handleSave() {
     setSaveError(null)
     setIsSaving(true)
+
+    let motoId = editingId
+    const createdNow = !editingId
+    const uploadedKeys: string[] = []
+
     try {
-      let motoId = editingId
       let formToSave = { ...form }
 
       if (newFiles.length > 0) {
@@ -316,9 +320,10 @@ export default function AdminMotorcyclesPage() {
 
         setUploadingFotos(true)
         const fotosNovas: { url: string; ordem: number; principal: boolean }[] = []
-        
+
         for (let i = 0; i < newFiles.length; i++) {
-          const { url } = await uploadMotoFoto(newFiles[i].file, motoId)
+          const { url, key } = await uploadMotoFoto(newFiles[i].file, motoId)
+          uploadedKeys.push(key)
           const ordemBase = fotosExistentes.length + i
           const isPrincipal = fotosExistentes.length === 0 && i === 0
           fotosNovas.push({ url, ordem: ordemBase, principal: isPrincipal })
@@ -344,6 +349,17 @@ export default function AdminMotorcyclesPage() {
       setNewFiles([])
       setDialogOpen(false)
     } catch (err: unknown) {
+      // Rollback: remove objetos ja enviados e a moto criada nesta operacao (evita orfaos)
+      await Promise.allSettled(uploadedKeys.map((key) => deleteUpload(key)))
+      if (createdNow && motoId) {
+        const novaId = motoId
+        try {
+          await adminDeleteMoto(novaId)
+        } catch {
+          /* best-effort */
+        }
+        setMotos((prev) => prev.filter((m) => m.id !== novaId))
+      }
       setSaveError(err instanceof Error ? err.message : 'Erro ao salvar moto.')
     } finally {
       setIsSaving(false)

@@ -3,18 +3,16 @@ package com.ltech.backend.services.storage;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.ltech.backend.config.StorageProperties;
 import com.ltech.backend.domain.dtos.UploadResultDTO;
+import com.ltech.backend.services.storage.StorageFileValidator.ValidatedFile;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -32,14 +30,19 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 @Slf4j
 public class S3StorageService implements StorageService {
 
+    private static final String DEFAULT_PREFIX = "outros";
+
     private final S3Client s3;
     private final S3Presigner presigner;
     private final StorageProperties props;
+    private final StorageFileValidator validator;
 
-    public S3StorageService(S3Client s3, S3Presigner presigner, StorageProperties props) {
+    public S3StorageService(S3Client s3, S3Presigner presigner, StorageProperties props,
+            StorageFileValidator validator) {
         this.s3 = s3;
         this.presigner = presigner;
         this.props = props;
+        this.validator = validator;
     }
 
     @PostConstruct
@@ -51,56 +54,14 @@ public class S3StorageService implements StorageService {
 
     @Override
     public UploadResultDTO upload(MultipartFile file, String prefix) {
-        validate(file);
-
-        String extension = resolveExtension(file);
-        String contentType = resolveContentType(file);
-        String key = buildKey(prefix, extension);
-
-        try {
-            s3.putObject(
-                    PutObjectRequest.builder()
-                            .bucket(props.getBucket())
-                            .key(key)
-                            .contentType(contentType)
-                            .contentLength(file.getSize())
-                            .build(),
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        } catch (IOException | SdkException e) {
-            log.error("Falha ao enviar arquivo '{}' para o bucket '{}'", key, props.getBucket(), e);
-            throw new StorageException("Falha ao enviar arquivo para o storage", e);
-        }
-
-        String url = publicUrl(key);
-        log.info("Upload concluído: key={} size={}B contentType={}", key, file.getSize(), contentType);
-        return new UploadResultDTO(key, url, contentType, file.getSize());
+        ValidatedFile valid = validator.validate(file);
+        return store(file, buildDatedKey(prefix, valid.extension()), valid.contentType());
     }
 
     @Override
     public UploadResultDTO upload(MultipartFile file, UUID motoId) {
-        validate(file);
-
-        String extension = resolveExtension(file);
-        String contentType = resolveContentType(file);
-        String key = "motos/" + motoId + "/" + UUID.randomUUID() + "." + extension;
-
-        try {
-            s3.putObject(
-                    PutObjectRequest.builder()
-                            .bucket(props.getBucket())
-                            .key(key)
-                            .contentType(contentType)
-                            .contentLength(file.getSize())
-                            .build(),
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        } catch (IOException | SdkException e) {
-            log.error("Falha ao enviar arquivo '{}' para o bucket '{}'", key, props.getBucket(), e);
-            throw new StorageException("Falha ao enviar arquivo para o storage", e);
-        }
-
-        String url = publicUrl(key);
-        log.info("Upload concluído: key={} size={}B contentType={}", key, file.getSize(), contentType);
-        return new UploadResultDTO(key, url, contentType, file.getSize());
+        ValidatedFile valid = validator.validate(file);
+        return store(file, buildMotoKey(motoId, valid.extension()), valid.contentType());
     }
 
     @Override
@@ -133,13 +94,6 @@ public class S3StorageService implements StorageService {
                 : Optional.empty();
     }
 
-    private String publicBasePrefix() {
-        String base = StringUtils.hasText(props.getPublicBaseUrl())
-                ? props.getPublicBaseUrl()
-                : props.getEndpoint() + "/" + props.getBucket();
-        return stripTrailingSlash(base) + "/";
-    }
-
     @Override
     public String presignedGetUrl(String key, Duration expiry) {
         GetObjectRequest get = GetObjectRequest.builder()
@@ -153,61 +107,61 @@ public class S3StorageService implements StorageService {
         return presigner.presignGetObject(presignRequest).url().toString();
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
+    // ─── Transferência ──────────────────────────────────────────────────────────
 
-    private void validate(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo vazio ou ausente");
+    /** Persiste o arquivo na chave informada e monta o resultado. Núcleo único de upload. */
+    private UploadResultDTO store(MultipartFile file, String key, String contentType) {
+        try {
+            s3.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(props.getBucket())
+                            .key(key)
+                            .contentType(contentType)
+                            .contentLength(file.getSize())
+                            .build(),
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        } catch (IOException | SdkException e) {
+            log.error("Falha ao enviar arquivo '{}' para o bucket '{}'", key, props.getBucket(), e);
+            throw new StorageException("Falha ao enviar arquivo para o storage", e);
         }
-        if (file.getSize() > props.getMaxFileSize().toBytes()) {
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-                    "Arquivo excede o tamanho máximo de " + props.getMaxFileSize().toMegabytes() + "MB");
-        }
-        String extension = resolveExtension(file);
-        if (!props.getAllowedExtensions().contains(extension)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Extensão não permitida: " + extension + ". Permitidas: " + props.getAllowedExtensions());
-        }
-        String contentType = file.getContentType();
-        if (contentType != null && !props.getAllowedContentTypes().contains(contentType.toLowerCase(Locale.ROOT))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Content-Type não permitido: " + contentType);
-        }
+
+        String url = publicUrl(key);
+        log.info("Upload concluído: key={} size={}B contentType={}", key, file.getSize(), contentType);
+        return new UploadResultDTO(key, url, contentType, file.getSize());
     }
 
-    private String resolveExtension(MultipartFile file) {
-        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        if (!StringUtils.hasText(ext)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Arquivo sem extensão");
-        }
-        return ext.toLowerCase(Locale.ROOT);
-    }
+    // ─── Chaves ───────────────────────────────────────────────────────────────
 
-    private String resolveContentType(MultipartFile file) {
-        String contentType = file.getContentType();
-        if (StringUtils.hasText(contentType)) {
-            return contentType;
-        }
-        return switch (resolveExtension(file)) {
-            case "png" -> "image/png";
-            case "webp" -> "image/webp";
-            default -> "image/jpeg";
-        };
-    }
-
-    /** Chave única e organizada: {@code prefix/yyyy/MM/uuid.ext}. */
-    private String buildKey(String prefix, String extension) {
-        String cleanPrefix = StringUtils.hasText(prefix)
-                ? prefix.replaceAll("^/+|/+$", "")
-                : "outros";
+    /** Chave datada e organizada: {@code prefix/yyyy/MM/uuid.ext}. */
+    private String buildDatedKey(String prefix, String extension) {
         LocalDate now = LocalDate.now();
         return "%s/%04d/%02d/%s.%s".formatted(
-                cleanPrefix, now.getYear(), now.getMonthValue(), UUID.randomUUID(), extension);
+                sanitizePrefix(prefix), now.getYear(), now.getMonthValue(), UUID.randomUUID(), extension);
+    }
+
+    /** Chave agrupada por moto: {@code motos/{motoId}/uuid.ext}. */
+    private String buildMotoKey(UUID motoId, String extension) {
+        return "motos/%s/%s.%s".formatted(motoId, UUID.randomUUID(), extension);
+    }
+
+    private String sanitizePrefix(String prefix) {
+        return StringUtils.hasText(prefix) ? prefix.replaceAll("^/+|/+$", "") : DEFAULT_PREFIX;
+    }
+
+    // ─── URL pública ────────────────────────────────────────────────────────────
+
+    private String publicBasePrefix() {
+        String base = StringUtils.hasText(props.getPublicBaseUrl())
+                ? props.getPublicBaseUrl()
+                : props.getEndpoint() + "/" + props.getBucket();
+        return stripTrailingSlash(base) + "/";
     }
 
     private String stripTrailingSlash(String value) {
         return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }
+
+    // ─── Bucket bootstrap ─────────────────────────────────────────────────────────
 
     private void ensureBucketExists() {
         String bucket = props.getBucket();
