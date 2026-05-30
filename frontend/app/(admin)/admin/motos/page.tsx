@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -182,6 +183,53 @@ function CurrencyInput({ value, onChange, placeholder = '0,00' }: CurrencyInputP
         inputMode="numeric"
       />
     </div>
+  )
+}
+
+// ─── Image with skeleton ─────────────────────────────────────────────────────
+
+function MotoFoto({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false)
+
+  return (
+    <div className="relative aspect-video bg-muted overflow-hidden">
+      {!loaded && <Skeleton className="absolute inset-0" />}
+      {src.startsWith('blob:') ? (
+        <img
+          src={src}
+          alt={alt}
+          className="absolute inset-0 h-full w-full object-cover"
+          onLoad={() => setLoaded(true)}
+        />
+      ) : (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes="200px"
+          className="object-cover"
+          onLoad={() => setLoaded(true)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ThumbFoto({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false)
+
+  return (
+    <>
+      {!loaded && <Skeleton className="absolute inset-0 z-10" />}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="56px"
+        className="object-cover"
+        onLoad={() => setLoaded(true)}
+      />
+    </>
   )
 }
 
@@ -493,12 +541,9 @@ export default function AdminMotorcyclesPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative h-10 w-14 overflow-hidden rounded bg-muted">
                           {(moto.fotos.find(f => f.principal)?.url ?? moto.fotos[0]?.url) ? (
-                            <Image
+                            <ThumbFoto
                               src={moto.fotos.find(f => f.principal)?.url ?? moto.fotos[0].url}
                               alt={moto.nome}
-                              fill
-                              sizes="56px"
-                              className="object-cover"
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center">
@@ -801,23 +846,7 @@ export default function AdminMotorcyclesPage() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {form.fotos.map((foto, index) => (
                   <div key={index} className="overflow-hidden rounded-lg border">
-                    <div className="relative aspect-video bg-muted">
-                      {foto.url.startsWith('blob:') ? (
-                        <img
-                          src={foto.url}
-                          alt={`Foto ${index + 1}`}
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Image
-                          src={foto.url}
-                          alt={`Foto ${index + 1}`}
-                          fill
-                          sizes="200px"
-                          className="object-cover"
-                        />
-                      )}
-                    </div>
+                    <MotoFoto src={foto.url} alt={`Foto ${index + 1}`} />
                     <div className="flex items-center gap-1 p-1.5">
                       <Button
                         type="button"
