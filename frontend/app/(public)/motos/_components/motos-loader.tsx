@@ -20,7 +20,12 @@ export function MotosLoader({ categorias }: MotosLoaderProps) {
     const raw = sessionStorage.getItem('search-period')
     let p: SearchPeriod | null = null
     try {
-      p = raw ? JSON.parse(raw) : null
+      const parsed = raw ? JSON.parse(raw) : null
+      if (parsed?.savedAt && Date.now() - parsed.savedAt < 15 * 60 * 1000) {
+        p = parsed.data
+      } else if (raw) {
+        sessionStorage.removeItem('search-period')
+      }
     } catch {
       p = null
     }

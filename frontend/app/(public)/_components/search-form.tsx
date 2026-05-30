@@ -111,12 +111,15 @@ export function SearchForm({ locais, variant = 'default', className, initialValu
 
   const handleSearch = () => {
     sessionStorage.setItem('search-period', JSON.stringify({
-      pickup: pickupDate!.toISOString(),
-      return: returnDate!.toISOString(),
-      hora_retirada: horaRetirada,
-      hora_devolucao: horaDevolucao,
-      local_retirada: localRetiradaId,
-      local_devolucao: localDevolucaoId,
+      data: {
+        pickup: pickupDate!.toISOString(),
+        return: returnDate!.toISOString(),
+        hora_retirada: horaRetirada,
+        hora_devolucao: horaDevolucao,
+        local_retirada: localRetiradaId,
+        local_devolucao: localDevolucaoId,
+      },
+      savedAt: Date.now(),
     }))
     router.push('/motos')
   }
