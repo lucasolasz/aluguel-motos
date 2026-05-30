@@ -25,8 +25,16 @@ public class AdminService {
     private ReservaRepository reservaRepository;
 
     public List<ReservaAdminDTO> listarTodasReservas() {
+        return listarTodasReservas(null);
+    }
+
+    public List<ReservaAdminDTO> listarTodasReservas(String cpf) {
+        String filtro = cpf == null ? "" : cpf.replaceAll("\\D", "");
         return reservaRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
+                .filter(r -> filtro.isEmpty()
+                        || (r.getUsuario().getCpf() != null
+                            && r.getUsuario().getCpf().replaceAll("\\D", "").contains(filtro)))
                 .map(ReservaAdminDTO::from)
                 .toList();
     }

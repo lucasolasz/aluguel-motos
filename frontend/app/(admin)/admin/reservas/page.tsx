@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import {
   Card,
   CardContent,
@@ -25,43 +26,14 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { Eye } from 'lucide-react'
+import { Eye, Search, KeyRound, Undo2 } from 'lucide-react'
 import { apiFetch } from '@/lib/auth'
+import { adminListarReservas } from '@/services/reservas.service'
+import type { AdminReservaResumo, StatusReserva } from '@/lib/atendimento-types'
 
-type ReservationStatus = 'PENDENTE' | 'CONFIRMADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA'
-
-interface MotoResumo {
-  id: string
-  nome: string
-  imagens: string[]
-}
-
-interface ClienteResumo {
-  id: string
-  nome: string
-  email: string
-}
-
-interface Reservation {
-  id: string
-  status: ReservationStatus
-  dataRetirada: string
-  dataDevolucao: string
-  totalDias: number
-  moto: MotoResumo
-  cliente: ClienteResumo
-  precoPorDia: number
-  caucao: number
-  totalAluguel: number
-  totalSeguro: number
-  totalAcessorios: number
-  total: number
-  cartaoNumeroMascarado: string | null
-  createdAt: string
-}
-
-const statusLabels: Record<ReservationStatus, string> = {
+const statusLabels: Record<StatusReserva, string> = {
   PENDENTE: 'Pendente',
   CONFIRMADA: 'Confirmada',
   EM_ANDAMENTO: 'Em andamento',
@@ -69,7 +41,7 @@ const statusLabels: Record<ReservationStatus, string> = {
   CANCELADA: 'Cancelada',
 }
 
-const statusVariants: Record<ReservationStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const statusVariants: Record<StatusReserva, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   PENDENTE: 'outline',
   CONFIRMADA: 'default',
   EM_ANDAMENTO: 'secondary',
@@ -78,25 +50,48 @@ const statusVariants: Record<ReservationStatus, 'default' | 'secondary' | 'destr
 }
 
 export default function AdminReservationsPage() {
-  const [reservations, setReservations] = useState<Reservation[]>([])
+  const [reservations, setReservations] = useState<AdminReservaResumo[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [query, setQuery] = useState('')
 
-  useEffect(() => {
-    apiFetch<Reservation[]>('/api/admin/reservas')
-      .then(setReservations)
-      .catch(console.error)
-      .finally(() => setIsLoading(false))
+  const carregar = useCallback(async (cpf?: string) => {
+    setIsLoading(true)
+    try {
+      setReservations(await adminListarReservas(cpf))
+    } catch (error) {
+      console.error('Erro ao carregar reservas:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
-  const handleStatusChange = async (id: string, newStatus: ReservationStatus) => {
+  useEffect(() => {
+    carregar()
+  }, [carregar])
+
+  const handleBuscar = (e: React.FormEvent) => {
+    e.preventDefault()
+    carregar(query)
+  }
+
+  // Filtro client-side adicional por nome/e-mail (CPF é filtrado no backend)
+  const termo = query.trim().toLowerCase()
+  const temLetras = /[a-z]/i.test(termo)
+  const visiveis = temLetras
+    ? reservations.filter(
+        (r) =>
+          (r.cliente?.nome || '').toLowerCase().includes(termo) ||
+          (r.cliente?.email || '').toLowerCase().includes(termo),
+      )
+    : reservations
+
+  const handleStatusChange = async (id: string, newStatus: StatusReserva) => {
     try {
-      const updated = await apiFetch<Reservation>(`/api/admin/reservas/${id}/status`, {
+      const updated = await apiFetch<AdminReservaResumo>(`/api/admin/reservas/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus }),
       })
-      setReservations((prev) =>
-        prev.map((r) => (r.id === id ? updated : r))
-      )
+      setReservations((prev) => prev.map((r) => (r.id === id ? updated : r)))
     } catch (error) {
       console.error('Erro ao atualizar status:', error)
     }
@@ -105,11 +100,9 @@ export default function AdminReservationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          Gerenciar Reservas
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground">Gerenciar Reservas</h1>
         <p className="mt-1 text-muted-foreground">
-          Visualize e gerencie todas as reservas
+          Busque pelo CPF do cliente para iniciar a retirada ou devolução
         </p>
       </div>
 
@@ -117,13 +110,41 @@ export default function AdminReservationsPage() {
         <CardHeader>
           <CardTitle>Todas as Reservas</CardTitle>
           <CardDescription>
-            {isLoading ? 'Carregando...' : `${reservations.length} reservas no sistema`}
+            {isLoading ? 'Carregando...' : `${visiveis.length} reserva(s)`}
           </CardDescription>
+          <form onSubmit={handleBuscar} className="flex gap-2 pt-2">
+            <Input
+              placeholder="Buscar por CPF, nome ou e-mail"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button type="submit" variant="secondary">
+              <Search className="mr-2 h-4 w-4" />
+              Buscar
+            </Button>
+            {query && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setQuery('')
+                  carregar()
+                }}
+              >
+                Limpar
+              </Button>
+            )}
+          </form>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
               <p className="text-muted-foreground">Carregando reservas...</p>
+            </div>
+          ) : visiveis.length === 0 ? (
+            <div className="flex justify-center py-8">
+              <p className="text-muted-foreground">Nenhuma reserva encontrada.</p>
             </div>
           ) : (
             <Table>
@@ -139,16 +160,14 @@ export default function AdminReservationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {reservations.map((reservation) => (
+                {visiveis.map((reservation) => (
                   <TableRow key={reservation.id}>
                     <TableCell className="font-mono text-sm">
                       {reservation.id.slice(0, 8)}
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">
-                          {reservation.cliente?.nome || 'Cliente'}
-                        </p>
+                        <p className="font-medium">{reservation.cliente?.nome || 'Cliente'}</p>
                         <p className="text-sm text-muted-foreground">
                           {reservation.cliente?.email}
                         </p>
@@ -163,13 +182,11 @@ export default function AdminReservationsPage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {formatCurrency(reservation.total)}
-                    </TableCell>
+                    <TableCell>{formatCurrency(reservation.total)}</TableCell>
                     <TableCell>
                       <Select
                         value={reservation.status}
-                        onValueChange={(value: ReservationStatus) =>
+                        onValueChange={(value: StatusReserva) =>
                           handleStatusChange(reservation.id, value)
                         }
                       >
@@ -188,10 +205,31 @@ export default function AdminReservationsPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">Ver detalhes</span>
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        {(reservation.status === 'PENDENTE' ||
+                          reservation.status === 'CONFIRMADA') && (
+                          <Button asChild size="sm">
+                            <Link href={`/admin/reservas/${reservation.id}`}>
+                              <KeyRound className="mr-1 h-4 w-4" />
+                              Retirada
+                            </Link>
+                          </Button>
+                        )}
+                        {reservation.status === 'EM_ANDAMENTO' && (
+                          <Button asChild size="sm" variant="secondary">
+                            <Link href={`/admin/reservas/${reservation.id}`}>
+                              <Undo2 className="mr-1 h-4 w-4" />
+                              Devolução
+                            </Link>
+                          </Button>
+                        )}
+                        <Button asChild variant="ghost" size="icon">
+                          <Link href={`/admin/reservas/${reservation.id}`}>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Ver detalhes</span>
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

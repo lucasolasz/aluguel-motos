@@ -65,6 +65,9 @@ public class Moto {
 
     private Boolean disponivel;
 
+    /** Odômetro atual da moto (km), atualizado nas vistorias de saída/retorno. */
+    private Integer kmAtual;
+
     @Default
     private Boolean destaque = false;
 

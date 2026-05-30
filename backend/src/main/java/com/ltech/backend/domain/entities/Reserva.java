@@ -102,6 +102,19 @@ public class Reserva {
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservaAcessorioItem> acessorios = new ArrayList<>();
 
+    // ─── Atendimento presencial (retirada / devolução) ───────────────────────────
+
+    @Default
+    private Boolean cnhVerificada = false;
+
+    private String cnhVerificadaPor;
+
+    private LocalDateTime cnhVerificadaEm;
+
+    private LocalDateTime retiradaConcluidaEm;
+
+    private LocalDateTime devolucaoConcluidaEm;
+
     @CreatedDate
     private LocalDateTime createdAt;
 }
