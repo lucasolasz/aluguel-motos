@@ -45,10 +45,10 @@ public class StorageProperties {
     private DataSize maxFileSize = DataSize.ofMegabytes(5);
 
     /** Extensões permitidas (sem ponto, minúsculas). */
-    private List<String> allowedExtensions = List.of("jpg", "jpeg", "png", "webp");
+    private List<String> allowedExtensions = List.of("jpg", "jpeg", "png", "webp", "pdf");
 
     /** Content-types permitidos. */
-    private List<String> allowedContentTypes = List.of("image/jpeg", "image/png", "image/webp");
+    private List<String> allowedContentTypes = List.of("image/jpeg", "image/png", "image/webp", "application/pdf");
 
     /** Validade padrão das URLs pré-assinadas, em segundos. */
     private long presignExpirySeconds = 3600;

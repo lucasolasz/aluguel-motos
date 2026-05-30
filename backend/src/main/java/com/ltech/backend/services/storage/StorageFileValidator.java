@@ -80,6 +80,7 @@ public class StorageFileValidator {
         return switch (extension) {
             case "png" -> "image/png";
             case "webp" -> "image/webp";
+            case "pdf" -> "application/pdf";
             default -> "image/jpeg";
         };
     }

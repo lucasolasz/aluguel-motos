@@ -109,7 +109,7 @@ public class AdminController {
     @PostMapping("/reservas/{id}/concluir-devolucao")
     public ResponseEntity<ReservaDetalheDTO> concluirDevolucao(
             @PathVariable String id,
-            @RequestBody(required = false) ConcluirDevolucaoDTO dto,
+            @RequestBody(required = false) @Valid ConcluirDevolucaoDTO dto,
             @AuthenticationPrincipal UsuarioDetails userDetails) {
         return ResponseEntity.ok(atendimentoService.concluirDevolucao(id, dto));
     }

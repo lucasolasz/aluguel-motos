@@ -25,6 +25,13 @@ public interface StorageService {
      */
     UploadResultDTO upload(MultipartFile file, UUID motoId);
 
+    /**
+     * Envia um arquivo para o path {@code prefix/{parentId}/{uuid}.ext}.
+     * Usado para vistorias e contratos: prefix = "reservas/{reservaId}/vistorias" ou
+     * "reservas/{reservaId}/contratos".
+     */
+    UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId);
+
     /** Remove o objeto identificado pela chave. Idempotente. */
     void delete(String key);
 

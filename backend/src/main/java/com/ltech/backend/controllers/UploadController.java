@@ -31,6 +31,20 @@ public class UploadController {
         return ResponseEntity.ok(storageService.upload(file, motoId));
     }
 
+    @PostMapping(value = "/vistorias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UploadResultDTO> uploadVistoria(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("reservaId") UUID reservaId) {
+        return ResponseEntity.ok(storageService.upload(file, "reservas/" + reservaId + "/vistorias", reservaId));
+    }
+
+    @PostMapping(value = "/contratos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UploadResultDTO> uploadContrato(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("reservaId") UUID reservaId) {
+        return ResponseEntity.ok(storageService.upload(file, "reservas/" + reservaId + "/contratos", reservaId));
+    }
+
     @DeleteMapping
     public ResponseEntity<Void> remover(@RequestParam("key") String key) {
         storageService.delete(key);

@@ -65,6 +65,12 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    public UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId) {
+        ValidatedFile valid = validator.validate(file);
+        return store(file, buildParentKey(prefix, parentId, valid.extension()), valid.contentType());
+    }
+
+    @Override
     public void delete(String key) {
         if (!StringUtils.hasText(key)) {
             return;
@@ -142,6 +148,11 @@ public class S3StorageService implements StorageService {
     /** Chave agrupada por moto: {@code motos/{motoId}/uuid.ext}. */
     private String buildMotoKey(UUID motoId, String extension) {
         return "motos/%s/%s.%s".formatted(motoId, UUID.randomUUID(), extension);
+    }
+
+    /** Chave agrupada por reserva: {@code prefix/{parentId}/uuid.ext}. */
+    private String buildParentKey(String prefix, UUID parentId, String extension) {
+        return "%s/%s/%s.%s".formatted(sanitizePrefix(prefix), parentId, UUID.randomUUID(), extension);
     }
 
     private String sanitizePrefix(String prefix) {

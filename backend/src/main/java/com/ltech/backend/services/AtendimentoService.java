@@ -99,6 +99,10 @@ public class AtendimentoService {
                 ? null
                 : parseEnum(NivelCombustivel.class, dto.nivelCombustivel(), "nivelCombustivel");
 
+        if (vistoriaRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), tipo).isPresent()) {
+            throw unprocessable("Já existe vistoria de " + tipo.name().toLowerCase() + " registrada para esta reserva");
+        }
+
         Vistoria vistoria = Vistoria.builder()
                 .reserva(reserva)
                 .tipo(tipo)
@@ -206,6 +210,14 @@ public class AtendimentoService {
         BigDecimal desconto = dto != null && dto.valorDescontoCaucao() != null
                 ? dto.valorDescontoCaucao()
                 : BigDecimal.ZERO;
+
+        if (desconto.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Valor de desconto não pode ser negativo");
+        }
+        if (desconto.compareTo(caucao.getValor()) > 0) {
+            throw unprocessable("Valor de desconto (" + desconto + ") excede a caução autorizada (" + caucao.getValor() + ")");
+        }
 
         if (caucao.getStatus() == StatusPagamento.AUTORIZADO) {
             if (desconto.compareTo(BigDecimal.ZERO) > 0) {
