@@ -162,26 +162,35 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 | POST/PUT/DELETE | `/api/acessorios/**` | CRUD acessórios (+ `GET /admin`) |
 | POST/PUT/DELETE | `/api/seguros/**` | CRUD seguros (+ `GET /admin`) |
 | POST/PUT/DELETE | `/api/lavagens/**` | CRUD lavagens (+ `GET /admin`) |
-| POST | `/api/uploads/motos` | Upload de imagem (multipart `file`) |
+| POST | `/api/uploads/motos` | Upload de imagem de moto (multipart `file` + `motoId`) |
+| POST | `/api/uploads/vistorias` | Upload de foto de vistoria (multipart `file` + `reservaId`) |
+| POST | `/api/uploads/contratos` | Upload de contrato assinado (multipart `file` + `reservaId`) |
 | DELETE | `/api/uploads?key=` | Remover objeto do storage |
 
 ### Admin reservas/clientes/locais (`/api/admin/**`, autenticado)
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| GET | `/api/admin/reservas` | Todas as reservas |
+| GET | `/api/admin/reservas` | Todas as reservas ( filtro por `?cpf=`) |
+| GET | `/api/admin/reservas/{id}` | Detalhe completo para atendimento presencial |
 | PATCH | `/api/admin/reservas/{id}/status` | Atualiza status |
+| PATCH | `/api/admin/reservas/{id}/cnh-verificada` | Marca CNH como verificada |
+| POST | `/api/admin/reservas/{id}/cobrar` | Cobra aluguel + autoriza caução |
+| POST | `/api/admin/reservas/{id}/vistorias` | Registra vistoria (saída/retorno) |
+| POST | `/api/admin/reservas/{id}/contrato` | Salva contrato assinado |
+| POST | `/api/admin/reservas/{id}/concluir-retirada` | Conclui retirada → EM_ANDAMENTO |
+| POST | `/api/admin/reservas/{id}/concluir-devolucao` | Conclui devolução → CONCLUIDA |
 | GET | `/api/admin/clientes` `/api/admin/clientes/{id}` | Clientes |
 | GET/POST/PUT/DELETE | `/api/admin/locais` `/api/admin/locais/{id}` | CRUD locais |
 
 > `POST /auth/register` requer role ADMINS ou DESENVOLVEDORES.
 
 ## Storage / Upload (Garage S3)
-- **Interface** `services/storage/StorageService`: `upload(file, prefix)`, `delete(key)`, `publicUrl(key)`, `presignedGetUrl(key, expiry)`.
-- **Impl** `S3StorageService`: valida extensão/content-type/tamanho, gera key `prefix/yyyy/MM/uuid.ext`, `putObject`, monta URL pública, auto-cria bucket no startup.
+- **Interface** `services/storage/StorageService`: `upload(file, prefix)`, `upload(file, motoId)`, `upload(file, prefix, parentId)`, `delete(key)`, `publicUrl(key)`, `presignedGetUrl(key, expiry)`.
+- **Impl** `S3StorageService`: valida extensão/content-type/tamanho, gera keys: `motos/{motoId}/{uuid}.ext`, `reservas/{reservaId}/vistorias/{uuid}.ext`, `reservas/{reservaId}/contratos/{uuid}.ext`, ou `{prefix}/{parentId}/{uuid}.ext`. `putObject`, monta URL pública, auto-cria bucket no startup.
 - **Config** `config/S3Config` (beans `S3Client` + `S3Presigner`) + `config/StorageProperties` (`storage.s3.*`).
 - **Garage**: `forcePathStyle(true)`, `region=us-east-1`, `endpointOverride`. Checksums em `WHEN_REQUIRED` (SDK ≥2.30 quebra no Garage por padrão).
 - **Erros**: validação → `ResponseStatusException` (400/413); infra → `StorageException` (502). Ambos tratados no `GlobalExceptionHandler`.
-- **Validação** desacoplada em `StorageFileValidator` (regra de negócio, reaproveitável): tamanho, extensão e content-type. Tipo genérico (`null`/`application/octet-stream`) → deriva da extensão.
+- **Validação** desacoplada em `StorageFileValidator` (regra de negócio, reaproveitável): tamanho, extensão e content-type. Extensões permitidas: `jpg, jpeg, png, webp, pdf`. Tipos genéricos (`null`/`application/octet-stream`) → deriva da extensão.
 - **Env/config**: valores via `.env` (gitignored, copie de `backend/.env.example`); profile só define comportamento. Segredos: `S3_ACCESS_KEY`/`S3_SECRET_KEY` (sem default — exigidos).
 - **Bypass de cert TLS**: `S3_SSL_TRUST_ALL` no `.env` (padrão `false`). Liga `=true` só na máquina atrás de MITM corporativo (tribunal); casa/prod validam cert. Mecanismo único — não há mais profile `dev-corp-truststore` no `pom.xml`.
 

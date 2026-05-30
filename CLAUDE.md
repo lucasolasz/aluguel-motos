@@ -60,8 +60,9 @@ Permissões: `ADMIN_FULL`, `RESERVAS_LEITURA`, `RESERVAS_ESCRITA`, `USUARIOS_LEI
 
 ## Storage / Upload (Garage S3)
 - Backend: módulo desacoplado por interface (`StorageService` → `S3StorageService`). Detalhes em `backend/CLAUDE.md`.
-- Endpoint: `POST /api/uploads/motos` (multipart `file`, role ADMIN_FULL) → `{ key, url, contentType, size }`. CRUD de motos continua guardando só a URL String.
-- Garage: path-style, region `us-east-1`, endpoint `https://s3.ltech.app.br`. URL pública servida pelo web endpoint `https://<bucket>.web.ltech.app.br/<key>` (requer Traefik router p/ porta 3901 + DNS wildcard `*.web`).
+- Endpoints admin (role ADMIN_FULL): `POST /api/uploads/motos`, `POST /api/uploads/vistorias`, `POST /api/uploads/contratos` (multipart `file` + id) → `{ key, url, contentType, size }`.
+  - Paths no bucket: `motos/{motoId}/{uuid}.ext`, `reservas/{reservaId}/vistorias/{uuid}.ext`, `reservas/{reservaId}/contratos/{uuid}.ext`
+- Garage: path-style, region `us-east-1`, endpoint `https://s3.ltech.app.br`. URL pública: `https://bucketaluguelmotos.ltech.app.br/<key>`.
 - Para exibir imagem externa no `next/image`, adicionar o host em `images.remotePatterns` no `next.config.ts`.
 
 ## Projetos

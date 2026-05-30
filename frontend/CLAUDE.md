@@ -77,11 +77,15 @@ Documento { tipo, url, status, createdAt }
 - Server components públicos usam `services/api.ts` (sem auth)
 - `proxy.ts` só protege `/conta/**`; `/admin/**` depende de token + role no backend
 
-## Upload de imagens (Garage S3)
-- Backend expõe `POST /api/uploads/motos` (multipart `file`, ADMIN_FULL) → `{ url, key, ... }`
-- Fluxo: upload retorna URL pública → colocar em `MotoRequest.fotos[].url` no CRUD existente
-- Hoje o form de motos (`admin/motos/page.tsx`) usa input de URL manual — trocar por file picker que chama o endpoint
-- `next/image` com URL externa do Garage exige host em `images.remotePatterns` no `next.config.ts`
+## Upload de arquivos (Garage S3)
+- Backend expõe (todos multipart, role ADMIN_FULL):
+  - `POST /api/uploads/motos` (`file` + `motoId`) → `{ url, key, ... }`
+  - `POST /api/uploads/vistorias` (`file` + `reservaId`) → `{ url, key, ... }`
+  - `POST /api/uploads/contratos` (`file` + `reservaId`) → `{ url, key, ... }`
+- Fluxo: upload retorna URL pública → salva no campo correspondente (foto de moto, URL de vistoria, URL de contrato)
+- Paths no bucket: `motos/{motoId}/{uuid}.ext`, `reservas/{reservaId}/vistorias/{uuid}.ext`, `reservas/{reservaId}/contratos/{uuid}.ext`
+- Extensões permitidas: `jpg, jpeg, png, webp, pdf`
+- `next/image` com URL externa do Garage exige host `bucketaluguelmotos.ltech.app.br` em `images.remotePatterns` no `next.config.ts`
 
 ## Key Patterns
 1. Prefer Server Components nas rotas públicas; evitar `use client` desnecessário
