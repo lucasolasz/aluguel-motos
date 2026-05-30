@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SlidersHorizontal, Grid, List, CalendarDays } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { MotoCard } from '@/components/moto-card'
 import type { Moto, Categoria } from '@/lib/types'
 
@@ -29,6 +30,8 @@ interface MotosListProps {
 }
 
 export function MotosList({ motos, categorias, period }: MotosListProps) {
+  const router = useRouter()
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('price-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -79,6 +82,15 @@ export function MotosList({ motos, categorias, period }: MotosListProps) {
           <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
           <span className="text-muted-foreground">Período selecionado:</span>
           <span className="font-medium text-foreground">{periodoLabel}</span>
+          <button
+            className="ml-auto shrink-0 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            onClick={() => {
+              sessionStorage.removeItem('search-period')
+              router.push('/?search=open')
+            }}
+          >
+            Limpar pesquisa
+          </button>
         </div>
       )}
 

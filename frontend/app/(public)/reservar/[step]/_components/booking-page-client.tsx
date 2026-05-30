@@ -109,7 +109,8 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
     const rawPeriod = sessionStorage.getItem('search-period')
     if (rawPeriod) {
       try {
-        const p = JSON.parse(rawPeriod)
+        const parsed = JSON.parse(rawPeriod)
+        const p = parsed.data ?? parsed
         if (p.pickup) { const d = new Date(p.pickup); if (!isNaN(d.getTime())) restoredPickup = d }
         if (p.return) { const d = new Date(p.return); if (!isNaN(d.getTime())) restoredReturn = d }
         if (p.hora_retirada) restoredHoraRetirada = p.hora_retirada
