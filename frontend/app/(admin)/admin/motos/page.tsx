@@ -20,6 +20,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -58,7 +59,7 @@ import {
 import { adminGetCategorias } from '@/services/categorias.service'
 import { uploadMotoFoto, deleteUpload } from '@/services/upload.service'
 import { MARCAS, TRANSMISSOES, ANOS } from '@/lib/constants'
-import { Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
+import { Loader2, Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -224,6 +225,12 @@ export default function AdminMotorcyclesPage() {
   const [uploadingFotos, setUploadingFotos] = useState(false)
   const [fotoError, setFotoError] = useState<string | null>(null)
   const [newFiles, setNewFiles] = useState<{ file: File; previewUrl: string }[]>([])
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
+
+  const uploadDialogOpen = uploadProgress !== null
+  const uploadPercent = uploadProgress && uploadProgress.total > 0
+    ? Math.round((uploadProgress.current / uploadProgress.total) * 100)
+    : 0
 
   useEffect(() => {
     loadData()
@@ -262,6 +269,7 @@ export default function AdminMotorcyclesPage() {
     setSaveError(null)
     setFotoError(null)
     setNewFiles([])
+    setUploadProgress(null)
     setDialogOpen(true)
   }
 
@@ -269,6 +277,7 @@ export default function AdminMotorcyclesPage() {
     setEditingId(moto.id)
     setFotoError(null)
     setNewFiles([])
+    setUploadProgress(null)
     setForm({
       nome: moto.nome,
       slug: moto.slug,
@@ -319,6 +328,7 @@ export default function AdminMotorcyclesPage() {
         }
 
         setUploadingFotos(true)
+        setUploadProgress({ current: 0, total: newFiles.length })
         const fotosNovas: { url: string; ordem: number; principal: boolean }[] = []
 
         for (let i = 0; i < newFiles.length; i++) {
@@ -327,8 +337,10 @@ export default function AdminMotorcyclesPage() {
           const ordemBase = fotosExistentes.length + i
           const isPrincipal = fotosExistentes.length === 0 && i === 0
           fotosNovas.push({ url, ordem: ordemBase, principal: isPrincipal })
+          setUploadProgress({ current: i + 1, total: newFiles.length })
         }
 
+        setUploadProgress(null)
         formToSave = {
           ...form,
           fotos: [...fotosExistentes, ...fotosNovas],
@@ -364,6 +376,7 @@ export default function AdminMotorcyclesPage() {
     } finally {
       setIsSaving(false)
       setUploadingFotos(false)
+      setUploadProgress(null)
     }
   }
 
@@ -722,7 +735,7 @@ export default function AdminMotorcyclesPage() {
                 placeholder="Separe por vírgula: Capacete, Luvas, Macacão..."
                 rows={3}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-red-700">
                 Separe os itens por vírgula. Eles serão exibidos como uma lista na página da moto.
               </p>
             </div>
@@ -841,6 +854,30 @@ export default function AdminMotorcyclesPage() {
               <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving ? 'Salvando...' : 'Salvar'}
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Upload Progress Dialog ─── */}
+      <Dialog open={uploadDialogOpen} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enviando imagens</DialogTitle>
+            <DialogDescription>
+              Aguarde enquanto as imagens são enviadas para o servidor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <p className="text-sm font-medium">
+              Realizando upload {uploadProgress?.current ?? 0}/{uploadProgress?.total ?? 0}...
+            </p>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                style={{ width: `${uploadPercent}%` }}
+              />
             </div>
           </div>
         </DialogContent>
