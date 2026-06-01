@@ -13,6 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Progress,
+} from '@/components/ui/progress'
 import { ImagePlus, Loader2, X } from 'lucide-react'
 import { uploadVistoriaFoto } from '@/services/upload.service'
 import { adminRegistrarVistoria } from '@/services/reservas.service'
@@ -22,6 +31,7 @@ import {
   type ReservaDetalhe,
   type TipoVistoria,
 } from '@/lib/atendimento-types'
+import { ImageDialog } from './image-dialog'
 
 interface VistoriaFormProps {
   reservaId: string
@@ -34,30 +44,76 @@ export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormPr
   const [nivel, setNivel] = useState<NivelCombustivel | ''>('')
   const [observacoes, setObservacoes] = useState('')
   const [fotos, setFotos] = useState<string[]>([])
+  const [pendingFiles, setPendingFiles] = useState<{ file: File; previewUrl: string }[]>([])
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFiles = async (files: FileList | null) => {
+  const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return
     setErro(null)
-    setUploading(true)
-    try {
-      for (const file of Array.from(files)) {
-        const res = await uploadVistoriaFoto(file, reservaId)
-        setFotos((prev) => [...prev, res.url])
-      }
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Falha no upload')
-    } finally {
-      setUploading(false)
-      if (inputRef.current) inputRef.current.value = ''
+
+    const newEntries: { file: File; previewUrl: string }[] = []
+    const newUrls: string[] = []
+
+    Array.from(files).forEach((file) => {
+      const previewUrl = URL.createObjectURL(file)
+      newEntries.push({ file, previewUrl })
+      newUrls.push(previewUrl)
+    })
+
+    setPendingFiles((prev) => [...prev, ...newEntries])
+    setFotos((prev) => [...prev, ...newUrls])
+
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  const removeFoto = (index: number) => {
+    const url = fotos[index]
+    const pendingIndex = pendingFiles.findIndex((pf) => pf.previewUrl === url)
+    if (pendingIndex !== -1) {
+      URL.revokeObjectURL(pendingFiles[pendingIndex].previewUrl)
+      setPendingFiles((prev) => prev.filter((_, i) => i !== pendingIndex))
     }
+    setFotos((prev) => prev.filter((_, i) => i !== index))
   }
 
   const submit = async () => {
     setErro(null)
+
+    let finalFotos = [...fotos]
+
+    if (pendingFiles.length > 0) {
+      setUploading(true)
+      setUploadProgress({ current: 0, total: pendingFiles.length })
+      const uploadedKeys: string[] = []
+
+      try {
+        const fotosNovas: string[] = []
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const res = await uploadVistoriaFoto(pendingFiles[i].file, reservaId)
+          uploadedKeys.push(res.key)
+          fotosNovas.push(res.url)
+          setUploadProgress({ current: i + 1, total: pendingFiles.length })
+        }
+
+        const existingUrls = fotos.filter((u) => !u.startsWith('blob:'))
+        finalFotos = [...existingUrls, ...fotosNovas]
+        setFotos(finalFotos)
+
+        pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.previewUrl))
+        setPendingFiles([])
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'Falha no upload de fotos')
+        return
+      } finally {
+        setUploading(false)
+        setUploadProgress(null)
+      }
+    }
+
     setSaving(true)
     try {
       const d = await adminRegistrarVistoria(reservaId, {
@@ -65,7 +121,7 @@ export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormPr
         kmRegistrado: km ? Number(km) : null,
         nivelCombustivel: nivel || null,
         observacoes: observacoes || null,
-        fotos,
+        fotos: finalFotos,
       })
       onDone(d)
     } catch (e) {
@@ -120,12 +176,18 @@ export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormPr
       <div className="space-y-2">
         <Label>Fotos da vistoria</Label>
         <div className="flex flex-wrap gap-3">
-          {fotos.map((url) => (
+          {fotos.map((url, i) => (
             <div key={url} className="relative h-24 w-24 overflow-hidden rounded-md border">
-              <Image src={url} alt="Foto vistoria" fill className="object-cover" sizes="96px" />
+              <ImageDialog src={url} alt={`Foto ${i + 1}`}>
+                {url.startsWith('blob:') ? (
+                  <img src={url} alt={`Foto ${i + 1}`} className="h-24 w-24 object-cover" />
+                ) : (
+                  <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover" sizes="96px" />
+                )}
+              </ImageDialog>
               <button
                 type="button"
-                onClick={() => setFotos((prev) => prev.filter((u) => u !== url))}
+                onClick={() => removeFoto(i)}
                 className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white"
               >
                 <X className="h-3 w-3" />
@@ -135,10 +197,10 @@ export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormPr
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || saving}
             className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed text-muted-foreground hover:bg-muted"
           >
-            {uploading ? (
+            {uploading || saving ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
@@ -161,8 +223,22 @@ export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormPr
       {erro && <p className="text-sm text-destructive">{erro}</p>}
 
       <Button onClick={submit} disabled={saving || uploading}>
-        {saving ? 'Salvando...' : 'Registrar vistoria'}
+        {saving ? 'Salvando...' : uploading ? 'Enviando fotos...' : 'Registrar vistoria'}
       </Button>
+
+      <Dialog open={uploadProgress !== null} onOpenChange={(open) => { if (!open) setUploadProgress(null) }}>
+        <DialogContent showCloseButton={false} onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Enviando fotos...</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Progress value={uploadProgress ? (uploadProgress.current / uploadProgress.total) * 100 : 0} />
+            <p className="text-sm text-muted-foreground text-center">
+              {uploadProgress ? `${uploadProgress.current} de ${uploadProgress.total}` : ''}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

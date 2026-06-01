@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ltech.backend.domain.dtos.AcertarCaucaoDTO;
 import com.ltech.backend.domain.dtos.ClienteDTO;
 import com.ltech.backend.domain.dtos.ConcluirDevolucaoDTO;
 import com.ltech.backend.domain.dtos.CreateLocalDTO;
@@ -104,6 +105,14 @@ public class AdminController {
             @PathVariable String id,
             @AuthenticationPrincipal UsuarioDetails userDetails) {
         return ResponseEntity.ok(atendimentoService.concluirRetirada(id));
+    }
+
+    @PostMapping("/reservas/{id}/acertar-caucao")
+    public ResponseEntity<ReservaDetalheDTO> acertarCaucao(
+            @PathVariable String id,
+            @Valid @RequestBody AcertarCaucaoDTO dto,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(atendimentoService.acertarCaucao(id, dto));
     }
 
     @PostMapping("/reservas/{id}/concluir-devolucao")

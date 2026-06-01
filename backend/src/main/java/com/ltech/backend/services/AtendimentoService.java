@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ltech.backend.domain.dtos.AcertarCaucaoDTO;
 import com.ltech.backend.domain.dtos.ConcluirDevolucaoDTO;
 import com.ltech.backend.domain.dtos.CriarVistoriaDTO;
 import com.ltech.backend.domain.dtos.ReservaDetalheDTO;
@@ -192,6 +193,43 @@ public class AtendimentoService {
     }
 
     @Transactional
+    public ReservaDetalheDTO acertarCaucao(String id, AcertarCaucaoDTO dto) {
+        Reserva reserva = carregarReserva(id);
+
+        Pagamento caucao = pagamentoRepository
+                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), TipoPagamento.CAUCAO)
+                .orElseThrow(() -> unprocessable("Não há caução registrada para esta reserva"));
+
+        if (caucao.getStatus() != StatusPagamento.AUTORIZADO) {
+            throw unprocessable("Caução já foi acertada (status: " + caucao.getStatus() + ")");
+        }
+
+        BigDecimal desconto = dto.valorDescontoCaucao() != null ? dto.valorDescontoCaucao() : BigDecimal.ZERO;
+
+        if (desconto.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Valor de desconto não pode ser negativo");
+        }
+        if (desconto.compareTo(caucao.getValor()) > 0) {
+            throw unprocessable("Valor de desconto (" + desconto + ") excede a caução autorizada (" + caucao.getValor() + ")");
+        }
+
+        if (desconto.compareTo(BigDecimal.ZERO) > 0) {
+            PagamentoResult r = paymentService.capturarCaucao(caucao, desconto);
+            caucao.setStatus(r.sucesso() ? StatusPagamento.CAPTURADO : StatusPagamento.FALHOU);
+            caucao.setValor(desconto);
+            caucao.setGatewayTransactionId(r.gatewayTransactionId());
+        } else {
+            PagamentoResult r = paymentService.liberarCaucao(caucao);
+            caucao.setStatus(r.sucesso() ? StatusPagamento.LIBERADO : StatusPagamento.FALHOU);
+            caucao.setGatewayTransactionId(r.gatewayTransactionId());
+        }
+        pagamentoRepository.save(caucao);
+
+        return detalhe(reserva);
+    }
+
+    @Transactional
     public ReservaDetalheDTO concluirDevolucao(String id, ConcluirDevolucaoDTO dto) {
         Reserva reserva = carregarReserva(id);
 
@@ -207,30 +245,9 @@ public class AtendimentoService {
                 .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), TipoPagamento.CAUCAO)
                 .orElseThrow(() -> unprocessable("Não há caução registrada para esta reserva"));
 
-        BigDecimal desconto = dto != null && dto.valorDescontoCaucao() != null
-                ? dto.valorDescontoCaucao()
-                : BigDecimal.ZERO;
-
-        if (desconto.compareTo(BigDecimal.ZERO) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Valor de desconto não pode ser negativo");
-        }
-        if (desconto.compareTo(caucao.getValor()) > 0) {
-            throw unprocessable("Valor de desconto (" + desconto + ") excede a caução autorizada (" + caucao.getValor() + ")");
-        }
-
-        if (caucao.getStatus() == StatusPagamento.AUTORIZADO) {
-            if (desconto.compareTo(BigDecimal.ZERO) > 0) {
-                PagamentoResult r = paymentService.capturarCaucao(caucao, desconto);
-                caucao.setStatus(r.sucesso() ? StatusPagamento.CAPTURADO : StatusPagamento.FALHOU);
-                caucao.setValor(desconto);
-                caucao.setGatewayTransactionId(r.gatewayTransactionId());
-            } else {
-                PagamentoResult r = paymentService.liberarCaucao(caucao);
-                caucao.setStatus(r.sucesso() ? StatusPagamento.LIBERADO : StatusPagamento.FALHOU);
-                caucao.setGatewayTransactionId(r.gatewayTransactionId());
-            }
-            pagamentoRepository.save(caucao);
+        if (caucao.getStatus() != StatusPagamento.CAPTURADO
+                && caucao.getStatus() != StatusPagamento.LIBERADO) {
+            throw unprocessable("Caução ainda não foi acertada. Use /acertar-caucao antes de concluir a devolução.");
         }
 
         reserva.setStatus(StatusReserva.CONCLUIDA);

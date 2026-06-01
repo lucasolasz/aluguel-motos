@@ -4,11 +4,12 @@ import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Printer, Upload, Loader2 } from 'lucide-react'
+import { Printer, Upload, Loader2, X, FileText } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { uploadContratoArquivo } from '@/services/upload.service'
 import { adminSalvarContrato } from '@/services/reservas.service'
 import { NIVEL_COMBUSTIVEL_LABELS, type ReservaDetalhe } from '@/lib/atendimento-types'
+import { ImageDialog } from './image-dialog'
 import SignaturePad from './signature-pad'
 
 function gerarHtmlContrato(d: ReservaDetalhe): string {
@@ -79,35 +80,44 @@ export default function ContratoSection({ detalhe, onDone }: ContratoSectionProp
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [pendingFile, setPendingFile] = useState<{ file: File; previewUrl: string } | null>(null)
 
-  const imprimir = () => {
-    const win = window.open('', '_blank', 'width=800,height=900')
-    if (!win) {
-      setErro('Pop-up bloqueado. Permita pop-ups para imprimir.')
-      return
+  const handleFileSelected = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const file = files[0]
+    if (pendingFile) {
+      URL.revokeObjectURL(pendingFile.previewUrl)
     }
-    win.document.write(gerarHtmlContrato(detalhe))
-    win.document.close()
-    win.focus()
-    setTimeout(() => win.print(), 300)
+    setPendingFile({ file, previewUrl: URL.createObjectURL(file) })
+    setErro(null)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
-  const enviarManual = async (file: File | undefined) => {
-    if (!file) return
+  const removePendingFile = () => {
+    if (pendingFile) {
+      URL.revokeObjectURL(pendingFile.previewUrl)
+      setPendingFile(null)
+    }
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  const enviarManual = async () => {
+    if (!pendingFile) return
     setErro(null)
     setBusy(true)
     try {
-      const up = await uploadContratoArquivo(file, detalhe.reserva.id)
+      const up = await uploadContratoArquivo(pendingFile.file, detalhe.reserva.id)
       const d = await adminSalvarContrato(detalhe.reserva.id, {
         tipoAssinatura: 'MANUAL',
         urlDocumento: up.url,
       })
+      URL.revokeObjectURL(pendingFile.previewUrl)
+      setPendingFile(null)
       onDone(d)
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Falha ao enviar contrato')
     } finally {
       setBusy(false)
-      if (fileRef.current) fileRef.current.value = ''
     }
   }
 
@@ -129,9 +139,21 @@ export default function ContratoSection({ detalhe, onDone }: ContratoSectionProp
     }
   }
 
+  const isImage = pendingFile?.file.type.startsWith('image/')
+
   return (
     <div className="space-y-4">
-      <Button type="button" variant="outline" onClick={imprimir}>
+      <Button type="button" variant="outline" onClick={() => {
+        const win = window.open('', '_blank', 'width=800,height=900')
+        if (!win) {
+          setErro('Pop-up bloqueado. Permita pop-ups para imprimir.')
+          return
+        }
+        win.document.write(gerarHtmlContrato(detalhe))
+        win.document.close()
+        win.focus()
+        setTimeout(() => win.print(), 300)
+      }}>
         <Printer className="mr-2 h-4 w-4" />
         Imprimir contrato
       </Button>
@@ -144,24 +166,79 @@ export default function ContratoSection({ detalhe, onDone }: ContratoSectionProp
 
         <TabsContent value="manual" className="space-y-2 pt-3">
           <Label>Enviar contrato assinado (escaneado/foto/PDF)</Label>
-          <div>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy}
-              onClick={() => fileRef.current?.click()}
-            >
-              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-              Enviar arquivo
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*,application/pdf"
-              className="hidden"
-              onChange={(e) => enviarManual(e.target.files?.[0])}
-            />
-          </div>
+
+          {!pendingFile ? (
+            <div>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => fileRef.current?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Selecionar arquivo
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => handleFileSelected(e.target.files)}
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 rounded-md border p-3">
+                {isImage ? (
+                  <div className="h-16 w-16 overflow-hidden rounded border">
+                    <ImageDialog src={pendingFile.previewUrl} alt="Preview contrato">
+                      <img
+                        src={pendingFile.previewUrl}
+                        alt="Preview contrato"
+                        className="h-16 w-16 object-cover"
+                      />
+                    </ImageDialog>
+                  </div>
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{pendingFile.file.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(pendingFile.file.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={removePendingFile}
+                  className="rounded-full bg-muted p-1 hover:bg-muted-foreground/20"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  disabled={busy}
+                  onClick={enviarManual}
+                >
+                  {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Salvar contrato
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={removePendingFile}
+                  disabled={busy}
+                >
+                  Trocar arquivo
+                </Button>
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="digital" className="space-y-2 pt-3">

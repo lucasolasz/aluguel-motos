@@ -1,12 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -27,7 +27,9 @@ import {
   ClipboardCheck,
   FileSignature,
   KeyRound,
+  Send,
 } from 'lucide-react'
+import { IMaskInput } from 'react-imask'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   adminGetReservaDetalhe,
@@ -35,6 +37,7 @@ import {
   adminCobrar,
   adminConcluirRetirada,
   adminConcluirDevolucao,
+  adminAcertarCaucao,
 } from '@/services/reservas.service'
 import {
   NIVEL_COMBUSTIVEL_LABELS,
@@ -42,6 +45,7 @@ import {
 } from '@/lib/atendimento-types'
 import VistoriaForm from './vistoria-form'
 import ContratoSection from './contrato-section'
+import { ImageDialog } from './image-dialog'
 
 function StepCard({
   icon: Icon,
@@ -77,12 +81,13 @@ function StepCard({
 }
 
 export default function AtendimentoClient({ id }: { id: string }) {
+  const router = useRouter()
   const [d, setD] = useState<ReservaDetalhe | null>(null)
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [cobrarOpen, setCobrarOpen] = useState(false)
   const [acao, setAcao] = useState(false)
-  const [desconto, setDesconto] = useState('')
+  const [desconto, setDesconto] = useState('0,00')
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -130,7 +135,6 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const r = d.reserva
   const status = r.status
 
-  // gates retirada
   const cnhOk = d.cnhVerificada
   const pagoAluguel = d.pagamentos.some((p) => p.tipo === 'ALUGUEL' && p.status === 'PAGO')
   const pagoCaucao = d.pagamentos.some((p) => p.tipo === 'CAUCAO' && p.status === 'AUTORIZADO')
@@ -139,11 +143,19 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const contratoOk = !!d.contrato?.assinadoEm
   const retiradaOk = cnhOk && pagoOk && !!vistoriaSaida && contratoOk
 
-  // gates devolução
   const vistoriaRetorno = d.vistorias.find((v) => v.tipo === 'RETORNO')
+  const caucaoAcertada = d.pagamentos.some(
+    (p) => p.tipo === 'CAUCAO' && (p.status === 'CAPTURADO' || p.status === 'LIBERADO'),
+  )
 
   const isRetirada = status === 'PENDENTE' || status === 'CONFIRMADA'
   const isDevolucao = status === 'EM_ANDAMENTO'
+
+  const parseDesconto = (): number => {
+    const raw = String(desconto).replace(/[^\d,]/g, '').replace(',', '.')
+    const val = parseFloat(raw)
+    return isNaN(val) ? 0 : val
+  }
 
   return (
     <div className="space-y-6">
@@ -164,7 +176,6 @@ export default function AtendimentoClient({ id }: { id: string }) {
 
       {erro && <p className="text-sm text-destructive">{erro}</p>}
 
-      {/* Resumo cliente + moto */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Resumo</CardTitle>
@@ -259,7 +270,9 @@ export default function AtendimentoClient({ id }: { id: string }) {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {vistoriaSaida.fotos.map((f) => (
                     <div key={f.id} className="relative h-16 w-16 overflow-hidden rounded border">
-                      <Image src={f.url} alt="foto" fill className="object-cover" sizes="64px" />
+                      <ImageDialog src={f.url} alt="foto saída">
+                        <Image src={f.url} alt="foto saída" fill className="object-cover" sizes="64px" />
+                      </ImageDialog>
                     </div>
                   ))}
                 </div>
@@ -290,7 +303,10 @@ export default function AtendimentoClient({ id }: { id: string }) {
               <Button
                 size="lg"
                 disabled={!retiradaOk || acao}
-                onClick={() => run(() => adminConcluirRetirada(id))}
+                onClick={async () => {
+                  await run(() => adminConcluirRetirada(id))
+                  router.push('/admin/reservas')
+                }}
               >
                 <KeyRound className="mr-2 h-4 w-4" /> Concluir retirada
               </Button>
@@ -302,14 +318,55 @@ export default function AtendimentoClient({ id }: { id: string }) {
       {/* ─────────── DEVOLUÇÃO ─────────── */}
       {isDevolucao && (
         <div className="space-y-4">
+          {/* Referência: fotos da vistoria de saída */}
+          {vistoriaSaida && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Vistoria de saída (referência)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-2 text-sm text-muted-foreground">
+                  KM: {vistoriaSaida.kmRegistrado ?? '—'} · Combustível:{' '}
+                  {vistoriaSaida.nivelCombustivel
+                    ? NIVEL_COMBUSTIVEL_LABELS[vistoriaSaida.nivelCombustivel]
+                    : '—'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {vistoriaSaida.fotos.map((f) => (
+                    <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
+                      <ImageDialog src={f.url} alt="foto saída referência">
+                        <Image src={f.url} alt="foto saída" fill className="object-cover" sizes="80px" />
+                      </ImageDialog>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <StepCard icon={ClipboardCheck} title="1. Vistoria de retorno" done={!!vistoriaRetorno}>
             {vistoriaRetorno ? (
-              <p className="text-sm text-muted-foreground">
-                KM: {vistoriaRetorno.kmRegistrado ?? '—'} · Combustível:{' '}
-                {vistoriaRetorno.nivelCombustivel
-                  ? NIVEL_COMBUSTIVEL_LABELS[vistoriaRetorno.nivelCombustivel]
-                  : '—'}
-              </p>
+              <div className="text-sm text-muted-foreground">
+                <p>
+                  KM: {vistoriaRetorno.kmRegistrado ?? '—'} · Combustível:{' '}
+                  {vistoriaRetorno.nivelCombustivel
+                    ? NIVEL_COMBUSTIVEL_LABELS[vistoriaRetorno.nivelCombustivel]
+                    : '—'}
+                </p>
+                {vistoriaRetorno.fotos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {vistoriaRetorno.fotos.map((f) => (
+                      <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
+                        <ImageDialog src={f.url} alt="foto retorno">
+                          <Image src={f.url} alt="foto retorno" fill className="object-cover" sizes="80px" />
+                        </ImageDialog>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ) : (
               <VistoriaForm reservaId={id} tipo="RETORNO" onDone={setD} />
             )}
@@ -326,7 +383,9 @@ export default function AtendimentoClient({ id }: { id: string }) {
                   <div className="flex flex-wrap gap-2">
                     {vistoriaSaida.fotos.map((f) => (
                       <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
-                        <Image src={f.url} alt="saida" fill className="object-cover" sizes="80px" />
+                        <ImageDialog src={f.url} alt="saida">
+                          <Image src={f.url} alt="saida" fill className="object-cover" sizes="80px" />
+                        </ImageDialog>
                       </div>
                     ))}
                   </div>
@@ -336,7 +395,9 @@ export default function AtendimentoClient({ id }: { id: string }) {
                   <div className="flex flex-wrap gap-2">
                     {vistoriaRetorno.fotos.map((f) => (
                       <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
-                        <Image src={f.url} alt="retorno" fill className="object-cover" sizes="80px" />
+                        <ImageDialog src={f.url} alt="retorno">
+                          <Image src={f.url} alt="retorno" fill className="object-cover" sizes="80px" />
+                        </ImageDialog>
                       </div>
                     ))}
                   </div>
@@ -345,41 +406,71 @@ export default function AtendimentoClient({ id }: { id: string }) {
             </Card>
           )}
 
-          <StepCard icon={CreditCard} title="3. Acerto da caução" done={false}>
+          <StepCard icon={CreditCard} title="3. Acerto da caução" done={caucaoAcertada}>
             <div className="space-y-3 text-sm">
               <p className="text-muted-foreground">
                 Caução pré-autorizada: <b>{formatCurrency(r.caucao)}</b>. Informe o valor a reter por
-                avarias, combustível faltante, km excedente ou atraso. Deixe <b>0</b> para liberar
+                avarias, combustível faltante, km excedente ou atraso. Deixe <b>R$ 0,00</b> para liberar
                 integralmente.
               </p>
-              <div className="max-w-xs space-y-2">
-                <Label htmlFor="desconto">Valor a reter da caução (R$)</Label>
-                <Input
-                  id="desconto"
-                  type="number"
-                  inputMode="decimal"
-                  value={desconto}
-                  onChange={(e) => setDesconto(e.target.value)}
-                  placeholder="0,00"
-                />
-              </div>
+              {caucaoAcertada ? (
+                <p className="text-sm text-muted-foreground">
+                  Caução já acertada.{' '}
+                  {d.pagamentos.find((p) => p.tipo === 'CAUCAO')?.status === 'CAPTURADO'
+                    ? `Retido: ${formatCurrency(d.pagamentos.find((p) => p.tipo === 'CAUCAO')?.valor ?? 0)}`
+                    : 'Caução liberada integralmente.'}
+                </p>
+              ) : (
+                <div className="max-w-xs space-y-2">
+                  <Label htmlFor="desconto">Valor a reter da caução</Label>
+                  <div className="relative">
+                    <IMaskInput
+                      id="desconto"
+                      mask={Number}
+                      radix=","
+                      thousandsSeparator="."
+                      prefix="R$ "
+                      scale={2}
+                      padFractionalZeros
+                      normalizeZeros
+                      value={desconto}
+                      onAccept={(value: string) => setDesconto(value)}
+                      disabled={acao}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="R$ 0,00"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={acao}
+                    onClick={() =>
+                      run(() => adminAcertarCaucao(id, parseDesconto()))
+                    }
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar acerto ao PagBank
+                  </Button>
+                </div>
+              )}
             </div>
           </StepCard>
 
           <Card>
             <CardContent className="flex items-center justify-between pt-6">
               <p className="text-sm text-muted-foreground">
-                {vistoriaRetorno
-                  ? 'Conclua a devolução para liberar/capturar a caução e finalizar.'
-                  : 'Registre a vistoria de retorno para concluir.'}
+                {vistoriaRetorno && caucaoAcertada
+                  ? 'Tudo pronto. Conclua a devolução.'
+                  : !vistoriaRetorno
+                    ? 'Registre a vistoria de retorno para concluir.'
+                    : 'Acerte a caução para concluir.'}
               </p>
               <Button
                 size="lg"
-                disabled={!vistoriaRetorno || acao}
+                disabled={!vistoriaRetorno || !caucaoAcertada || acao}
                 onClick={() =>
                   run(() =>
                     adminConcluirDevolucao(id, {
-                      valorDescontoCaucao: desconto ? Number(desconto) : 0,
+                      valorDescontoCaucao: parseDesconto() || 0,
                     }),
                   )
                 }

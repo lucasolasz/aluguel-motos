@@ -80,6 +80,16 @@ export async function adminConcluirRetirada(id: string): Promise<ReservaDetalhe>
   return apiFetch<ReservaDetalhe>(`/api/admin/reservas/${id}/concluir-retirada`, { method: 'POST' })
 }
 
+export async function adminAcertarCaucao(
+  id: string,
+  valorDescontoCaucao: number,
+): Promise<ReservaDetalhe> {
+  return apiFetch<ReservaDetalhe>(`/api/admin/reservas/${id}/acertar-caucao`, {
+    method: 'POST',
+    body: JSON.stringify({ valorDescontoCaucao }),
+  })
+}
+
 export async function adminConcluirDevolucao(
   id: string,
   payload: ConcluirDevolucaoPayload,
