@@ -27,6 +27,7 @@ import {
   ClipboardCheck,
   FileSignature,
   KeyRound,
+  Lock,
   Send,
 } from 'lucide-react'
 import { IMaskInput } from 'react-imask'
@@ -51,15 +52,19 @@ function StepCard({
   icon: Icon,
   title,
   done,
+  disabled,
+  disabledMessage,
   children,
 }: {
   icon: React.ElementType
   title: string
   done: boolean
+  disabled?: boolean
+  disabledMessage?: string
   children: React.ReactNode
 }) {
   return (
-    <Card>
+    <Card className={disabled && !done ? 'opacity-50 pointer-events-none' : ''}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2 text-base">
           <Icon className="h-5 w-5 text-muted-foreground" />
@@ -69,13 +74,23 @@ function StepCard({
           <Badge className="gap-1">
             <Check className="h-3 w-3" /> Concluído
           </Badge>
+        ) : disabled ? (
+          <Badge variant="outline" className="gap-1 text-muted-foreground">
+            <Lock className="h-3 w-3" /> Bloqueado
+          </Badge>
         ) : (
           <Badge variant="outline" className="gap-1">
             <CircleDashed className="h-3 w-3" /> Pendente
           </Badge>
         )}
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent>
+        {disabled && !done && disabledMessage ? (
+          <p className="text-sm text-muted-foreground">{disabledMessage}</p>
+        ) : (
+          children
+        )}
+      </CardContent>
     </Card>
   )
 }
@@ -88,6 +103,19 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [cobrarOpen, setCobrarOpen] = useState(false)
   const [acao, setAcao] = useState(false)
   const [desconto, setDesconto] = useState('0,00')
+  const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
+  const [contratoPending, setContratoPending] = useState(false)
+  const [voltarDialogOpen, setVoltarDialogOpen] = useState(false)
+
+  const hasUnsavedChanges = vistoriaPendingCount > 0 || contratoPending
+
+  const onVistoriaPendingChange = useCallback((count: number) => {
+    setVistoriaPendingCount(count)
+  }, [])
+
+  const onContratoPendingChange = useCallback((hasPending: boolean) => {
+    setContratoPending(hasPending)
+  }, [])
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -103,6 +131,16 @@ export default function AtendimentoClient({ id }: { id: string }) {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [hasUnsavedChanges])
 
   const run = async (fn: () => Promise<ReservaDetalhe>) => {
     setErro(null)
@@ -161,10 +199,19 @@ export default function AtendimentoClient({ id }: { id: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Button asChild variant="ghost" size="sm" className="-ml-2 mb-1">
-            <Link href="/admin/reservas">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-            </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 mb-1"
+            onClick={() => {
+              if (hasUnsavedChanges) {
+                setVoltarDialogOpen(true)
+              } else {
+                router.push('/admin/reservas')
+              }
+            }}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
           </Button>
           <h1 className="text-2xl font-bold">
             {isRetirada ? 'Retirada' : isDevolucao ? 'Devolução' : 'Reserva'} ·{' '}
@@ -234,7 +281,60 @@ export default function AtendimentoClient({ id }: { id: string }) {
             </div>
           </StepCard>
 
-          <StepCard icon={CreditCard} title="2. Pagamento" done={pagoOk}>
+          <StepCard
+            icon={ClipboardCheck}
+            title="2. Vistoria de saída"
+            done={!!vistoriaSaida}
+            disabled={!cnhOk}
+            disabledMessage="Complete a validação da CNH para liberar esta etapa."
+          >
+            {vistoriaSaida ? (
+              <div className="text-sm text-muted-foreground">
+                <p>
+                  KM: {vistoriaSaida.kmRegistrado ?? '—'} · Combustível:{' '}
+                  {vistoriaSaida.nivelCombustivel
+                    ? NIVEL_COMBUSTIVEL_LABELS[vistoriaSaida.nivelCombustivel]
+                    : '—'}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {vistoriaSaida.fotos.map((f) => (
+                    <div key={f.id} className="relative h-16 w-16 overflow-hidden rounded border">
+                      <ImageDialog src={f.url} alt="foto saída">
+                        <Image src={f.url} alt="foto saída" fill className="object-cover" sizes="64px" />
+                      </ImageDialog>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <VistoriaForm reservaId={id} tipo="SAIDA" onDone={setD} onPendingChange={onVistoriaPendingChange} />
+            )}
+          </StepCard>
+
+          <StepCard
+            icon={FileSignature}
+            title="3. Contrato"
+            done={contratoOk}
+            disabled={!cnhOk || !vistoriaSaida}
+            disabledMessage="Complete a CNH e a vistoria de saída para liberar esta etapa."
+          >
+            {contratoOk ? (
+              <p className="text-sm text-muted-foreground">
+                Contrato assinado ({d.contrato?.tipoAssinatura}) em{' '}
+                {d.contrato?.assinadoEm ? formatDate(d.contrato.assinadoEm) : ''}.
+              </p>
+            ) : (
+              <ContratoSection detalhe={d} onDone={setD} onPendingChange={onContratoPendingChange} />
+            )}
+          </StepCard>
+
+          <StepCard
+            icon={CreditCard}
+            title="4. Pagamento"
+            done={pagoOk}
+            disabled={!cnhOk || !vistoriaSaida || !contratoOk}
+            disabledMessage="Complete CNH, vistoria e contrato para liberar o pagamento."
+          >
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Aluguel</span>
@@ -256,41 +356,6 @@ export default function AtendimentoClient({ id }: { id: string }) {
                 </Button>
               )}
             </div>
-          </StepCard>
-
-          <StepCard icon={ClipboardCheck} title="3. Vistoria de saída" done={!!vistoriaSaida}>
-            {vistoriaSaida ? (
-              <div className="text-sm text-muted-foreground">
-                <p>
-                  KM: {vistoriaSaida.kmRegistrado ?? '—'} · Combustível:{' '}
-                  {vistoriaSaida.nivelCombustivel
-                    ? NIVEL_COMBUSTIVEL_LABELS[vistoriaSaida.nivelCombustivel]
-                    : '—'}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {vistoriaSaida.fotos.map((f) => (
-                    <div key={f.id} className="relative h-16 w-16 overflow-hidden rounded border">
-                      <ImageDialog src={f.url} alt="foto saída">
-                        <Image src={f.url} alt="foto saída" fill className="object-cover" sizes="64px" />
-                      </ImageDialog>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <VistoriaForm reservaId={id} tipo="SAIDA" onDone={setD} />
-            )}
-          </StepCard>
-
-          <StepCard icon={FileSignature} title="4. Contrato" done={contratoOk}>
-            {contratoOk ? (
-              <p className="text-sm text-muted-foreground">
-                Contrato assinado ({d.contrato?.tipoAssinatura}) em{' '}
-                {d.contrato?.assinadoEm ? formatDate(d.contrato.assinadoEm) : ''}.
-              </p>
-            ) : (
-              <ContratoSection detalhe={d} onDone={setD} />
-            )}
           </StepCard>
 
           <Card>
@@ -498,6 +563,27 @@ export default function AtendimentoClient({ id }: { id: string }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog de confirmação ao sair com dados pendentes */}
+      <Dialog open={voltarDialogOpen} onOpenChange={setVoltarDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sair da página?</DialogTitle>
+            <DialogDescription>
+              Há dados preenchidos que ainda não foram salvos (fotos, assinatura ou contrato).
+              Se sair agora, essas informações serão perdidas.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVoltarDialogOpen(false)}>
+              Continuar na página
+            </Button>
+            <Button variant="destructive" onClick={() => router.push('/admin/reservas')}>
+              Sim, sair
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de cobrança */}
       <Dialog open={cobrarOpen} onOpenChange={setCobrarOpen}>

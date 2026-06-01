@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,9 +37,10 @@ interface VistoriaFormProps {
   reservaId: string
   tipo: TipoVistoria
   onDone: (d: ReservaDetalhe) => void
+  onPendingChange?: (count: number) => void
 }
 
-export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormProps) {
+export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange }: VistoriaFormProps) {
   const [km, setKm] = useState('')
   const [nivel, setNivel] = useState<NivelCombustivel | ''>('')
   const [observacoes, setObservacoes] = useState('')
@@ -50,6 +51,10 @@ export default function VistoriaForm({ reservaId, tipo, onDone }: VistoriaFormPr
   const [erro, setErro] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    onPendingChange?.(pendingFiles.length)
+  }, [pendingFiles.length, onPendingChange])
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return

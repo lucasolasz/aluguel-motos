@@ -75,6 +75,19 @@ public class AtendimentoService {
     public ReservaDetalheDTO cobrar(String id) {
         Reserva reserva = carregarReserva(id);
 
+        if (!Boolean.TRUE.equals(reserva.getCnhVerificada())) {
+            throw unprocessable("Verifique a CNH antes de cobrar");
+        }
+        if (vistoriaRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
+                reserva.getId(), TipoVistoria.SAIDA).isEmpty()) {
+            throw unprocessable("Registre a vistoria de saída antes de cobrar");
+        }
+        Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
+                .orElse(null);
+        if (contrato == null || contrato.getAssinadoEm() == null) {
+            throw unprocessable("Assine o contrato antes de cobrar");
+        }
+
         if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
             PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal());
             registrarPagamento(reserva, TipoPagamento.ALUGUEL,
@@ -170,12 +183,6 @@ public class AtendimentoService {
         if (!Boolean.TRUE.equals(reserva.getCnhVerificada())) {
             throw unprocessable("CNH ainda não foi verificada");
         }
-        if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
-            throw unprocessable("Aluguel ainda não foi pago");
-        }
-        if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {
-            throw unprocessable("Caução ainda não foi autorizada");
-        }
         if (vistoriaRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
                 reserva.getId(), TipoVistoria.SAIDA).isEmpty()) {
             throw unprocessable("Vistoria de saída ainda não foi registrada");
@@ -184,6 +191,12 @@ public class AtendimentoService {
                 .orElse(null);
         if (contrato == null || contrato.getAssinadoEm() == null) {
             throw unprocessable("Contrato ainda não foi assinado");
+        }
+        if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
+            throw unprocessable("Aluguel ainda não foi pago");
+        }
+        if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {
+            throw unprocessable("Caução ainda não foi autorizada");
         }
 
         reserva.setStatus(StatusReserva.EM_ANDAMENTO);

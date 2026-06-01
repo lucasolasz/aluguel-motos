@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -74,13 +74,18 @@ function gerarHtmlContrato(d: ReservaDetalhe): string {
 interface ContratoSectionProps {
   detalhe: ReservaDetalhe
   onDone: (d: ReservaDetalhe) => void
+  onPendingChange?: (hasPending: boolean) => void
 }
 
-export default function ContratoSection({ detalhe, onDone }: ContratoSectionProps) {
+export default function ContratoSection({ detalhe, onDone, onPendingChange }: ContratoSectionProps) {
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [pendingFile, setPendingFile] = useState<{ file: File; previewUrl: string } | null>(null)
+
+  useEffect(() => {
+    onPendingChange?.(!!pendingFile)
+  }, [pendingFile, onPendingChange])
 
   const handleFileSelected = (files: FileList | null) => {
     if (!files || files.length === 0) return
