@@ -101,6 +101,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [cobrarOpen, setCobrarOpen] = useState(false)
+  const [cvv, setCvv] = useState('')
   const [acao, setAcao] = useState(false)
   const [desconto, setDesconto] = useState('0,00')
   const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
@@ -586,11 +587,11 @@ export default function AtendimentoClient({ id }: { id: string }) {
       </Dialog>
 
       {/* Dialog de cobrança */}
-      <Dialog open={cobrarOpen} onOpenChange={setCobrarOpen}>
+      <Dialog open={cobrarOpen} onOpenChange={(open) => { setCobrarOpen(open); if (!open) setCvv('') }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmar cobrança</DialogTitle>
-            <DialogDescription>Revise os valores antes de cobrar o cliente.</DialogDescription>
+            <DialogDescription>Revise os valores e informe o CVV do cartão do cliente.</DialogDescription>
           </DialogHeader>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
@@ -607,15 +608,31 @@ export default function AtendimentoClient({ id }: { id: string }) {
               <span>{formatCurrency(r.total + r.caucao)}</span>
             </div>
           </div>
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="cvv">CVV do cartão</Label>
+            <IMaskInput
+              id="cvv"
+              mask="0000"
+              maxLength={4}
+              value={cvv}
+              onAccept={(value: string) => setCvv(value)}
+              placeholder="CVV"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+            <p className="text-xs text-muted-foreground">
+              Peça ao cliente para informar o CVV do cartão cadastrado na reserva.
+            </p>
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCobrarOpen(false)}>
+            <Button variant="outline" onClick={() => { setCobrarOpen(false); setCvv('') }}>
               Cancelar
             </Button>
             <Button
-              disabled={acao}
+              disabled={acao || cvv.replace(/\D/g, '').length < 3}
               onClick={async () => {
-                await run(() => adminCobrar(id))
+                await run(() => adminCobrar(id, cvv.replace(/\D/g, '')))
                 setCobrarOpen(false)
+                setCvv('')
               }}
             >
               Confirmar e cobrar

@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { Cartao, EnderecoCobranca } from '@/lib/types'
+import type { Cartao, CreateCartao, EnderecoCobranca } from '@/lib/types'
 import {
   associarEndereco,
   criarCartao,
   deletarCartao,
   getMeusCartoes,
-  validarCartao,
 } from '@/services/cartao.service'
 import {
   criarEndereco,
@@ -16,6 +15,7 @@ import {
 import { getMeuPerfil } from '@/services/usuario.service'
 import { getCidadesByEstado } from '@/services/ibge.service'
 import type { Cidade } from '@/services/ibge.service'
+import { getCardMode, encryptCardData, getCachedMode } from '@/lib/pagbank-encryption'
 
 export type Step5Phase =
   | 'loading'
@@ -93,6 +93,50 @@ export function useStep5({ active }: UseStep5Args) {
   const [newCardData, setNewCardData] = useState<NewCardData>(INITIAL_CARD)
   const [newAddressData, setNewAddressData] = useState<NewAddressData>(INITIAL_ADDRESS)
 
+  const [cardMode, setCardMode] = useState<'pagbank' | 'local'>('local')
+
+  useEffect(() => {
+    if (!active) return
+    getCardMode()
+      .then((res) => setCardMode(res.mode))
+      .catch(() => setCardMode('local'))
+  }, [active])
+
+  const buildCreateCartaoPayload = async (): Promise<CreateCartao> => {
+    const cpfClean = newCardData.cpf.replace(/\D/g, '')
+    const mode = getCachedMode() ?? cardMode
+
+    if (mode === 'pagbank') {
+      const numeroClean = newCardData.numero.replace(/\s/g, '')
+      const validadeClean = newCardData.validade.replace(/\D/g, '')
+      const expMonth = validadeClean.substring(0, 2)
+      const expYear = validadeClean.length === 4
+        ? '20' + validadeClean.substring(2, 4)
+        : validadeClean.substring(2, 6)
+
+      const encrypted = encryptCardData({
+        holder: newCardData.nome,
+        number: numeroClean,
+        expMonth,
+        expYear,
+        securityCode: newCardData.cvv.replace(/\D/g, ''),
+      })
+
+      return {
+        nome: newCardData.nome,
+        cpf: cpfClean,
+        encrypted,
+      }
+    }
+
+    return {
+      nome: newCardData.nome,
+      cpf: cpfClean,
+      numero: newCardData.numero.replace(/\s/g, ''),
+      validade: newCardData.validade,
+    }
+  }
+
   useEffect(() => {
     if (!active || profileLoaded) return
     Promise.all([getMeuPerfil(), getMeusCartoes(), getMeusEnderecos()])
@@ -128,23 +172,28 @@ export function useStep5({ active }: UseStep5Args) {
       setNewCardPending(false)
       setCardError(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
   const handleValidarECadastrarCartao = async () => {
     setCardError(null)
     setValidationStatus('loading')
     setValidationDialogOpen(true)
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+
     try {
-      await validarCartao(newCardData.numero)
+      const payload = await buildCreateCartaoPayload()
+      const newCard = await criarCartao(payload)
+      setUserCards((prev) => [...prev, newCard])
+      setPendingCardId(newCard.id)
+      setNewCardPending(false)
       setValidationStatus('success')
     } catch (error) {
       const msg = error instanceof Error ? error.message : ''
       setCardError(
         msg.includes('já cadastrado')
           ? 'Este cartão já está cadastrado. Use outro número de cartão.'
-          : 'Erro ao validar cartão. Tente novamente.'
+          : msg.includes('recusado')
+            ? 'Cartão recusado pela operadora. Verifique os dados e tente novamente.'
+            : 'Erro ao cadastrar cartão. Tente novamente.'
       )
       setValidationStatus('error')
     }
@@ -152,7 +201,6 @@ export function useStep5({ active }: UseStep5Args) {
 
   const confirmValidation = () => {
     setValidationDialogOpen(false)
-    setNewCardPending(true)
     setStep5Phase(userAddresses.length === 0 ? 'address-form' : 'address-select')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -173,7 +221,7 @@ export function useStep5({ active }: UseStep5Args) {
         const cidadeViacep = data.localidade ?? ''
         const bairroViacep = (data.bairro ?? '').toUpperCase()
         const cidadeNome = cidadeViacep.toUpperCase()
-        
+
         setNewAddressData((prev) => ({
           ...prev,
           logradouro: (data.logradouro ?? prev.logradouro).toUpperCase(),
@@ -181,7 +229,7 @@ export function useStep5({ active }: UseStep5Args) {
           cidade: cidadeNome,
           estado,
         }))
-        
+
         setCidadesLoading(true)
         try {
           const cidadesData = await getCidadesByEstado(estado)
@@ -220,12 +268,8 @@ export function useStep5({ active }: UseStep5Args) {
       let cardId = pendingCardId
 
       if (newCardPending) {
-        const newCard = await criarCartao({
-          nome: newCardData.nome,
-          numero: newCardData.numero.replace(/\s/g, ''),
-          validade: newCardData.validade,
-          cpf: newCardData.cpf.replace(/\D/g, ''),
-        })
+        const payload = await buildCreateCartaoPayload()
+        const newCard = await criarCartao(payload)
         setUserCards((prev) => [...prev, newCard])
         cardId = newCard.id
         setNewCardPending(false)
@@ -270,12 +314,8 @@ export function useStep5({ active }: UseStep5Args) {
       let cardId = pendingCardId
 
       if (newCardPending) {
-        const newCard = await criarCartao({
-          nome: newCardData.nome,
-          numero: newCardData.numero.replace(/\s/g, ''),
-          validade: newCardData.validade,
-          cpf: newCardData.cpf.replace(/\D/g, ''),
-        })
+        const payload = await buildCreateCartaoPayload()
+        const newCard = await criarCartao(payload)
         setUserCards((prev) => [...prev, newCard])
         cardId = newCard.id
         setNewCardPending(false)
@@ -300,7 +340,7 @@ export function useStep5({ active }: UseStep5Args) {
     newCardData.nome.trim().length > 0 &&
     newCardData.numero.replace(/\D/g, '').length === 16 &&
     newCardData.validade.replace(/\D/g, '').length === 4 &&
-    newCardData.cvv.replace(/\D/g, '').length === 3 &&
+    newCardData.cvv.replace(/\D/g, '').length >= 3 &&
     newCardData.cpf.replace(/\D/g, '').length === 11
 
   const isAddressFormValid =
@@ -391,6 +431,7 @@ export function useStep5({ active }: UseStep5Args) {
     goToCardForm,
     goToAddressForm,
     backFromAddressForm,
+    cardMode,
   }
 }
 

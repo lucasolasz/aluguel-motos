@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ltech.backend.domain.dtos.AcertarCaucaoDTO;
 import com.ltech.backend.domain.dtos.ClienteDTO;
+import com.ltech.backend.domain.dtos.CobrarDTO;
 import com.ltech.backend.domain.dtos.ConcluirDevolucaoDTO;
 import com.ltech.backend.domain.dtos.CreateLocalDTO;
 import com.ltech.backend.domain.dtos.CriarVistoriaDTO;
@@ -80,8 +81,9 @@ public class AdminController {
     @PostMapping("/reservas/{id}/cobrar")
     public ResponseEntity<ReservaDetalheDTO> cobrar(
             @PathVariable String id,
+            @RequestBody @Valid CobrarDTO dto,
             @AuthenticationPrincipal UsuarioDetails userDetails) {
-        return ResponseEntity.ok(atendimentoService.cobrar(id));
+        return ResponseEntity.ok(atendimentoService.cobrar(id, dto.cvv()));
     }
 
     @PostMapping("/reservas/{id}/vistorias")

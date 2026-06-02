@@ -3,6 +3,7 @@ package com.ltech.backend.services.payment;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import com.ltech.backend.domain.entities.Pagamento;
@@ -12,21 +13,23 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementação simulada do gateway. Sempre aprova e gera um id de transação
- * fake. Substituir por PagBankPaymentService quando a integração real chegar.
+ * fake. Usada quando pagbank.enabled=false.
+ * Substituída por PagBankPaymentService quando a integração real estiver ativa.
  */
 @Service
+@ConditionalOnProperty(name = "pagbank.enabled", havingValue = "false", matchIfMissing = true)
 @Slf4j
 public class FakePaymentService implements PaymentService {
 
     private static final String METODO = "SIMULADO";
 
     @Override
-    public PagamentoResult cobrarAluguel(Reserva reserva, BigDecimal valor) {
+    public PagamentoResult cobrarAluguel(Reserva reserva, BigDecimal valor, String cvv) {
         return aprovar("cobrança aluguel", reserva, valor);
     }
 
     @Override
-    public PagamentoResult autorizarCaucao(Reserva reserva, BigDecimal valor) {
+    public PagamentoResult autorizarCaucao(Reserva reserva, BigDecimal valor, String cvv) {
         return aprovar("autorização caução (hold)", reserva, valor);
     }
 

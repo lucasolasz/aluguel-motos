@@ -12,14 +12,6 @@ export async function criarCartao(data: CreateCartao): Promise<Cartao> {
   })
 }
 
-export async function validarCartao(numero: string): Promise<void> {
-  await apiFetch<Record<string, boolean>>('/api/cartoes/validar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ numero: numero.replace(/\s/g, '') }),
-  })
-}
-
 export async function deletarCartao(id: string): Promise<void> {
   await apiFetch<void>(`/api/cartoes/${id}`, { method: 'DELETE' })
 }

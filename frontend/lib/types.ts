@@ -224,6 +224,7 @@ export interface Cartao {
   numeroMascarado: string
   validade: string
   cpf: string
+  bandeira: string | null
   enderecoCobranca: EnderecoCobranca | null
   vinculadoAReservas: boolean
   createdAt: string
@@ -231,9 +232,10 @@ export interface Cartao {
 
 export interface CreateCartao {
   nome: string
-  numero: string
-  validade: string
   cpf: string
+  encrypted?: string
+  numero?: string
+  validade?: string
 }
 
 export interface EnderecoCobranca {

@@ -72,7 +72,7 @@ public class AtendimentoService {
     }
 
     @Transactional
-    public ReservaDetalheDTO cobrar(String id) {
+    public ReservaDetalheDTO cobrar(String id, String cvv) {
         Reserva reserva = carregarReserva(id);
 
         if (!Boolean.TRUE.equals(reserva.getCnhVerificada())) {
@@ -89,14 +89,14 @@ public class AtendimentoService {
         }
 
         if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
-            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal());
+            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal(), cvv);
             registrarPagamento(reserva, TipoPagamento.ALUGUEL,
                     r.sucesso() ? StatusPagamento.PAGO : StatusPagamento.FALHOU,
                     reserva.getTotal(), r);
         }
 
         if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {
-            PagamentoResult r = paymentService.autorizarCaucao(reserva, reserva.getCaucao());
+            PagamentoResult r = paymentService.autorizarCaucao(reserva, reserva.getCaucao(), cvv);
             registrarPagamento(reserva, TipoPagamento.CAUCAO,
                     r.sucesso() ? StatusPagamento.AUTORIZADO : StatusPagamento.FALHOU,
                     reserva.getCaucao(), r);

@@ -29,14 +29,14 @@ export function CardValidationDialog({ open, status, errorMessage, onConfirm, on
           {status === 'loading' && (
             <>
               <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Validando cartão...</p>
+              <p className="text-sm text-muted-foreground">Tokenizando cartão...</p>
             </>
           )}
 
           {status === 'success' && (
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500" />
-              <p className="text-sm font-medium">Cartão válido!</p>
+              <p className="text-sm font-medium">Cartão validado e armazenado com segurança!</p>
               <Button onClick={onConfirm} className="w-full">
                 Continuar
               </Button>

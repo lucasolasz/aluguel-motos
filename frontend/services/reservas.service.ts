@@ -52,8 +52,11 @@ export async function adminVerificarCnh(id: string): Promise<ReservaDetalhe> {
   return apiFetch<ReservaDetalhe>(`/api/admin/reservas/${id}/cnh-verificada`, { method: 'PATCH' })
 }
 
-export async function adminCobrar(id: string): Promise<ReservaDetalhe> {
-  return apiFetch<ReservaDetalhe>(`/api/admin/reservas/${id}/cobrar`, { method: 'POST' })
+export async function adminCobrar(id: string, cvv: string): Promise<ReservaDetalhe> {
+  return apiFetch<ReservaDetalhe>(`/api/admin/reservas/${id}/cobrar`, {
+    method: 'POST',
+    body: JSON.stringify({ cvv }),
+  })
 }
 
 export async function adminRegistrarVistoria(

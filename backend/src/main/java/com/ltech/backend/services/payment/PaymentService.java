@@ -12,15 +12,11 @@ import com.ltech.backend.domain.entities.Reserva;
  */
 public interface PaymentService {
 
-    /** Cobra o valor do aluguel (captura imediata). */
-    PagamentoResult cobrarAluguel(Reserva reserva, BigDecimal valor);
+    PagamentoResult cobrarAluguel(Reserva reserva, BigDecimal valor, String cvv);
 
-    /** Pré-autoriza (hold/bloqueio) o valor da caução, sem capturar. */
-    PagamentoResult autorizarCaucao(Reserva reserva, BigDecimal valor);
+    PagamentoResult autorizarCaucao(Reserva reserva, BigDecimal valor, String cvv);
 
-    /** Libera integralmente o hold da caução na devolução sem avarias. */
     PagamentoResult liberarCaucao(Pagamento caucaoAutorizada);
 
-    /** Captura (cobra) parte ou todo o hold da caução por descontos na devolução. */
     PagamentoResult capturarCaucao(Pagamento caucaoAutorizada, BigDecimal valor);
 }
