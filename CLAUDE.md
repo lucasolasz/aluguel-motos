@@ -1,7 +1,7 @@
 # Aluguel Motos
 
 ## Stack
-- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL — porta **8090**
+- **Backend**: Spring Boot 3.5.14, Java 21, PostgreSQL — porta **8080**
 - **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui — porta 3000
 - **Auth**: JWT via `com.auth0:java-jwt:4.4.0`, cookie `auth-token` (max-age 24h)
 - **Storage**: Garage (S3-compatible) via AWS SDK v2 — upload de imagens
@@ -11,7 +11,7 @@
 # PostgreSQL via Docker
 docker run --name postgres-aluguel -e POSTGRES_PASSWORD=lucas123 -p 5432:5432 postgres
 
-# Backend (porta 8090)
+# Backend (porta 8080)
 cd backend && mvn spring-boot:run
 
 # Frontend (porta 3000)
@@ -39,13 +39,13 @@ Defaults da máquina apontam p/ JDK antigo. Use: `JAVA_HOME=C:\Desenvolvimento L
 4. Server components públicos: `services/*.service.ts` via `services/api.ts` (sem auth)
 
 ## Data Flow
-- Base URL única: `lib/config.ts` → `API_URL = NEXT_PUBLIC_API_URL ?? http://localhost:8090`
+- Base URL única: `lib/config.ts` → `API_URL = NEXT_PUBLIC_API_URL ?? http://localhost:8080`
 - Prefixos `/api/...` e `/auth/...` ficam no path de cada chamada (não na base)
 - `services/api.ts apiFetch()` — sem auth (público). `lib/auth.ts apiFetch()` — com Bearer
 
 ## .env.local (frontend)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8090
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
 ## Usuários seed (dev — data.sql)
@@ -68,3 +68,18 @@ Permissões: `ADMIN_FULL`, `RESERVAS_LEITURA`, `RESERVAS_ESCRITA`, `USUARIOS_LEI
 ## Projetos
 - `backend/` — API Spring Boot → ver `backend/CLAUDE.md`
 - `frontend/` — App Next.js → ver `frontend/CLAUDE.md`
+
+## PagBank — Pagamentos e Tokenização de Cartão
+- **Modo controlado por** `PAGBANK_ENABLED` no `.env`: `true` = PagBank real (sandbox ou prod), `false` = simulado (FakePaymentService).
+- **Tokenização**: Frontend criptografa dados do cartão com chave pública RSA do PagBank (`jsencrypt`). Backend envia `encrypted` para `POST /tokens/cards` do PagBank. Retorna token `CARD_xxx`, bandeira, últimos dígitos. Backend NUNCA vê número do cartão.
+- **Chave pública**: `GET /api/cartoes/public-key` → `{ mode: "pagbank"|"local", publicKey? }`. Frontend usa para decidir se criptografa ou envia plain.
+- **Modo local** (`pagbank.enabled=false`): Frontend envia `{ nome, numero, validade, cpf }`. Backend mascara e armazena fingerprint SHA-256.
+- **Modo PagBank** (`pagbank.enabled=true`): Frontend envia `{ nome, cpf, encrypted }`. Backend chama PagBank, salva `tokenPagBank` + `bandeira` + `numeroMascarado` do PagBank.
+- **Cobrança**: Admin clica "Cobrar" → digita CVV → `POST /api/admin/reservas/{id}/cobrar` com `{ cvv }`. Backend usa `tokenPagBank` + CVV para criar charge no PagBank (`POST /orders`).
+  - Aluguel: `capture: true` (cobrança imediata)
+  - Caução: `capture: false` (pré-autorização/hold)
+  - Liberação de caução: `POST /charges/{id}/cancel`
+  - Captura de caução: `POST /charges/{id}/capture`
+- **CVV nunca é armazenado** — entra na requisição e vai direto ao PagBank.
+- **Entidades**: `Cartao` tem campos `tokenPagBank` e `bandeira` (nullable, usados só no modo PagBank). `Pagamento` tem `gatewayTransactionId` (id do charge no PagBank).
+- **Services**: `PagBankService` (chamadas HTTP ao API PagBank), `PagBankPaymentService` (implementa `PaymentService` quando `pagbank.enabled=true`), `FakePaymentService` (simulado quando `pagbank.enabled=false`).

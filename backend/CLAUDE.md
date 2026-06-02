@@ -1,6 +1,6 @@
 # Backend — Spring Boot API
 
-Porta **8090**. Pacote raiz `com.ltech.backend`. Lombok em todas as entities/DTOs.
+Porta **8080**. Pacote raiz `com.ltech.backend`. Lombok em todas as entities/DTOs.
 
 ## Estrutura
 ```
@@ -115,7 +115,10 @@ url (String), status (StatusDocumento: PENDENTE|VERIFICADO|RECUSADO), createdAt
 ```
 id (UUID), usuario, enderecoCobranca (ManyToOne, nullable)
 nome, numeroMascarado, validade, cpf
-fingerprint (String, unique por usuario_id+fingerprint), createdAt
+fingerprint (String, unique por usuario_id+fingerprint)
+tokenPagBank (String, nullable — token do PagBank CARD_xxx)
+bandeira (String, nullable — visa, mastercard, etc.)
+createdAt
 ```
 
 ### EnderecoCobranca
@@ -147,8 +150,8 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 | PATCH | `/api/reservas/{id}/cancelar` | Cancelar |
 | GET/POST/DELETE | `/api/documentos/me` `/api/documentos` `/api/documentos/{id}` | KYC (upsert por tipo) |
 | GET | `/api/cartoes/me` | Cartões |
-| POST | `/api/cartoes` | Criar cartão |
-| POST | `/api/cartoes/validar` | Validar cartão |
+| POST | `/api/cartoes` | Criar cartão (encrypted ou plain, conforme modo) |
+| GET | `/api/cartoes/public-key` | Chave pública PagBank (ou `{ mode: "local" }`) |
 | DELETE | `/api/cartoes/{id}` | Excluir cartão |
 | PATCH | `/api/cartoes/{id}/endereco` | Associar endereço |
 | GET/POST | `/api/enderecos-cobranca/me` `/api/enderecos-cobranca` | Endereços de cobrança |
@@ -174,7 +177,7 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 | GET | `/api/admin/reservas/{id}` | Detalhe completo para atendimento presencial |
 | PATCH | `/api/admin/reservas/{id}/status` | Atualiza status |
 | PATCH | `/api/admin/reservas/{id}/cnh-verificada` | Marca CNH como verificada |
-| POST | `/api/admin/reservas/{id}/cobrar` | Cobra aluguel + autoriza caução |
+| POST | `/api/admin/reservas/{id}/cobrar` | Cobra aluguel + autoriza caução (body: `{ cvv }`) |
 | POST | `/api/admin/reservas/{id}/vistorias` | Registra vistoria (saída/retorno) |
 | POST | `/api/admin/reservas/{id}/contrato` | Salva contrato assinado |
 | POST | `/api/admin/reservas/{id}/concluir-retirada` | Conclui retirada → EM_ANDAMENTO |
@@ -198,7 +201,10 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 1. `@AuthenticationPrincipal UsuarioDetails` para pegar o usuário do JWT
 2. Reserva calcula totais no `ReservaService` (não no frontend)
 3. Documentos: upsert por tipo — 1 doc por tipo por usuário
-4. `CartaoFingerprintService` — deduplica cartões por fingerprint (unique usuario+fingerprint)
+4. `CartaoFingerprintService` — deduplica cartões por fingerprint (unique usuario+fingerprint). Fingerprint baseado em `tokenPagBank` (modo PagBank) ou SHA-256 do número (modo local).
 5. `GlobalExceptionHandler` — `ResponseStatusException`, `StorageException`, `MaxUploadSizeExceededException`
 6. Controllers mapeiam entity→DTO com records em `domain/dtos`
 7. CRUD admin de catálogo (motos/categorias/etc) tem `GET /admin` separado do público
+8. **PagBank**: `PagBankService` faz chamadas HTTP à API PagBank. `PagBankPaymentService` (ativo quando `pagbank.enabled=true`) implementa `PaymentService`. `FakePaymentService` (ativo quando `pagbank.enabled=false`) simula aprovação.
+9. **Tokenização de cartão**: `POST /api/cartoes` aceita `{ encrypted, nome, cpf }` (modo PagBank) ou `{ nome, numero, validade, cpf }` (modo local). `CartaoService.salvarCartao()` decide conforme `pagbank.enabled`.
+10. **CVV**: nao armazenado. Passado via `CobrarDTO { cvv }` em `POST /api/admin/reservas/{id}/cobrar`.
