@@ -23,7 +23,7 @@ DB recria do zero a cada restart (`create-drop` + `data.sql`).
 ### Profiles (Spring) — VALORES via `.env`, COMPORTAMENTO via profile
 - `application.properties` — base: placeholders `${VAR:default}` (valores) + `spring.config.import=optional:file:.env[.properties]` + `spring.profiles.active=${SPRING_PROFILES_ACTIVE:dev}`. Segredos sem default: `DB_PASSWORD`, `JWT_SECRET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`.
 - `application-dev.properties` — só comportamento: `ddl-auto=create-drop`, `show-sql=true`, `sql.init.mode=always`.
-- `application-prod.properties` — só comportamento: `show-sql=false`, `sql.init.mode=never`, `ssl.trust-all=false`.
+- `application-prod.properties` — só comportamento: `ddl-auto=validate`, `show-sql=false`, `sql.init.mode=never`, `ssl.trust-all=false`, `security.hsts.enabled=true`.
 - **`.env`** (backend/, gitignored) — valores/segredos de dev. Copie de `backend/.env.example`. Em prod, o `.env` não existe e os `${VAR}` resolvem das variáveis de ambiente reais.
 - **Bypass de cert TLS** = `S3_SSL_TRUST_ALL` no `.env` (padrão `false`). Só a máquina do tribunal (rede com MITM) liga `=true`; casa (macbook) e prod não têm a linha → validam cert normal. Não há mais profile de truststore no `pom.xml`.
 - Trocar dev↔prod: `SPRING_PROFILES_ACTIVE=prod` + definir as env vars.
@@ -69,19 +69,12 @@ Permissões: `ADMIN_FULL`, `RESERVAS_LEITURA`, `RESERVAS_ESCRITA`, `USUARIOS_LEI
 - `backend/` — API Spring Boot → ver `backend/CLAUDE.md`
 - `frontend/` — App Next.js → ver `frontend/CLAUDE.md`
 
-## PagBank — Pagamentos e Tokenização de Cartão
-- **Modo controlado por** `PAGBANK_ENABLED` no `.env`: `true` = PagBank real (sandbox ou prod), `false` = simulado (FakePaymentService).
-- **Tokenização**: Frontend criptografa dados do cartão com chave pública RSA do PagBank (`jsencrypt`). Backend envia `encrypted` para `POST /tokens/cards` do PagBank. Retorna token `CARD_xxx`, bandeira, últimos dígitos. Backend NUNCA vê número do cartão.
-- **Chave pública**: `GET /api/cartoes/public-key` → `{ mode: "pagbank"|"local", publicKey? }`. Frontend usa para decidir se criptografa ou envia plain.
-- **Modo local** (`pagbank.enabled=false`): Frontend envia `{ nome, numero, validade, cpf }`. Backend mascara e armazena fingerprint SHA-256.
-- **Modo PagBank** (`pagbank.enabled=true`): Frontend envia `{ nome, cpf, encrypted }`. Backend chama PagBank, salva `tokenPagBank` + `bandeira` + `numeroMascarado` do PagBank.
-- **Cobrança**: Admin clica "Cobrar" → digita CVV → `POST /api/admin/reservas/{id}/cobrar` com `{ cvv }`. Backend usa `tokenPagBank` + CVV para criar charge no PagBank via `POST /charges` (cobrança direta — não usa `/orders`, que exigiria objeto `customer` no root).
-  - Aluguel: `capture: true` (cobrança imediata)
-  - Caução: `capture: false` (pré-autorização/hold)
-  - Liberação de caução: `POST /charges/{id}/cancel`
-  - Captura de caução: `POST /charges/{id}/capture`
-  - **Idempotência**: cada `criarCobranca` envia header `x-idempotency-key = reserva-{uuid}-{aluguel|caucao}` → evita cobrança/autorização dupla em retry por timeout.
-  - Resposta do `POST /charges` é o charge direto (`response.id`, `response.status`) — não `charges[0]`.
-- **CVV nunca é armazenado** — entra na requisição e vai direto ao PagBank.
-- **Entidades**: `Cartao` tem campos `tokenPagBank` e `bandeira` (nullable, usados só no modo PagBank). `Pagamento` tem `gatewayTransactionId` (id do charge no PagBank).
-- **Services**: `PagBankService` (chamadas HTTP ao API PagBank), `PagBankPaymentService` (implementa `PaymentService` quando `pagbank.enabled=true`), `FakePaymentService` (simulado quando `pagbank.enabled=false`).
+## Pagamentos
+- **Gateway**: `FakePaymentService` (simulado — sempre aprova). Interface `PaymentService` preparada para integração futura com gateway real.
+- **Cartão**: Frontend envia `{ nome, numero, validade, cpf }`. Backend mascara (`**** 1234`) e armazena fingerprint SHA-256 para deduplicação.
+- **Cobrança**: Admin clica "Cobrar" → digita CVV → `POST /api/admin/reservas/{id}/cobrar` com `{ cvv }`.
+  - Aluguel: cobrança imediata
+  - Caução: pré-autorização/hold
+- **CVV nunca é armazenado** — entra na requisição e vai direto ao PaymentService.
+- **Entidades**: `Cartao` tem `fingerprint` (SHA-256 do número). `Pagamento` tem `gatewayTransactionId`.
+- **Services**: `FakePaymentService` implementa `PaymentService` (simula aprovação).
