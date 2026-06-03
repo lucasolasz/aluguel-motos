@@ -123,9 +123,8 @@ public class S3StorageService implements StorageService {
                             .bucket(props.getBucket())
                             .key(key)
                             .contentType(contentType)
-                            .contentLength(file.getSize())
                             .build(),
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+                    RequestBody.fromBytes(file.getBytes()));
         } catch (IOException | SdkException e) {
             log.error("Falha ao enviar arquivo '{}' para o bucket '{}'", key, props.getBucket(), e);
             throw new StorageException("Falha ao enviar arquivo para o storage", e);
