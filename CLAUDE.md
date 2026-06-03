@@ -75,11 +75,13 @@ Permissões: `ADMIN_FULL`, `RESERVAS_LEITURA`, `RESERVAS_ESCRITA`, `USUARIOS_LEI
 - **Chave pública**: `GET /api/cartoes/public-key` → `{ mode: "pagbank"|"local", publicKey? }`. Frontend usa para decidir se criptografa ou envia plain.
 - **Modo local** (`pagbank.enabled=false`): Frontend envia `{ nome, numero, validade, cpf }`. Backend mascara e armazena fingerprint SHA-256.
 - **Modo PagBank** (`pagbank.enabled=true`): Frontend envia `{ nome, cpf, encrypted }`. Backend chama PagBank, salva `tokenPagBank` + `bandeira` + `numeroMascarado` do PagBank.
-- **Cobrança**: Admin clica "Cobrar" → digita CVV → `POST /api/admin/reservas/{id}/cobrar` com `{ cvv }`. Backend usa `tokenPagBank` + CVV para criar charge no PagBank (`POST /orders`).
+- **Cobrança**: Admin clica "Cobrar" → digita CVV → `POST /api/admin/reservas/{id}/cobrar` com `{ cvv }`. Backend usa `tokenPagBank` + CVV para criar charge no PagBank via `POST /charges` (cobrança direta — não usa `/orders`, que exigiria objeto `customer` no root).
   - Aluguel: `capture: true` (cobrança imediata)
   - Caução: `capture: false` (pré-autorização/hold)
   - Liberação de caução: `POST /charges/{id}/cancel`
   - Captura de caução: `POST /charges/{id}/capture`
+  - **Idempotência**: cada `criarCobranca` envia header `x-idempotency-key = reserva-{uuid}-{aluguel|caucao}` → evita cobrança/autorização dupla em retry por timeout.
+  - Resposta do `POST /charges` é o charge direto (`response.id`, `response.status`) — não `charges[0]`.
 - **CVV nunca é armazenado** — entra na requisição e vai direto ao PagBank.
 - **Entidades**: `Cartao` tem campos `tokenPagBank` e `bandeira` (nullable, usados só no modo PagBank). `Pagamento` tem `gatewayTransactionId` (id do charge no PagBank).
 - **Services**: `PagBankService` (chamadas HTTP ao API PagBank), `PagBankPaymentService` (implementa `PaymentService` quando `pagbank.enabled=true`), `FakePaymentService` (simulado quando `pagbank.enabled=false`).
