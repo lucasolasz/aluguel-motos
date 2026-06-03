@@ -36,6 +36,7 @@ import com.ltech.backend.domain.repositories.ReservaRepository;
 import com.ltech.backend.domain.repositories.VistoriaRepository;
 import com.ltech.backend.services.payment.PagamentoResult;
 import com.ltech.backend.services.payment.PaymentService;
+import com.ltech.backend.services.storage.StorageService;
 
 import lombok.AllArgsConstructor;
 
@@ -55,6 +56,7 @@ public class AtendimentoService {
     private final ContratoRepository contratoRepository;
     private final MotoRepository motoRepository;
     private final PaymentService paymentService;
+    private final StorageService storageService;
 
     @Transactional(readOnly = true)
     public ReservaDetalheDTO buscarDetalhe(String id) {
@@ -164,13 +166,26 @@ public class AtendimentoService {
 
         Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
                 .orElseGet(() -> Contrato.builder().reserva(reserva).build());
+        String urlDocumentoAntiga = contrato.getUrlDocumento();
+        String assinaturaUrlAntiga = contrato.getAssinaturaUrl();
         contrato.setTipoAssinatura(tipo);
         contrato.setUrlDocumento(dto.urlDocumento());
         contrato.setAssinaturaUrl(dto.assinaturaUrl());
         contrato.setAssinadoEm(LocalDateTime.now());
         contratoRepository.save(contrato);
 
+        // Remove do storage os arquivos antigos que deixaram de ser referenciados (evita orfaos)
+        removerSeDesreferenciado(urlDocumentoAntiga, dto.urlDocumento());
+        removerSeDesreferenciado(assinaturaUrlAntiga, dto.assinaturaUrl());
+
         return detalhe(reserva);
+    }
+
+    /** Remove a url antiga do storage se ela foi sobrescrita por outra (ou removida). */
+    private void removerSeDesreferenciado(String urlAntiga, String urlNova) {
+        if (urlAntiga != null && !urlAntiga.equals(urlNova)) {
+            storageService.deleteByPublicUrl(urlAntiga);
+        }
     }
 
     @Transactional

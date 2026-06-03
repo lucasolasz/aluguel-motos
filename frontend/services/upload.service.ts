@@ -76,3 +76,8 @@ export async function deleteUpload(key: string): Promise<void> {
     headers: { ...authHeaders() },
   });
 }
+
+/** Remove uploads do storage em best-effort (rollback de órfãos). Não lança. */
+export async function deleteUploads(keys: string[]): Promise<void> {
+  await Promise.allSettled(keys.map(deleteUpload));
+}

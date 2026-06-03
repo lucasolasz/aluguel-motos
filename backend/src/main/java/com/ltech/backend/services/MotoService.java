@@ -18,10 +18,7 @@ import com.ltech.backend.domain.repositories.MotoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
 import com.ltech.backend.services.storage.StorageService;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 public class MotoService {
 
     private final MotoRepository motoRepository;
@@ -151,7 +148,7 @@ public class MotoService {
         // Remove do storage as fotos que deixaram de ser referenciadas
         urlsAntigas.stream()
                 .filter(url -> !urlsNovas.contains(url))
-                .forEach(this::removerDoStorage);
+                .forEach(storageService::deleteByPublicUrl);
 
         return salva;
     }
@@ -160,17 +157,6 @@ public class MotoService {
         Moto moto = obterPorId(id);
         List<String> urls = moto.getFotos().stream().map(MotoFoto::getUrl).toList();
         motoRepository.delete(moto);
-        urls.forEach(this::removerDoStorage);
-    }
-
-    /** Remove um objeto do storage de forma best-effort: falha não interrompe o fluxo. */
-    private void removerDoStorage(String url) {
-        storageService.keyFromPublicUrl(url).ifPresent(key -> {
-            try {
-                storageService.delete(key);
-            } catch (RuntimeException e) {
-                log.warn("Falha ao remover foto órfã do storage: key={}", key, e);
-            }
-        });
+        urls.forEach(storageService::deleteByPublicUrl);
     }
 }

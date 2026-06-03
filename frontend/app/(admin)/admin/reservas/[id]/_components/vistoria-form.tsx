@@ -23,7 +23,7 @@ import {
   Progress,
 } from '@/components/ui/progress'
 import { ImagePlus, Loader2, X } from 'lucide-react'
-import { uploadVistoriaFoto } from '@/services/upload.service'
+import { uploadVistoriaFoto, deleteUploads } from '@/services/upload.service'
 import { adminRegistrarVistoria } from '@/services/reservas.service'
 import {
   NIVEL_COMBUSTIVEL_LABELS,
@@ -89,11 +89,11 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
     setErro(null)
 
     let finalFotos = [...fotos]
+    const uploadedKeys: string[] = []
 
     if (pendingFiles.length > 0) {
       setUploading(true)
       setUploadProgress({ current: 0, total: pendingFiles.length })
-      const uploadedKeys: string[] = []
 
       try {
         const fotosNovas: string[] = []
@@ -111,6 +111,8 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
         pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.previewUrl))
         setPendingFiles([])
       } catch (e) {
+        // Rollback: remove do storage os uploads parciais (evita orfaos)
+        await deleteUploads(uploadedKeys)
         setErro(e instanceof Error ? e.message : 'Falha no upload de fotos')
         return
       } finally {
@@ -130,6 +132,8 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
       })
       onDone(d)
     } catch (e) {
+      // Rollback: upload ok mas persistencia falhou — remove os objetos enviados (evita orfaos)
+      await deleteUploads(uploadedKeys)
       setErro(e instanceof Error ? e.message : 'Falha ao salvar vistoria')
     } finally {
       setSaving(false)

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ltech.backend.domain.dtos.UploadResultDTO;
@@ -34,6 +35,19 @@ public interface StorageService {
 
     /** Remove o objeto identificado pela chave. Idempotente. */
     void delete(String key);
+
+    /** Remove por URL pública em best-effort: ignora URL externa/nula e nunca lança. */
+    default void deleteByPublicUrl(String url) {
+        if (url == null || url.isBlank()) return;
+        keyFromPublicUrl(url).ifPresent(key -> {
+            try {
+                delete(key);
+            } catch (RuntimeException e) {
+                LoggerFactory.getLogger(StorageService.class)
+                        .warn("Falha ao remover arquivo órfão do storage: key={}", key, e);
+            }
+        });
+    }
 
     /** Monta a URL pública (permanente) de um objeto a partir da chave. */
     String publicUrl(String key);

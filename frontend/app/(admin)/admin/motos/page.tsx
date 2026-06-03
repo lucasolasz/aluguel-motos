@@ -58,7 +58,7 @@ import {
   adminDeleteMoto,
 } from '@/services/motos.service'
 import { adminGetCategorias } from '@/services/categorias.service'
-import { uploadMotoFoto, deleteUpload } from '@/services/upload.service'
+import { uploadMotoFoto, deleteUploads } from '@/services/upload.service'
 import { MARCAS, TRANSMISSOES, ANOS } from '@/lib/constants'
 import { Loader2, Pencil, Plus, Trash2, X, ImageOff } from 'lucide-react'
 
@@ -410,7 +410,7 @@ export default function AdminMotorcyclesPage() {
       setDialogOpen(false)
     } catch (err: unknown) {
       // Rollback: remove objetos ja enviados e a moto criada nesta operacao (evita orfaos)
-      await Promise.allSettled(uploadedKeys.map((key) => deleteUpload(key)))
+      await deleteUploads(uploadedKeys)
       if (createdNow && motoId) {
         const novaId = motoId
         try {

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Printer, Upload, Loader2, X, FileText } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { uploadContratoArquivo } from '@/services/upload.service'
+import { uploadContratoArquivo, deleteUploads } from '@/services/upload.service'
 import { adminSalvarContrato } from '@/services/reservas.service'
 import { NIVEL_COMBUSTIVEL_LABELS, type ReservaDetalhe } from '@/lib/atendimento-types'
 import { ImageDialog } from './image-dialog'
@@ -110,8 +110,10 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange }: Co
     if (!pendingFile) return
     setErro(null)
     setBusy(true)
+    let uploadedKey: string | null = null
     try {
       const up = await uploadContratoArquivo(pendingFile.file, detalhe.reserva.id)
+      uploadedKey = up.key
       const d = await adminSalvarContrato(detalhe.reserva.id, {
         tipoAssinatura: 'MANUAL',
         urlDocumento: up.url,
@@ -120,6 +122,8 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange }: Co
       setPendingFile(null)
       onDone(d)
     } catch (e) {
+      // Rollback: remove do storage o arquivo enviado se a persistencia falhou (evita orfaos)
+      if (uploadedKey) await deleteUploads([uploadedKey])
       setErro(e instanceof Error ? e.message : 'Falha ao enviar contrato')
     } finally {
       setBusy(false)
@@ -129,15 +133,19 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange }: Co
   const enviarDigital = async (blob: Blob) => {
     setErro(null)
     setBusy(true)
+    let uploadedKey: string | null = null
     try {
       const file = new File([blob], 'assinatura.png', { type: 'image/png' })
       const up = await uploadContratoArquivo(file, detalhe.reserva.id)
+      uploadedKey = up.key
       const d = await adminSalvarContrato(detalhe.reserva.id, {
         tipoAssinatura: 'DIGITAL',
         assinaturaUrl: up.url,
       })
       onDone(d)
     } catch (e) {
+      // Rollback: remove do storage o arquivo enviado se a persistencia falhou (evita orfaos)
+      if (uploadedKey) await deleteUploads([uploadedKey])
       setErro(e instanceof Error ? e.message : 'Falha ao salvar assinatura')
     } finally {
       setBusy(false)
