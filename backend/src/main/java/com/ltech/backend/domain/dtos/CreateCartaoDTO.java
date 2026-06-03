@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 public record CreateCartaoDTO(
         @NotBlank String nome,
         @NotBlank String cpf,
-        String encrypted,
-        String numero,
+        @NotBlank String numero,
         String validade) {
 }

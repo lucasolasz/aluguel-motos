@@ -106,6 +106,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [cobrarFase, setCobrarFase] = useState<'idle' | 'aluguel' | 'caucao'>('idle')
   const [acao, setAcao] = useState(false)
   const [desconto, setDesconto] = useState('0,00')
+  const [caucaoSimOpen, setCaucaoSimOpen] = useState(false)
+  const [caucaoSimStatus, setCaucaoSimStatus] = useState<'loading' | 'success'>('loading')
   const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
   const [contratoPending, setContratoPending] = useState(false)
   const [voltarDialogOpen, setVoltarDialogOpen] = useState(false)
@@ -511,12 +513,19 @@ export default function AtendimentoClient({ id }: { id: string }) {
                   <Button
                     size="sm"
                     disabled={acao}
-                    onClick={() =>
-                      run(() => adminAcertarCaucao(id, parseDesconto()))
-                    }
+                    onClick={async () => {
+                      setCaucaoSimStatus('loading')
+                      setCaucaoSimOpen(true)
+                      try {
+                        await run(() => adminAcertarCaucao(id, parseDesconto()))
+                        setCaucaoSimStatus('success')
+                      } catch {
+                        setCaucaoSimOpen(false)
+                      }
+                    }}
                   >
                     <Send className="mr-2 h-4 w-4" />
-                    Enviar acerto ao PagBank
+                    Processar acerto
                   </Button>
                 </div>
               )}
@@ -585,6 +594,29 @@ export default function AtendimentoClient({ id }: { id: string }) {
               Sim, sair
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de simulação do acerto da caução */}
+      <Dialog open={caucaoSimOpen} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-sm" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Acerto da caução</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            {caucaoSimStatus === 'loading' && (
+              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+            )}
+            {caucaoSimStatus === 'success' && (
+              <>
+                <Check className="h-12 w-12 text-green-500" />
+                <p className="text-sm font-medium">Caução acertado com sucesso</p>
+                <Button onClick={() => setCaucaoSimOpen(false)} className="w-full">
+                  OK
+                </Button>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

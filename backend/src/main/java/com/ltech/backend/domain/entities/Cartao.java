@@ -52,10 +52,6 @@ public class Cartao {
     @Column(nullable = false)
     private String fingerprint;
 
-    private String tokenPagBank;
-
-    private String bandeira;
-
     @CreatedDate
     private LocalDateTime createdAt;
 }

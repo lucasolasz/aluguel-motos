@@ -11,7 +11,6 @@ public record CartaoDTO(
         String numeroMascarado,
         String validade,
         String cpf,
-        String bandeira,
         EnderecoCobrancaDTO enderecoCobranca,
         boolean vinculadoAReservas,
         LocalDateTime createdAt) {
@@ -27,7 +26,6 @@ public record CartaoDTO(
                 c.getNumeroMascarado(),
                 c.getValidade(),
                 c.getCpf(),
-                c.getBandeira(),
                 c.getEnderecoCobranca() != null ? EnderecoCobrancaDTO.from(c.getEnderecoCobranca()) : null,
                 vinculadoAReservas,
                 c.getCreatedAt());

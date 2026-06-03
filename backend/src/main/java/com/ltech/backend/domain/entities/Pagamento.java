@@ -51,7 +51,7 @@ public class Pagamento {
     @Column(nullable = false)
     private BigDecimal valor;
 
-    /** Identificador da transação no gateway (PagBank). Hoje preenchido pelo FakePaymentService. */
+    /** Identificador da transação no gateway. */
     private String gatewayTransactionId;
 
     /** Forma/canal do pagamento (ex: "SIMULADO", "PIX", "CREDITO"). */

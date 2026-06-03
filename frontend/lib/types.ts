@@ -233,8 +233,7 @@ export interface Cartao {
 export interface CreateCartao {
   nome: string
   cpf: string
-  encrypted?: string
-  numero?: string
+  numero: string
   validade?: string
 }
 

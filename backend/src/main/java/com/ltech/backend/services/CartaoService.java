@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.ltech.backend.config.PagBankProperties;
 import com.ltech.backend.domain.dtos.CartaoDTO;
 import com.ltech.backend.domain.dtos.CreateCartaoDTO;
 import com.ltech.backend.domain.entities.Cartao;
@@ -16,7 +15,6 @@ import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.CartaoRepository;
 import com.ltech.backend.domain.repositories.EnderecoCobrancaRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
-import com.ltech.backend.services.payment.PagBankService;
 
 import lombok.AllArgsConstructor;
 
@@ -28,8 +26,6 @@ public class CartaoService {
     private EnderecoCobrancaRepository enderecoCobrancaRepository;
     private ReservaRepository reservaRepository;
     private CartaoFingerprintService cartaoFingerprintService;
-    private PagBankService pagBankService;
-    private PagBankProperties pagBankProperties;
 
     public List<CartaoDTO> listarMeusCartoes(String usuarioId) {
         List<Cartao> cartoes = cartaoRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId);
@@ -45,61 +41,9 @@ public class CartaoService {
     }
 
     public CartaoDTO salvarCartao(CreateCartaoDTO dto, Usuario usuario) {
-        if (pagBankProperties.isEnabled()) {
-            return salvarCartaoPagBank(dto, usuario);
-        } else {
-            return salvarCartaoLegacy(dto, usuario);
-        }
-    }
-
-    private CartaoDTO salvarCartaoPagBank(CreateCartaoDTO dto, Usuario usuario) {
-        if (dto.encrypted() == null || dto.encrypted().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Dados criptografados do cartão são obrigatórios");
-        }
-
-        PagBankService.TokenizeResult result;
-        try {
-            result = pagBankService.tokenizarCartao(dto.encrypted());
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Cartão recusado pela operadora: " + e.getMessage());
-        }
-
-        if (result.id() == null || result.id().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Tokenização do cartão falhou: token vazio");
-        }
-
-        String fingerprint = cartaoFingerprintService.gerar(result.id());
-
-        if (cartaoRepository.existsByUsuarioIdAndFingerprint(usuario.getId(), fingerprint)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cartão já cadastrado");
-        }
-
-        String mascarado = "**** " + (result.lastDigits() != null ? result.lastDigits() : "****");
-        String validade = null;
-        if (result.expMonth() != null && result.expYear() != null) {
-            validade = result.expMonth() + "/" + result.expYear();
-        }
-
-        Cartao cartao = Cartao.builder()
-                .usuario(usuario)
-                .nome(dto.nome() != null ? dto.nome() : result.holderName())
-                .numeroMascarado(mascarado)
-                .validade(validade)
-                .cpf(dto.cpf() != null ? dto.cpf() : result.holderTaxId())
-                .fingerprint(fingerprint)
-                .tokenPagBank(result.id())
-                .bandeira(result.brand())
-                .build();
-        return CartaoDTO.from(cartaoRepository.save(cartao));
-    }
-
-    private CartaoDTO salvarCartaoLegacy(CreateCartaoDTO dto, Usuario usuario) {
         if (dto.numero() == null || dto.numero().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Número do cartão é obrigatório no modo legado");
+                    "Número do cartão é obrigatório");
         }
 
         String numero = dto.numero().replaceAll("\\D", "");
