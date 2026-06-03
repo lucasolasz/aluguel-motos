@@ -29,6 +29,7 @@ import {
   KeyRound,
   Lock,
   Send,
+  Loader2,
 } from 'lucide-react'
 import { IMaskInput } from 'react-imask'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -102,6 +103,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [erro, setErro] = useState<string | null>(null)
   const [cobrarOpen, setCobrarOpen] = useState(false)
   const [cvv, setCvv] = useState('')
+  const [cobrarFase, setCobrarFase] = useState<'idle' | 'aluguel' | 'caucao'>('idle')
   const [acao, setAcao] = useState(false)
   const [desconto, setDesconto] = useState('0,00')
   const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
@@ -623,19 +625,47 @@ export default function AtendimentoClient({ id }: { id: string }) {
               Peça ao cliente para informar o CVV do cartão cadastrado na reserva.
             </p>
           </div>
+          {cobrarFase !== 'idle' && (
+            <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>
+                {cobrarFase === 'aluguel'
+                  ? 'Realizando pagamento do aluguel...'
+                  : 'Realizando cobrança da caução...'}
+              </span>
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setCobrarOpen(false); setCvv('') }}>
+            <Button
+              variant="outline"
+              disabled={acao}
+              onClick={() => { setCobrarOpen(false); setCvv('') }}
+            >
               Cancelar
             </Button>
             <Button
               disabled={acao || cvv.replace(/\D/g, '').length < 3}
               onClick={async () => {
-                await run(() => adminCobrar(id, cvv.replace(/\D/g, '')))
-                setCobrarOpen(false)
-                setCvv('')
+                setCobrarFase('aluguel')
+                const faseTimer = setTimeout(() => setCobrarFase('caucao'), 1500)
+                try {
+                  await run(() => adminCobrar(id, cvv.replace(/\D/g, '')))
+                  setCobrarOpen(false)
+                  setCvv('')
+                } finally {
+                  clearTimeout(faseTimer)
+                  setCobrarFase('idle')
+                }
               }}
             >
-              Confirmar e cobrar
+              {acao ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                'Confirmar e cobrar'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
