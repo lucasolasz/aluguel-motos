@@ -104,13 +104,6 @@ rg, numeroRegistro, numeroCnh, estado (String)
 dataNascimento, dataValidade (LocalDate), createdAt
 ```
 
-### Documento (KYC)
-```
-id (UUID), usuario (ManyToOne)
-tipo (TipoDocumento: CNH_FRENTE|CNH_VERSO|SELFIE_COM_DOCUMENTO)
-url (String), status (StatusDocumento: PENDENTE|VERIFICADO|RECUSADO), createdAt
-```
-
 ### Cartao
 ```
 id (UUID), usuario, enderecoCobranca (ManyToOne, nullable)
@@ -146,7 +139,6 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 | GET | `/api/reservas/me` | Reservas do usuário |
 | POST | `/api/reservas` | Criar reserva |
 | PATCH | `/api/reservas/{id}/cancelar` | Cancelar |
-| GET/POST/DELETE | `/api/documentos/me` `/api/documentos` `/api/documentos/{id}` | KYC (upsert por tipo) |
 | GET | `/api/cartoes/me` | Cartões |
 | POST | `/api/cartoes` | Criar cartão (`{ nome, cpf, numero, validade }`) |
 | DELETE | `/api/cartoes/{id}` | Excluir cartão |
@@ -197,8 +189,7 @@ cep, logradouro, numero, semNumero (boolean), complemento, estado, cidade, bairr
 ## Key Patterns
 1. `@AuthenticationPrincipal UsuarioDetails` para pegar o usuário do JWT
 2. Reserva calcula totais no `ReservaService` (não no frontend)
-3. Documentos: upsert por tipo — 1 doc por tipo por usuário
-4. `CartaoFingerprintService` — deduplica cartões por fingerprint SHA-256 (unique usuario+fingerprint).
+3. `CartaoFingerprintService` — deduplica cartões por fingerprint SHA-256 (unique usuario+fingerprint).
 5. `GlobalExceptionHandler` — `ResponseStatusException`, `StorageException`, `MaxUploadSizeExceededException`, `MethodArgumentNotValidException`, `HttpMessageNotReadableException`
 6. Controllers mapeiam entity→DTO com records em `domain/dtos`
 7. CRUD admin de catálogo (motos/categorias/etc) tem `GET /admin` separado do público
