@@ -186,15 +186,8 @@ export function useStep5({ active }: UseStep5Args) {
       setPendingCardId(newCard.id)
       setNewCardPending(false)
       setValidationStatus('success')
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : ''
-      setCardError(
-        msg.includes('já cadastrado')
-          ? 'Este cartão já está cadastrado. Use outro número de cartão.'
-          : msg.includes('recusado')
-            ? 'Cartão recusado pela operadora. Verifique os dados e tente novamente.'
-            : 'Erro ao cadastrar cartão. Tente novamente.'
-      )
+    } catch {
+      setCardError('Cartão inválido para cadastro')
       setValidationStatus('error')
     }
   }

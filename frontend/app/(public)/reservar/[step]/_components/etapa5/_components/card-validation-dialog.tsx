@@ -27,16 +27,13 @@ export function CardValidationDialog({ open, status, errorMessage, onConfirm, on
 
         <div className="flex flex-col items-center gap-4 py-4">
           {status === 'loading' && (
-            <>
-              <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Tokenizando cartão...</p>
-            </>
+            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
           )}
 
           {status === 'success' && (
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500" />
-              <p className="text-sm font-medium">Cartão validado e armazenado com segurança!</p>
+              <p className="text-sm font-medium">Cartão cadastrado com sucesso</p>
               <Button onClick={onConfirm} className="w-full">
                 Continuar
               </Button>
