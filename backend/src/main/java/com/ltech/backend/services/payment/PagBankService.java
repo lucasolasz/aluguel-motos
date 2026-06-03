@@ -122,9 +122,9 @@ public class PagBankService {
 
     @SuppressWarnings("unchecked")
     public ChargeResult criarCobranca(String tokenPagBank, String cvv, String holderName, String holderTaxId,
-            BigDecimal valor, String referenciaId, String descricao, boolean capturar) {
+            BigDecimal valor, String referenciaId, String descricao, boolean capturar, String idempotencyKey) {
 
-        String url = props.getBaseUrl() + "/orders";
+        String url = props.getBaseUrl() + "/charges";
         long centavos = valor.multiply(BigDecimal.valueOf(100)).longValue();
 
         Map<String, Object> card = new java.util.LinkedHashMap<>();
@@ -143,17 +143,15 @@ public class PagBankService {
 
         Map<String, Object> amount = Map.of("value", centavos, "currency", "BRL");
 
-        Map<String, Object> charge = new java.util.LinkedHashMap<>();
-        charge.put("reference_id", referenciaId);
-        charge.put("description", descricao);
-        charge.put("amount", amount);
-        charge.put("payment_method", paymentMethod);
-
         Map<String, Object> postBody = new java.util.LinkedHashMap<>();
         postBody.put("reference_id", referenciaId);
-        postBody.put("charges", java.util.List.of(charge));
+        postBody.put("description", descricao);
+        postBody.put("amount", amount);
+        postBody.put("payment_method", paymentMethod);
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(postBody, authHeaders());
+        HttpHeaders headers = authHeaders();
+        if (idempotencyKey != null) headers.set("x-idempotency-key", idempotencyKey);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(postBody, headers);
 
         try {
             Map<String, Object> response = restTemplate.postForObject(url, request, Map.class);
@@ -161,14 +159,8 @@ public class PagBankService {
                 throw new RuntimeException("Resposta vazia do PagBank");
             }
 
-            java.util.List<Map<String, Object>> charges = (java.util.List<Map<String, Object>>) response.get("charges");
-            if (charges == null || charges.isEmpty()) {
-                throw new RuntimeException("Nenhuma cobrança retornada pelo PagBank");
-            }
-
-            Map<String, Object> chargeResp = charges.get(0);
-            String chargeId = (String) chargeResp.get("id");
-            String status = (String) chargeResp.get("status");
+            String chargeId = (String) response.get("id");
+            String status = (String) response.get("status");
 
             return new ChargeResult(chargeId, status, centavos);
         } catch (Exception e) {

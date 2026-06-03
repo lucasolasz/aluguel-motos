@@ -75,6 +75,7 @@ public class PagBankPaymentService implements PaymentService {
         }
 
         String referenciaId = "reserva-" + reserva.getId().toString().substring(0, 8) + "-" + tipo;
+        String idempotencyKey = "reserva-" + reserva.getId() + "-" + tipo;
         String descricao = tipo.equals("aluguel")
                 ? "Aluguel de moto"
                 : "Pré-autorização caução";
@@ -88,7 +89,8 @@ public class PagBankPaymentService implements PaymentService {
                     valor,
                     referenciaId,
                     descricao,
-                    capturar);
+                    capturar,
+                    idempotencyKey);
 
             boolean sucesso = "PAID".equals(result.status()) || "AUTHORIZED".equals(result.status());
             log.info("[PAGBANK] {} {} reserva={}: chargeId={} status={} sucesso={}",
