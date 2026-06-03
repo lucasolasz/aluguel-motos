@@ -39,10 +39,10 @@ public class PagBankPaymentService implements PaymentService {
         try {
             boolean ok = pagBankService.cancelarCobranca(chargeId);
             String msg = ok ? "Caução liberada (hold cancelado)" : "Falha ao liberar caução";
-            log.info("[PAGBANK] Liberação caução: chargeId={} sucesso={}", chargeId, ok);
+            log.info("[PAGBANK] Liberação caução: sucesso={}", ok);
             return new PagamentoResult(ok, chargeId, METODO, msg);
         } catch (Exception e) {
-            log.error("[PAGBANK] Erro ao liberar caução: chargeId={} erro={}", chargeId, e.getMessage());
+            log.error("[PAGBANK] Erro ao liberar caução", e);
             return new PagamentoResult(false, chargeId, METODO, "Erro: " + e.getMessage());
         }
     }
@@ -53,10 +53,10 @@ public class PagBankPaymentService implements PaymentService {
         try {
             boolean ok = pagBankService.capturarCobranca(chargeId, valor);
             String msg = ok ? "Caução capturada" : "Falha ao capturar caução";
-            log.info("[PAGBANK] Captura caução: chargeId={} valor={} sucesso={}", chargeId, valor, ok);
+            log.info("[PAGBANK] Captura caução: valor={} sucesso={}", valor, ok);
             return new PagamentoResult(ok, chargeId, METODO, msg);
         } catch (Exception e) {
-            log.error("[PAGBANK] Erro ao capturar caução: chargeId={} erro={}", chargeId, e.getMessage());
+            log.error("[PAGBANK] Erro ao capturar caução", e);
             return new PagamentoResult(false, chargeId, METODO, "Erro: " + e.getMessage());
         }
     }
@@ -93,15 +93,15 @@ public class PagBankPaymentService implements PaymentService {
                     idempotencyKey);
 
             boolean sucesso = "PAID".equals(result.status()) || "AUTHORIZED".equals(result.status());
-            log.info("[PAGBANK] {} {} reserva={}: chargeId={} status={} sucesso={}",
+            log.info("[PAGBANK] {} {} reserva={}: status={} sucesso={}",
                     capturar ? "Cobrança" : "Pré-autorização", tipo, reserva.getId(),
-                    result.chargeId(), result.status(), sucesso);
+                    result.status(), sucesso);
 
             return new PagamentoResult(sucesso, result.chargeId(), METODO,
                     sucesso ? result.status() : "Status inesperado: " + result.status());
         } catch (Exception e) {
-            log.error("[PAGBANK] Erro na {} {}: reserva={} erro={}",
-                    capturar ? "cobrança" : "pré-autorização", tipo, reserva.getId(), e.getMessage());
+            log.error("[PAGBANK] Erro na {} {}: reserva={}",
+                    capturar ? "cobrança" : "pré-autorização", tipo, reserva.getId(), e);
             return new PagamentoResult(false, null, METODO, "Erro: " + e.getMessage());
         }
     }

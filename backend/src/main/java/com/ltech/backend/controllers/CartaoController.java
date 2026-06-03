@@ -77,7 +77,7 @@ public class CartaoController {
             } catch (Exception e) {
                 response.put("mode", "pagbank");
                 response.put("publicKey", null);
-                response.put("error", "Falha ao buscar chave pública: " + e.getMessage());
+                response.put("error", "Falha ao buscar chave pública");
             }
         } else {
             response.put("mode", "local");

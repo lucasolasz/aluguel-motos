@@ -105,7 +105,7 @@ public class PagBankService {
             String expMonth = response.get("exp_month") != null ? response.get("exp_month").toString() : null;
             String expYear = response.get("exp_year") != null ? response.get("exp_year").toString() : null;
 
-            log.info("[PAGBANK] Cartão tokenizado: id={} brand={} lastDigits={}", id, brand, lastDigits);
+            log.info("[PAGBANK] Cartão tokenizado: id={} brand={} lastDigits={}", id.substring(0, Math.min(id.length(), 12)) + "***", brand, lastDigits);
             return new TokenizeResult(id, brand, lastDigits, firstDigits, expMonth, expYear, holderName, holderTaxId);
         } catch (HttpClientErrorException e) {
             String pagBankMsg = extrairMensagemPagBank(e);
