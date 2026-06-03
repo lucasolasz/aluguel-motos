@@ -2,6 +2,7 @@ package com.ltech.backend.controllers;
 
 import java.net.URI;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.ltech.backend.domain.dtos.ClienteRegisterRequestDTO;
@@ -80,7 +82,11 @@ public class AuthenticationController {
             UriComponentsBuilder uriBuilder) {
 
         if (this.usuarioService.existsByUsername(dto.username())) {
-            return ResponseEntity.badRequest().build();
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+        }
+
+        if (this.usuarioService.existsByCpf(dto.cpf())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "CPF já cadastrado");
         }
 
         Grupo grupoGeral = this.grupoRepository.findByNome("GERAL")
@@ -92,6 +98,9 @@ public class AuthenticationController {
         Usuario newUser = new Usuario(
                 dto.username(), encryptedPassword, true, grupoGeral,
                 dto.nomeCompleto(), dto.telefone(), dto.cpf(), null);
+        newUser.setGenero(dto.genero());
+        newUser.setNacionalidade(dto.nacionalidade());
+        newUser.setTipoDocumento(dto.tipoDocumento());
 
         Usuario saved = this.usuarioService.save(newUser);
         URI location = uriBuilder.path("/usuarios/{id}").buildAndExpand(saved.getId()).toUri();

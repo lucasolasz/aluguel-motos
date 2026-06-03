@@ -10,5 +10,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     Optional<Usuario> findByUsername(String username);
 
+    boolean existsByCpf(String cpf);
+
     java.util.List<Usuario> findAllByOrderByCreatedAtDesc();
 }

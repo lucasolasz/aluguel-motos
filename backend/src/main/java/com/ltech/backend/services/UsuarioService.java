@@ -17,6 +17,10 @@ public class UsuarioService {
         return this.usuarioRepository.findByUsername(username).isPresent();
     }
 
+    public boolean existsByCpf(String cpf) {
+        return this.usuarioRepository.existsByCpf(cpf);
+    }
+
     public Usuario save(Usuario usuario) {
         return this.usuarioRepository.save(usuario);
     }

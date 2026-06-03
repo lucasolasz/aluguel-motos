@@ -1,0 +1,238 @@
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { MaskedInput } from './masked-input'
+import { PasswordChecklist } from './password-checklist'
+import { validarDados, type DadosPessoais } from './dados-form'
+import type { Genero } from '@/lib/types'
+
+const NACIONALIDADES = ['Brasil', 'Argentina', 'Portugal', 'Estados Unidos', 'Outra']
+
+interface Step1Props {
+  dados: DadosPessoais
+  onChange: (patch: Partial<DadosPessoais>) => void
+  onNext: () => void
+  error: string
+  setError: (e: string) => void
+}
+
+export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Props) {
+  function handleNext() {
+    const err = validarDados(dados)
+    if (err) {
+      setError(err)
+      return
+    }
+    setError('')
+    onNext()
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Dados pessoais */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Dados Pessoais</h2>
+
+        <div className="space-y-2">
+          <Label htmlFor="nomeCompleto">Nome completo</Label>
+          <Input
+            id="nomeCompleto"
+            value={dados.nomeCompleto}
+            onChange={(e) => onChange({ nomeCompleto: e.target.value })}
+            placeholder="Seu nome completo"
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="nacionalidade">Nacionalidade</Label>
+            <Select
+              value={dados.nacionalidade}
+              onValueChange={(v) => onChange({ nacionalidade: v })}
+            >
+              <SelectTrigger id="nacionalidade" className="w-full">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {NACIONALIDADES.map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tipoDocumento">Tipo de documento</Label>
+            <Select value={dados.tipoDocumento} onValueChange={(v) => onChange({ tipoDocumento: v })}>
+              <SelectTrigger id="tipoDocumento" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectItem value="CPF">CPF</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="cpf">Número do CPF</Label>
+            <MaskedInput
+              id="cpf"
+              mask="000.000.000-00"
+              value={dados.cpf}
+              onAccept={(v) => onChange({ cpf: v })}
+              placeholder="000.000.000-00"
+              inputMode="numeric"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Gênero</Label>
+            <RadioGroup
+              className="flex gap-6 pt-1"
+              value={dados.genero}
+              onValueChange={(v) => onChange({ genero: v as Genero })}
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="FEMININO" id="genero-f" />
+                <Label htmlFor="genero-f" className="font-normal">Feminino</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="MASCULINO" id="genero-m" />
+                <Label htmlFor="genero-m" className="font-normal">Masculino</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="OUTRO" id="genero-o" />
+                <Label htmlFor="genero-o" className="font-normal">Outro</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+      </section>
+
+      {/* Contato */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Contato</h2>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="ddi">DDI</Label>
+            <MaskedInput
+              id="ddi"
+              mask="+00"
+              value={dados.ddi}
+              onAccept={(v) => onChange({ ddi: v })}
+              placeholder="55"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ddd">DDD</Label>
+            <MaskedInput
+              id="ddd"
+              mask="00"
+              value={dados.ddd}
+              onAccept={(v) => onChange({ ddd: v })}
+              placeholder="11"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="celular">Número do celular</Label>
+            <MaskedInput
+              id="celular"
+              mask="00000-0000"
+              value={dados.celular}
+              onAccept={(v) => onChange({ celular: v })}
+              placeholder="99999-9999"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              value={dados.email}
+              onChange={(e) => onChange({ email: e.target.value })}
+              placeholder="voce@email.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmarEmail">Confirmação do e-mail</Label>
+            <Input
+              id="confirmarEmail"
+              type="email"
+              value={dados.confirmarEmail}
+              onChange={(e) => onChange({ confirmarEmail: e.target.value })}
+              placeholder="voce@email.com"
+              onPaste={(e) => e.preventDefault()}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 sm:w-1/3">
+          <Label htmlFor="confirmarCelular">Confirmação do celular</Label>
+          <MaskedInput
+            id="confirmarCelular"
+            mask="00000-0000"
+            value={dados.confirmarCelular}
+            onAccept={(v) => onChange({ confirmarCelular: v })}
+            placeholder="99999-9999"
+            inputMode="numeric"
+          />
+        </div>
+      </section>
+
+      {/* Senha */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Senha</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="senha">Senha</Label>
+            <Input
+              id="senha"
+              type="password"
+              value={dados.senha}
+              onChange={(e) => onChange({ senha: e.target.value })}
+              placeholder="Crie uma senha forte"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmarSenha">Confirmar senha</Label>
+            <Input
+              id="confirmarSenha"
+              type="password"
+              value={dados.confirmarSenha}
+              onChange={(e) => onChange({ confirmarSenha: e.target.value })}
+              placeholder="Repita a senha"
+            />
+          </div>
+        </div>
+        <PasswordChecklist senha={dados.senha} />
+      </section>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <div className="flex justify-end">
+        <Button onClick={handleNext}>Continuar</Button>
+      </div>
+    </div>
+  )
+}

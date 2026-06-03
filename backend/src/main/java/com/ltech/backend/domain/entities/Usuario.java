@@ -8,6 +8,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,6 +29,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    @Column(unique = true)
     private String username;
     private String password;
     private boolean enabled;
@@ -35,6 +38,10 @@ public class Usuario {
     @Column(unique = true)
     private String cpf;
     private String numeroCnh;
+    @Enumerated(EnumType.STRING)
+    private Genero genero;
+    private String nacionalidade;
+    private String tipoDocumento;
     private String fotoPerfil;
     @CreatedDate
     private LocalDateTime createdAt;

@@ -3,56 +3,22 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  CnhFields,
+  isoToMasked,
+  validarCnh,
+  type CnhValues,
+} from '@/components/cnh-fields'
 import { getMinhaCnh, salvarCnh } from '@/services/cnh.service'
 import type { Cnh } from '@/lib/types'
 
-const ESTADOS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
-  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
-  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-]
-
-function maskRg(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 9)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`
-  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`
-  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}-${digits.slice(8)}`
-}
-
-function maskDate(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
-}
-
-function isoToMasked(iso: string) {
-  if (!iso) return ''
-  const [yyyy, mm, dd] = iso.split('-')
-  return `${dd}/${mm}/${yyyy}`
-}
-
-function maskedToIso(masked: string): string {
-  const [dd, mm, yyyy] = masked.split('/')
-  if (!dd || !mm || !yyyy || yyyy.length !== 4) return ''
-  const iso = `${yyyy}-${mm}-${dd}`
-  const date = new Date(iso)
-  if (isNaN(date.getTime()) || date.getUTCFullYear() !== Number(yyyy) || date.getUTCMonth() + 1 !== Number(mm) || date.getUTCDate() !== Number(dd)) return ''
-  return iso
-}
-
-function onlyDigits(value: string, maxLen: number) {
-  return value.replace(/\D/g, '').slice(0, maxLen)
+const EMPTY_CNH: CnhValues = {
+  rg: '',
+  dataNascimento: '',
+  numeroRegistro: '',
+  numeroCnh: '',
+  dataValidade: '',
+  estado: '',
 }
 
 export default function CnhPage() {
@@ -62,24 +28,25 @@ export default function CnhPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const [rg, setRg] = useState('')
-  const [dataNascimento, setDataNascimento] = useState('')
-  const [numeroRegistro, setNumeroRegistro] = useState('')
-  const [numeroCnh, setNumeroCnh] = useState('')
-  const [dataValidade, setDataValidade] = useState('')
-  const [estado, setEstado] = useState('')
+  const [values, setValues] = useState<CnhValues>(EMPTY_CNH)
+
+  function patch(p: Partial<CnhValues>) {
+    setValues((prev) => ({ ...prev, ...p }))
+  }
 
   useEffect(() => {
     getMinhaCnh()
       .then((data) => {
         if (data) {
           setCnh(data)
-          setRg(data.rg)
-          setDataNascimento(isoToMasked(data.dataNascimento))
-          setNumeroRegistro(data.numeroRegistro)
-          setNumeroCnh(data.numeroCnh)
-          setDataValidade(isoToMasked(data.dataValidade))
-          setEstado(data.estado)
+          setValues({
+            rg: data.rg,
+            dataNascimento: isoToMasked(data.dataNascimento),
+            numeroRegistro: data.numeroRegistro,
+            numeroCnh: data.numeroCnh,
+            dataValidade: isoToMasked(data.dataValidade),
+            estado: data.estado,
+          })
         }
       })
       .catch(() => setError('Erro ao carregar dados da CNH.'))
@@ -90,37 +57,20 @@ export default function CnhPage() {
     e.preventDefault()
     setError('')
     setSuccess(false)
-    if (!estado) {
-      setError('Selecione o estado.')
-      return
-    }
-    if (numeroRegistro.length !== 11) {
-      setError('Número do registro deve ter 11 dígitos.')
-      return
-    }
-    if (numeroCnh.length !== 10) {
-      setError('Número do espelho deve ter 10 dígitos.')
-      return
-    }
-    const nascimentoIso = maskedToIso(dataNascimento)
-    if (!nascimentoIso) {
-      setError('Data de nascimento inválida.')
-      return
-    }
-    const validadeIso = maskedToIso(dataValidade)
-    if (!validadeIso) {
-      setError('Data de validade inválida.')
+    const result = validarCnh(values)
+    if (!result.ok) {
+      setError(result.error)
       return
     }
     setSaving(true)
     try {
       const saved = await salvarCnh({
-        rg,
-        dataNascimento: nascimentoIso,
-        numeroRegistro,
-        numeroCnh,
-        dataValidade: validadeIso,
-        estado,
+        rg: values.rg,
+        dataNascimento: result.dataNascimentoIso,
+        numeroRegistro: values.numeroRegistro,
+        numeroCnh: values.numeroCnh,
+        dataValidade: result.dataValidadeIso,
+        estado: values.estado,
       })
       setCnh(saved)
       setSuccess(true)
@@ -154,87 +104,7 @@ export default function CnhPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="rg">RG</Label>
-                <Input
-                  id="rg"
-                  value={rg}
-                  onChange={(e) => setRg(maskRg(e.target.value))}
-                  placeholder="00.000.000-0"
-                  inputMode="numeric"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dataNascimento">Data de Nascimento</Label>
-                <Input
-                  id="dataNascimento"
-                  value={dataNascimento}
-                  onChange={(e) => setDataNascimento(maskDate(e.target.value))}
-                  placeholder="DD/MM/AAAA"
-                  inputMode="numeric"
-                  maxLength={10}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="numeroRegistro">Número do Registro</Label>
-                <Input
-                  id="numeroRegistro"
-                  value={numeroRegistro}
-                  onChange={(e) => setNumeroRegistro(onlyDigits(e.target.value, 11))}
-                  placeholder="00000000000"
-                  inputMode="numeric"
-                  maxLength={11}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="numeroCnh">Número do Espelho</Label>
-                <Input
-                  id="numeroCnh"
-                  value={numeroCnh}
-                  onChange={(e) => setNumeroCnh(onlyDigits(e.target.value, 10))}
-                  placeholder="0000000000"
-                  inputMode="numeric"
-                  maxLength={10}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dataValidade">Data de Validade</Label>
-                <Input
-                  id="dataValidade"
-                  value={dataValidade}
-                  onChange={(e) => setDataValidade(maskDate(e.target.value))}
-                  placeholder="DD/MM/AAAA"
-                  inputMode="numeric"
-                  maxLength={10}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="estado">Estado</Label>
-                <Select value={estado} onValueChange={setEstado}>
-                  <SelectTrigger id="estado" className="w-full">
-                    <SelectValue placeholder="Selecione o estado" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {ESTADOS.map((uf) => (
-                      <SelectItem key={uf} value={uf}>
-                        {uf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <CnhFields values={values} onChange={patch} />
 
             <p className="text-sm text-muted-foreground bg-gray-300 rounded-xl p-4">
               Todos os dados coletados no cadastro do cliente serão utilizados para identificação
@@ -246,7 +116,7 @@ export default function CnhPage() {
               <p className="text-sm text-green-600">Dados salvos com sucesso.</p>
             )}
 
-            <Button type="submit" disabled={saving || !estado}>
+            <Button type="submit" disabled={saving || !values.estado}>
               {saving ? 'Salvando...' : cnh ? 'Atualizar' : 'Salvar Dados'}
             </Button>
           </form>

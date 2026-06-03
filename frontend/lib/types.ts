@@ -119,6 +119,19 @@ export interface UserProfile {
   createdAt: string
 }
 
+export type Genero = 'FEMININO' | 'MASCULINO' | 'OUTRO'
+
+export interface CreateClienteRegister {
+  username: string  // e-mail
+  password: string
+  nomeCompleto: string
+  telefone: string  // ex: +5511999999999
+  cpf: string
+  genero: Genero
+  nacionalidade: string
+  tipoDocumento: string
+}
+
 export interface LocalResumo {
   id: string
   nome: string

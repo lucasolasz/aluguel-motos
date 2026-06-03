@@ -147,9 +147,15 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="ghost" asChild>
-              <Link href="/login">Entrar</Link>
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" asChild>
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <span className="text-muted-foreground">|</span>
+              <Button variant="ghost" asChild>
+                <Link href="/cadastro">Cadastrar</Link>
+              </Button>
+            </div>
           )}
           <Button asChild>
             <Link href="/motos">Reservar Agora</Link>
@@ -197,20 +203,42 @@ export function Header() {
               Como Funciona
             </Link>
             <div className="my-4 border-t border-border" />
-            <Link
-              href="/conta"
-              className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Minha Conta
-            </Link>
-            <Link
-              href="/conta/reservas"
-              className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Minhas Reservas
-            </Link>
+            {!isLoggedIn && (
+              <>
+                <Link
+                  href="/login"
+                  className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Entrar
+                </Link>
+                <Link
+                  href="/cadastro"
+                  className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Cadastrar
+                </Link>
+              </>
+            )}
+            {isLoggedIn && (
+              <>
+                <Link
+                  href="/conta"
+                  className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Minha Conta
+                </Link>
+                <Link
+                  href="/conta/reservas"
+                  className="block rounded-lg px-3 py-2 text-base font-medium text-foreground hover:bg-muted"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Minhas Reservas
+                </Link>
+              </>
+            )}
             {isAdmin && (
               <Link
                 href="/admin"
