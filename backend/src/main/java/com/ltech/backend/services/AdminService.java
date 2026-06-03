@@ -52,7 +52,7 @@ public class AdminService {
                 .stream()
                 .map(usuario -> {
                     int totalReservas = reservaRepository.countByUsuarioId(usuario.getId());
-                    return ClienteDTO.from(usuario, totalReservas);
+                    return ClienteDTO.fromMasked(usuario, totalReservas);
                 })
                 .toList();
     }

@@ -8,6 +8,5 @@ public record ClienteRegisterRequestDTO(
         @NotBlank @Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres") String password,
         @NotBlank String nomeCompleto,
         @NotBlank String telefone,
-        @NotBlank String cpf,
-        @NotBlank String numeroCnh) {
+        @NotBlank String cpf) {
 }

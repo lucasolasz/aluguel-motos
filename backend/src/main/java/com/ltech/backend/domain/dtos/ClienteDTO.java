@@ -17,7 +17,17 @@ public record ClienteDTO(
         int totalReservas,
         List<String> grupos) {
 
+    /** Versão completa — uso restrito (detalhe do cliente p/ atendimento). */
     public static ClienteDTO from(Usuario usuario, int totalReservas) {
+        return build(usuario, totalReservas, usuario.getCpf(), usuario.getNumeroCnh());
+    }
+
+    /** Versão mascarada — listagem ampla (LGPD: minimização da exposição de CPF/CNH). */
+    public static ClienteDTO fromMasked(Usuario usuario, int totalReservas) {
+        return build(usuario, totalReservas, maskCpf(usuario.getCpf()), maskTail(usuario.getNumeroCnh()));
+    }
+
+    private static ClienteDTO build(Usuario usuario, int totalReservas, String cpf, String numeroCnh) {
         List<String> grupos = usuario.getGrupo() != null
                 ? List.of(usuario.getGrupo().getNome())
                 : List.of();
@@ -27,11 +37,27 @@ public record ClienteDTO(
                 usuario.getUsername(),
                 usuario.getNomeCompleto(),
                 usuario.getTelefone(),
-                usuario.getCpf(),
-                usuario.getNumeroCnh(),
+                cpf,
+                numeroCnh,
                 usuario.getFotoPerfil(),
                 usuario.getCreatedAt(),
                 totalReservas,
                 grupos);
+    }
+
+    /** Mascara o CPF revelando só os 2 últimos dígitos: {@code ***.***.***-NN}. */
+    private static String maskCpf(String cpf) {
+        if (cpf == null) return null;
+        String digits = cpf.replaceAll("\\D", "");
+        if (digits.length() < 2) return "***.***.***-**";
+        return "***.***.***-" + digits.substring(digits.length() - 2);
+    }
+
+    /** Mascara um identificador revelando só os 2 últimos dígitos. */
+    private static String maskTail(String value) {
+        if (value == null) return null;
+        String digits = value.replaceAll("\\D", "");
+        if (digits.length() < 2) return "****";
+        return "*".repeat(digits.length() - 2) + digits.substring(digits.length() - 2);
     }
 }
