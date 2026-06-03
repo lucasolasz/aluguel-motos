@@ -88,9 +88,10 @@ public class AuthenticationController {
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
 
+        // numeroCnh não é coletado no cadastro; cliente informa depois no perfil/CNH.
         Usuario newUser = new Usuario(
                 dto.username(), encryptedPassword, true, grupoGeral,
-                dto.nomeCompleto(), dto.telefone(), dto.cpf(), dto.numeroCnh());
+                dto.nomeCompleto(), dto.telefone(), dto.cpf(), null);
 
         Usuario saved = this.usuarioService.save(newUser);
         URI location = uriBuilder.path("/usuarios/{id}").buildAndExpand(saved.getId()).toUri();

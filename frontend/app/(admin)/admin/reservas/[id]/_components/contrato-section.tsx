@@ -12,16 +12,21 @@ import { NIVEL_COMBUSTIVEL_LABELS, type ReservaDetalhe } from '@/lib/atendimento
 import { ImageDialog } from './image-dialog'
 import SignaturePad from './signature-pad'
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
 function gerarHtmlContrato(d: ReservaDetalhe): string {
   const r = d.reserva
   const saida = d.vistorias.find((v) => v.tipo === 'SAIDA')
   const nivel = saida?.nivelCombustivel ? NIVEL_COMBUSTIVEL_LABELS[saida.nivelCombustivel] : '—'
   const km = saida?.kmRegistrado ?? '—'
   const local = (l: ReservaDetalhe['reserva']['localRetirada']) =>
-    l ? `${l.nome} — ${l.cidade}/${l.estado}` : '—'
+    l ? `${escapeHtml(l.nome)} — ${escapeHtml(l.cidade)}/${escapeHtml(l.estado)}` : '—'
+  const esc = (v: string | null | undefined) => v ? escapeHtml(v) : '—'
 
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-  <title>Contrato de Locação — ${r.id.slice(0, 8)}</title>
+  <title>Contrato de Locação — ${escapeHtml(r.id.slice(0, 8))}</title>
   <style>
     body{font-family:Arial,Helvetica,sans-serif;color:#111;max-width:720px;margin:32px auto;padding:0 24px;line-height:1.5}
     h1{font-size:20px;text-align:center}
@@ -36,16 +41,16 @@ function gerarHtmlContrato(d: ReservaDetalhe): string {
   <h1>Contrato de Locação de Motocicleta</h1>
   <h2>Locatário</h2>
   <table>
-    <tr><td class="l">Nome</td><td>${d.cliente.nomeCompleto ?? '—'}</td></tr>
-    <tr><td class="l">CPF</td><td>${d.cliente.cpf ?? '—'}</td></tr>
-    <tr><td class="l">CNH</td><td>${d.cnh?.numeroCnh ?? d.cliente.numeroCnh ?? '—'} (validade ${
+    <tr><td class="l">Nome</td><td>${esc(d.cliente.nomeCompleto)}</td></tr>
+    <tr><td class="l">CPF</td><td>${esc(d.cliente.cpf)}</td></tr>
+    <tr><td class="l">CNH</td><td>${esc(d.cnh?.numeroCnh ?? d.cliente.numeroCnh)} (validade ${
       d.cnh?.dataValidade ? formatDate(d.cnh.dataValidade) : '—'
     })</td></tr>
-    <tr><td class="l">Telefone</td><td>${d.cliente.telefone ?? '—'}</td></tr>
+    <tr><td class="l">Telefone</td><td>${esc(d.cliente.telefone)}</td></tr>
   </table>
   <h2>Veículo e Período</h2>
   <table>
-    <tr><td class="l">Moto</td><td>${r.moto.nome}</td></tr>
+    <tr><td class="l">Moto</td><td>${esc(r.moto.nome)}</td></tr>
     <tr><td class="l">Retirada</td><td>${formatDate(r.dataRetirada)} ${r.horaRetirada ?? ''} — ${local(
       r.localRetirada,
     )}</td></tr>
@@ -53,8 +58,8 @@ function gerarHtmlContrato(d: ReservaDetalhe): string {
       r.localDevolucao,
     )}</td></tr>
     <tr><td class="l">Diárias</td><td>${r.totalDias}</td></tr>
-    <tr><td class="l">KM na saída</td><td>${km}</td></tr>
-    <tr><td class="l">Combustível na saída</td><td>${nivel}</td></tr>
+    <tr><td class="l">KM na saída</td><td>${escapeHtml(String(km))}</td></tr>
+    <tr><td class="l">Combustível na saída</td><td>${escapeHtml(nivel)}</td></tr>
   </table>
   <h2>Valores</h2>
   <table>

@@ -15,7 +15,6 @@ import {
 import { getMeuPerfil } from '@/services/usuario.service'
 import { getCidadesByEstado } from '@/services/ibge.service'
 import type { Cidade } from '@/services/ibge.service'
-import { getCardMode, encryptCardData, getCachedMode } from '@/lib/pagbank-encryption'
 
 export type Step5Phase =
   | 'loading'
@@ -93,41 +92,8 @@ export function useStep5({ active }: UseStep5Args) {
   const [newCardData, setNewCardData] = useState<NewCardData>(INITIAL_CARD)
   const [newAddressData, setNewAddressData] = useState<NewAddressData>(INITIAL_ADDRESS)
 
-  const [cardMode, setCardMode] = useState<'pagbank' | 'local'>('local')
-
-  useEffect(() => {
-    if (!active) return
-    getCardMode()
-      .then((res) => setCardMode(res.mode))
-      .catch(() => setCardMode('local'))
-  }, [active])
-
-  const buildCreateCartaoPayload = async (): Promise<CreateCartao> => {
+  const buildCreateCartaoPayload = (): CreateCartao => {
     const cpfClean = newCardData.cpf.replace(/\D/g, '')
-    const mode = getCachedMode() ?? cardMode
-
-    if (mode === 'pagbank') {
-      const numeroClean = newCardData.numero.replace(/\s/g, '')
-      const validadeClean = newCardData.validade.replace(/\D/g, '')
-      const expMonth = validadeClean.substring(0, 2)
-      const expYear = validadeClean.length === 4
-        ? '20' + validadeClean.substring(2, 4)
-        : validadeClean.substring(2, 6)
-
-      const encrypted = encryptCardData({
-        holder: newCardData.nome,
-        number: numeroClean,
-        expMonth,
-        expYear,
-        securityCode: newCardData.cvv.replace(/\D/g, ''),
-      })
-
-      return {
-        nome: newCardData.nome,
-        cpf: cpfClean,
-        encrypted,
-      }
-    }
 
     return {
       nome: newCardData.nome,
@@ -180,7 +146,7 @@ export function useStep5({ active }: UseStep5Args) {
     setValidationDialogOpen(true)
 
     try {
-      const payload = await buildCreateCartaoPayload()
+      const payload = buildCreateCartaoPayload()
       const newCard = await criarCartao(payload)
       setUserCards((prev) => [...prev, newCard])
       setPendingCardId(newCard.id)
@@ -261,7 +227,7 @@ export function useStep5({ active }: UseStep5Args) {
       let cardId = pendingCardId
 
       if (newCardPending) {
-        const payload = await buildCreateCartaoPayload()
+        const payload = buildCreateCartaoPayload()
         const newCard = await criarCartao(payload)
         setUserCards((prev) => [...prev, newCard])
         cardId = newCard.id
@@ -307,7 +273,7 @@ export function useStep5({ active }: UseStep5Args) {
       let cardId = pendingCardId
 
       if (newCardPending) {
-        const payload = await buildCreateCartaoPayload()
+        const payload = buildCreateCartaoPayload()
         const newCard = await criarCartao(payload)
         setUserCards((prev) => [...prev, newCard])
         cardId = newCard.id
@@ -424,7 +390,6 @@ export function useStep5({ active }: UseStep5Args) {
     goToCardForm,
     goToAddressForm,
     backFromAddressForm,
-    cardMode,
   }
 }
 

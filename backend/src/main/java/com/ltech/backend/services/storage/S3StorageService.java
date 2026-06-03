@@ -71,6 +71,12 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    public UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId, String subfolder) {
+        ValidatedFile valid = validator.validate(file);
+        return store(file, buildParentKey(prefix, parentId, subfolder, valid.extension()), valid.contentType());
+    }
+
+    @Override
     public void delete(String key) {
         if (!StringUtils.hasText(key)) {
             return;
@@ -123,9 +129,8 @@ public class S3StorageService implements StorageService {
                             .bucket(props.getBucket())
                             .key(key)
                             .contentType(contentType)
-                            .contentLength(file.getSize())
                             .build(),
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+                    RequestBody.fromBytes(file.getBytes()));
         } catch (IOException | SdkException e) {
             log.error("Falha ao enviar arquivo '{}' para o bucket '{}'", key, props.getBucket(), e);
             throw new StorageException("Falha ao enviar arquivo para o storage", e);
@@ -153,6 +158,11 @@ public class S3StorageService implements StorageService {
     /** Chave agrupada por reserva: {@code prefix/{parentId}/uuid.ext}. */
     private String buildParentKey(String prefix, UUID parentId, String extension) {
         return "%s/%s/%s.%s".formatted(sanitizePrefix(prefix), parentId, UUID.randomUUID(), extension);
+    }
+
+    /** Chave agrupada por reserva com subpasta: {@code prefix/{parentId}/{subfolder}/uuid.ext}. */
+    private String buildParentKey(String prefix, UUID parentId, String subfolder, String extension) {
+        return "%s/%s/%s/%s.%s".formatted(sanitizePrefix(prefix), parentId, subfolder, UUID.randomUUID(), extension);
     }
 
     private String sanitizePrefix(String prefix) {

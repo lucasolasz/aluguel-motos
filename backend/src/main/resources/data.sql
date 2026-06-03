@@ -381,12 +381,12 @@ INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
 SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('RESERVAS_LEITURA', 'RESERVAS_ESCRITA')
 WHERE g.nome = 'GERAL';
 
--- USUARIO: lucas / lucas123 no grupo DESENVOLVEDORES
+-- USUARIO no grupo DESENVOLVEDORES
 INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf, telefone)
 SELECT gen_random_uuid()::text, 'lucas@admin.com', '$2y$10$L7XVUu3GsRzMdQRwgfNKrOcXS37gi.gVmSGU4276FILy5gtqKwVHm', true, g.id, 'Lucas Andrade', '58126131203', '84596566089', '(11) 99999-9999'
 FROM grupo g WHERE g.nome = 'DESENVOLVEDORES';
 
--- USUARIO: danilo / admin123 no grupo ADMINS
+-- USUARIO no grupo ADMINS
 INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf, telefone)
 SELECT gen_random_uuid()::text, 'danilo@admin.com', '$2y$10$B/xxlqdGAHnD0CUdQZkWkegVW7IyFwOsuqZMjAxIAsRAck.0sYnHC', true, g.id, 'Danilo', '98765432101', '12345678909', '(11) 98888-8888'
 FROM grupo g WHERE g.nome = 'ADMINS';

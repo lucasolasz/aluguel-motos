@@ -33,6 +33,13 @@ public interface StorageService {
      */
     UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId);
 
+    /**
+     * Envia um arquivo para o path {@code prefix/{parentId}/{subfolder}/{uuid}.ext}.
+     * Usado para organizar uploads dentro de uma reserva: prefix = "reservas",
+     * parentId = reservaId, subfolder = "contrato" ou "fotos_vistoria".
+     */
+    UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId, String subfolder);
+
     /** Remove o objeto identificado pela chave. Idempotente. */
     void delete(String key);
 

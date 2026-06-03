@@ -15,7 +15,7 @@ app/
     page.tsx                 # Dashboard
     reservas/page.tsx        # Minhas reservas (reservation-card, reservation-details-dialog)
     perfil/page.tsx
-    documentos/page.tsx      # KYC
+    documentos/page.tsx      # Form de dados da CNH (cnh.service)
     cartoes/page.tsx
     configuracoes/page.tsx
   (admin)/admin/             # Painel admin (layout.tsx)
@@ -32,7 +32,7 @@ services/
   api.ts                     # apiFetch base (sem auth) → lib/config.ts API_URL
   motos.service.ts  categorias.service.ts  seguros.service.ts  acessorios.service.ts
   lavagens.service.ts  locais.service.ts            # catálogo (público + admin)
-  reservas.service.ts  usuario.service.ts  documentos.service.ts
+  reservas.service.ts  usuario.service.ts
   cartao.service.ts  endereco.service.ts  cnh.service.ts   # client auth
   ibge.service.ts                                   # API IBGE (estados/cidades)
 lib/
@@ -68,7 +68,6 @@ Reservation { status, datas+horas, localRetirada/Devolucao, moto, seguro, acesso
               totais (incl totalLavagem), cartaoNumeroMascarado, createdAt }
 Cnh { rg, dataNascimento, numeroRegistro, numeroCnh, dataValidade, estado, createdAt }
 Cartao { nome, numeroMascarado, validade, cpf, enderecoCobranca, vinculadoAReservas, createdAt }
-Documento { tipo, url, status, createdAt }
 ```
 
 ## Auth (lib/auth.ts)

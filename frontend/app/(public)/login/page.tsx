@@ -13,7 +13,8 @@ import { API_URL } from '@/lib/config'
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') ?? '/conta/reservas'
+  const rawRedirect = searchParams.get('redirect') ?? ''
+  const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/conta/reservas'
 
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')

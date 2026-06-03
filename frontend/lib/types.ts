@@ -187,17 +187,6 @@ export interface Reservation {
   createdAt: string
 }
 
-export type DocumentoTipo = 'CNH_FRENTE' | 'CNH_VERSO' | 'SELFIE_COM_DOCUMENTO'
-export type DocumentoStatus = 'PENDENTE' | 'VERIFICADO' | 'RECUSADO'
-
-export interface Documento {
-  id: string
-  tipo: DocumentoTipo
-  url: string
-  status: DocumentoStatus
-  createdAt: string
-}
-
 export interface Cnh {
   id: string
   rg: string
@@ -233,8 +222,7 @@ export interface Cartao {
 export interface CreateCartao {
   nome: string
   cpf: string
-  encrypted?: string
-  numero?: string
+  numero: string
   validade?: string
 }
 
