@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Bike, Calendar, DollarSign, Users } from 'lucide-react'
 import { apiFetch } from '@/lib/auth'
+import { logError } from '@/lib/logger'
 import { formatCurrency } from '@/lib/utils'
 
 interface MotoResumo {
@@ -73,7 +74,7 @@ export default function AdminDashboardPage() {
           popularMotos: motos.slice(0, 3),
         })
       })
-      .catch(console.error)
+      .catch(logError)
       .finally(() => setIsLoading(false))
   }, [])
 

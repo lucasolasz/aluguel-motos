@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logError } from '@/lib/logger'
 import {
   Card,
   CardContent,
@@ -72,7 +73,7 @@ export default function AdminCategoriasPage() {
       const data = await adminGetCategorias()
       setCategorias(data)
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setIsLoading(false)
     }
@@ -127,7 +128,7 @@ export default function AdminCategoriasPage() {
       await adminDeleteCategoria(deletingId)
       setCategorias((prev) => prev.filter((c) => c.id !== deletingId))
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setDeleteDialogOpen(false)
       setDeletingId(null)

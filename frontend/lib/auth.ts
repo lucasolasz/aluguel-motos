@@ -9,7 +9,8 @@ export function getToken(): string | null {
 const COOKIE_MAX_AGE = 24 * 60 * 60
 
 export function setToken(token: string): void {
-  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
+  const secure = location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`
 }
 
 export function clearToken(): void {
@@ -46,7 +47,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
       if (body && typeof body.message === 'string') {
         message = body.message
       } else {
-        message = JSON.stringify(body)
+        message = `Erro inesperado (${res.status})`
       }
     } catch {
       const text = await res.text().catch(() => res.statusText)

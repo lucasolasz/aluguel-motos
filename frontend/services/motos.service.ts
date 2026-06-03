@@ -13,17 +13,17 @@ export async function getMotos(params?: GetMotosParams): Promise<Moto[]> {
   if (params?.dataRetirada) qs.set("dataRetirada", params.dataRetirada);
   if (params?.dataDevolucao) qs.set("dataDevolucao", params.dataDevolucao);
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
-  const dtos = await apiFetch<MotoDTO[]>(`/api/motos${suffix}`);
+  const dtos = await serverFetch<MotoDTO[]>(`/api/motos${suffix}`);
   return mapMotos(dtos);
 }
 
 export async function getMotosDestaque(): Promise<Moto[]> {
-  const dtos = await apiFetch<MotoDTO[]>('/api/motos/destaque');
+  const dtos = await serverFetch<MotoDTO[]>('/api/motos/destaque');
   return mapMotos(dtos);
 }
 
 export async function getMotoById(id: string): Promise<Moto> {
-  const dto = await apiFetch<MotoDTO>(`/api/motos/${id}`);
+  const dto = await serverFetch<MotoDTO>(`/api/motos/${id}`);
   return mapMoto(dto);
 }
 

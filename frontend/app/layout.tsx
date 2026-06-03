@@ -32,6 +32,7 @@ export default function RootLayout({
         <Script
           src="https://assets.pagseguro.com.br/checkout-sdk-js/rc/dist/browser/pagseguro.min.js"
           strategy="beforeInteractive"
+          crossOrigin="anonymous"
         />
         {children}
       </body>

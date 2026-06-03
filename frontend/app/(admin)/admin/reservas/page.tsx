@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { logError } from '@/lib/logger'
 import Link from 'next/link'
 import {
   Card,
@@ -59,7 +60,7 @@ export default function AdminReservationsPage() {
     try {
       setReservations(await adminListarReservas(cpf))
     } catch (error) {
-      console.error('Erro ao carregar reservas:', error)
+      logError('Erro ao carregar reservas:', error)
     } finally {
       setIsLoading(false)
     }
@@ -93,7 +94,7 @@ export default function AdminReservationsPage() {
       })
       setReservations((prev) => prev.map((r) => (r.id === id ? updated : r)))
     } catch (error) {
-      console.error('Erro ao atualizar status:', error)
+      logError('Erro ao atualizar status:', error)
     }
   }
 

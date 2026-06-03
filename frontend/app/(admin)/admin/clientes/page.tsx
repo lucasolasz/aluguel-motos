@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logError } from '@/lib/logger'
 import {
   Card,
   CardContent,
@@ -42,7 +43,7 @@ export default function AdminClientesPage() {
   useEffect(() => {
     apiFetch<Cliente[]>('/api/admin/clientes')
       .then(setClientes)
-      .catch(console.error)
+      .catch(logError)
       .finally(() => setIsLoading(false))
   }, [])
 

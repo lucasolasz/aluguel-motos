@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { logError } from '@/lib/logger'
 import {
   Card,
   CardContent,
@@ -134,7 +135,7 @@ export default function AdminAcessoriosPage() {
       const data = await adminGetAcessorios()
       setAcessorios(data)
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setIsLoading(false)
     }
@@ -190,7 +191,7 @@ export default function AdminAcessoriosPage() {
       await adminDeleteAcessorio(deletingId)
       setAcessorios((prev) => prev.filter((a) => a.id !== deletingId))
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setDeleteDialogOpen(false)
       setDeletingId(null)

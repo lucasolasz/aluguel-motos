@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { logError } from '@/lib/logger'
 import {
   Card,
   CardContent,
@@ -134,7 +135,7 @@ export default function AdminLavagensPage() {
       const data = await adminGetLavagens()
       setLavagens(data)
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setIsLoading(false)
     }
@@ -190,7 +191,7 @@ export default function AdminLavagensPage() {
       await adminDeleteLavagem(deletingId)
       setLavagens((prev) => prev.filter((l) => l.id !== deletingId))
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setDeleteDialogOpen(false)
       setDeletingId(null)

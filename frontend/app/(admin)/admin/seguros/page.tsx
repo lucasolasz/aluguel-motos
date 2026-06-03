@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { logError } from '@/lib/logger'
 import {
   Card,
   CardContent,
@@ -157,7 +158,7 @@ export default function AdminSegurosPage() {
       const data = await adminGetSeguros()
       setSeguros(data)
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setIsLoading(false)
     }
@@ -218,7 +219,7 @@ export default function AdminSegurosPage() {
       await adminDeleteSeguro(deletingId)
       setSeguros((prev) => prev.filter((s) => s.id !== deletingId))
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setDeleteDialogOpen(false)
       setDeletingId(null)

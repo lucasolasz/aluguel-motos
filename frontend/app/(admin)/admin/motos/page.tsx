@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { logError } from '@/lib/logger'
 import Image from 'next/image'
 import {
   Card,
@@ -305,7 +306,7 @@ export default function AdminMotorcyclesPage() {
       setMotos(motosData)
       setCategorias(categoriasData)
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setIsLoading(false)
     }
@@ -440,7 +441,7 @@ export default function AdminMotorcyclesPage() {
       await adminDeleteMoto(deletingId)
       setMotos((prev) => prev.filter((m) => m.id !== deletingId))
     } catch (err) {
-      console.error(err)
+      logError(err)
     } finally {
       setDeleteDialogOpen(false)
       setDeletingId(null)
