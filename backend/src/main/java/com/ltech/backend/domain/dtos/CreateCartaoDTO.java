@@ -6,6 +6,5 @@ public record CreateCartaoDTO(
         @NotBlank String nome,
         @NotBlank String cpf,
         String encrypted,
-        String numero,
-        String validade) {
+        String apelido) {
 }

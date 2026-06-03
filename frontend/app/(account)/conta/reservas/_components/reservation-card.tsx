@@ -13,23 +13,23 @@ interface ReservationCardProps {
 }
 
 const statusLabels: Record<string, string> = {
-  PENDENTE: 'Pendente',
-  CONFIRMADA: 'Confirmada',
+  AGUARDANDO_RETIRADA: 'Aguardando Retirada',
   EM_ANDAMENTO: 'Em andamento',
-  CONCLUIDA: 'Concluída',
+  FINALIZADA: 'Finalizada',
+  FINALIZADA_COM_AVARIA: 'Finalizada c/ Avaria',
   CANCELADA: 'Cancelada',
 }
 
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  PENDENTE: 'outline',
-  CONFIRMADA: 'default',
-  EM_ANDAMENTO: 'secondary',
-  CONCLUIDA: 'secondary',
+  AGUARDANDO_RETIRADA: 'outline',
+  EM_ANDAMENTO: 'default',
+  FINALIZADA: 'secondary',
+  FINALIZADA_COM_AVARIA: 'secondary',
   CANCELADA: 'destructive',
 }
 
 export function ReservationCard({ reservation, onCancel, onShowDetails }: ReservationCardProps) {
-  const canCancel = ['PENDENTE', 'CONFIRMADA'].includes(reservation.status)
+  const canCancel = reservation.status === 'AGUARDANDO_RETIRADA'
   const imagemUrl = reservation.moto.imagens[0] ?? '/images/placeholder-moto.jpg'
 
   return (

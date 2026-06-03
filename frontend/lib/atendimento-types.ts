@@ -1,11 +1,11 @@
 // Tipos do atendimento presencial (retirada / devolução) — espelham os DTOs do
-// backend: ReservaDetalheDTO, ReservaAdminDTO, PagamentoDTO, VistoriaDTO, ContratoDTO.
+// backend: ReservaDetalheDTO, ReservaAdminDTO, TransacaoPagbankDTO, VistoriaDTO, ContratoDTO.
 
 export type StatusReserva =
-  | 'PENDENTE'
-  | 'CONFIRMADA'
+  | 'AGUARDANDO_RETIRADA'
   | 'EM_ANDAMENTO'
-  | 'CONCLUIDA'
+  | 'FINALIZADA'
+  | 'FINALIZADA_COM_AVARIA'
   | 'CANCELADA'
 
 export type NivelCombustivel =
@@ -16,15 +16,8 @@ export type NivelCombustivel =
   | 'CHEIO'
 
 export type TipoVistoria = 'SAIDA' | 'RETORNO'
-export type TipoPagamento = 'ALUGUEL' | 'CAUCAO'
-export type StatusPagamento =
-  | 'PENDENTE'
-  | 'PAGO'
-  | 'AUTORIZADO'
-  | 'LIBERADO'
-  | 'CAPTURADO'
-  | 'ESTORNADO'
-  | 'FALHOU'
+export type TipoTransacao = 'ALUGUEL' | 'CAUCAO_PRE_AUTH' | 'CAUCAO_CAPTURA' | 'CAUCAO_CANCELAMENTO'
+export type StatusTransacao = 'AUTHORIZED' | 'PAID' | 'CANCELED' | 'DECLINED'
 export type TipoAssinatura = 'MANUAL' | 'DIGITAL'
 
 export interface LocalResumoAdmin {
@@ -76,13 +69,13 @@ export interface CnhDetalhe {
   vencida: boolean
 }
 
-export interface Pagamento {
+export interface Transacao {
   id: string
-  tipo: TipoPagamento
-  status: StatusPagamento
-  valor: number
-  gatewayTransactionId: string | null
-  metodo: string | null
+  tipo: TipoTransacao
+  status: StatusTransacao
+  valorCentavos: number
+  chargeIdPagbank: string | null
+  idempotencyKey: string | null
   createdAt: string
 }
 
@@ -121,7 +114,7 @@ export interface ReservaDetalhe {
   retiradaConcluidaEm: string | null
   devolucaoConcluidaEm: string | null
   motoKmAtual: number | null
-  pagamentos: Pagamento[]
+  transacoes: Transacao[]
   vistorias: Vistoria[]
   contrato: Contrato | null
 }

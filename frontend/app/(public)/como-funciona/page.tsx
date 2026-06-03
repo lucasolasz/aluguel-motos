@@ -65,7 +65,7 @@ const faqCategories = [
       {
         question: 'Posso alterar as datas após fazer a reserva?',
         answer:
-          'Reservas com status PENDENTE ou CONFIRMADA podem ser canceladas e refeitas com novas datas. Ainda não oferecemos edição direta de datas em uma reserva existente.',
+          'Reservas com status "Aguardando Retirada" podem ser canceladas e refeitas com novas datas. Ainda não oferecemos edição direta de datas em uma reserva existente.',
       },
       {
         question: 'Posso reservar para outra pessoa?',
@@ -135,7 +135,7 @@ const faqCategories = [
       {
         question: 'Como cancelo minha reserva?',
         answer:
-          'Acesse "Minhas Reservas" na sua conta e clique em "Cancelar" na reserva desejada. O cancelamento só é permitido para reservas com status PENDENTE ou CONFIRMADA.',
+          'Acesse "Minhas Reservas" na sua conta e clique em "Cancelar" na reserva desejada. O cancelamento só é permitido para reservas com status "Aguardando Retirada".',
       },
       {
         question: 'Qual a política de cancelamento?',

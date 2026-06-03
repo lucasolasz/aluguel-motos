@@ -1,267 +1,25 @@
+-- Seed data idempotente: insert condicional (ON CONFLICT ou NOT EXISTS).
+-- Seguro para execucao repetida com spring.sql.init.mode=always + ddl-auto=update.
+
 -- CATEGORIAS
--- CATEGORIAS
-INSERT INTO public.categorias (
-    id,
-    descricao,
-    nome,
-    slug,
-    image_url
-) VALUES
-(
-    '8eccc115-8455-4f02-af9d-88f1c325f0e5'::uuid,
-    'Perfeitas para o dia a dia na cidade. Econômicas e fáceis de pilotar.',
-    'Scooter',
-    'scooter',
-    '/images/categories/scooter.jpg'
-),
-(
-    '2905c8df-e6c5-4877-a6ed-b2aa814bf587'::uuid,
-    'Scooters de alto desempenho com mais conforto e potência.',
-    'Scooter Premium',
-    'scooter-premium',
-    '/images/categories/premium-scooter.jpg'
-),
-(
-    'fe460ec8-e080-452b-9d5f-b69238eba014'::uuid,
-    'Ideais para viagens curtas e médias com muito conforto.',
-    'Scooter Touring',
-    'scooter-touring',
-    '/images/categories/touring-scooter.jpg'
-),
-(
-    'e71c9032-1fbc-49cf-89ca-a18ab051c259'::uuid,
-    'Motos esportivas de alta performance para pilotos exigentes.',
-    'Street Premium',
-    'street-premium',
-    '/images/categories/street-premium.jpg'
-),
-(
-    'b0618acd-7127-4d43-a11b-e81832f0dcbe'::uuid,
-    'Prontas para qualquer terreno e longas aventuras.',
-    'Adventure Touring',
-    'adventure-touring',
-    '/images/categories/adventure-touring.jpg'
-),
-(
-    'de494b1e-31b8-454a-9c94-f6cf72d72088'::uuid,
-    'O melhor em tecnologia, conforto e desempenho.',
-    'Ultra Premium',
-    'ultra-premium',
-    '/images/categories/ultra-premium.jpg'
-),
-(
-    '91d05089-105f-49a6-8bdc-ef38dbe8880a'::uuid,
-    'Estilo clássico americano para quem busca conforto e presença.',
-    'Custom Cruiser',
-    'custom-cruiser',
-    '/images/categories/custom-cruiser.jpg'
-);
+INSERT INTO public.categorias (id, descricao, nome, slug, image_url) VALUES
+('8eccc115-8455-4f02-af9d-88f1c325f0e5'::uuid, 'Perfeitas para o dia a dia na cidade. Econômicas e fáceis de pilotar.', 'Scooter', 'scooter', '/images/categories/scooter.jpg'),
+('2905c8df-e6c5-4877-a6ed-b2aa814bf587'::uuid, 'Scooters de alto desempenho com mais conforto e potência.', 'Scooter Premium', 'scooter-premium', '/images/categories/premium-scooter.jpg'),
+('fe460ec8-e080-452b-9d5f-b69238eba014'::uuid, 'Ideais para viagens curtas e médias com muito conforto.', 'Scooter Touring', 'scooter-touring', '/images/categories/touring-scooter.jpg'),
+('e71c9032-1fbc-49cf-89ca-a18ab051c259'::uuid, 'Motos esportivas de alta performance para pilotos exigentes.', 'Street Premium', 'street-premium', '/images/categories/street-premium.jpg'),
+('b0618acd-7127-4d43-a11b-e81832f0dcbe'::uuid, 'Prontas para qualquer terreno e longas aventuras.', 'Adventure Touring', 'adventure-touring', '/images/categories/adventure-touring.jpg'),
+('de494b1e-31b8-454a-9c94-f6cf72d72088'::uuid, 'O melhor em tecnologia, conforto e desempenho.', 'Ultra Premium', 'ultra-premium', '/images/categories/ultra-premium.jpg'),
+('91d05089-105f-49a6-8bdc-ef38dbe8880a'::uuid, 'Estilo clássico americano para quem busca conforto e presença.', 'Custom Cruiser', 'custom-cruiser', '/images/categories/custom-cruiser.jpg')
+ON CONFLICT (id) DO NOTHING;
 
-
--- HONDA PCX 160
-INSERT INTO motos (
-    id,
-    nome,
-    slug,
-    marca,
-    modelo,
-    ano,
-    preco_por_dia,
-    caucao,
-    motor,
-    potencia,
-    transmissao,
-    capacidade_tanque,
-    altura_assento,
-    peso,
-    itens,
-    disponivel,
-    destaque,
-    categoria_id
-) VALUES (
-    '11111111-1111-1111-1111-111111111111'::uuid,
-    'Honda PCX 160',
-    'honda-pcx-160',
-    'Honda',
-    'PCX 160',
-    2024,
-    89,
-    500,
-    '157 cc',
-    '15.8 cv',
-    'CVT automático',
-    '8.1 L',
-    '764 mm',
-    '132 kg',
-    'Freios CBS, Painel Digital, Porta USB, Porta-malas 30L',
-    true,
-    true,
-    '2905c8df-e6c5-4877-a6ed-b2aa814bf587'
-);
-
--- YAMAHA NMAX 160
-INSERT INTO motos (
-    id,
-    nome,
-    slug,
-    marca,
-    modelo,
-    ano,
-    preco_por_dia,
-    caucao,
-    motor,
-    potencia,
-    transmissao,
-    capacidade_tanque,
-    altura_assento,
-    peso,
-    itens,
-    disponivel,
-    destaque,
-    categoria_id
-) VALUES (
-    '22222222-2222-2222-2222-222222222222'::uuid,
-    'Yamaha NMAX 160',
-    'yamaha-nmax-160',
-    'Yamaha',
-    'NMAX 160',
-    2024,
-    95,
-    500,
-    '155 cc',
-    '14.7 cv',
-    'CVT automático',
-    '7.1 L',
-    '765 mm',
-    '127 kg',
-    'ABS, Painel Digital TFT, Conectividade Bluetooth, LED',
-    true,
-    true,
-    '2905c8df-e6c5-4877-a6ed-b2aa814bf587'
-);
-
--- YAMAHA XMAX 250
-INSERT INTO motos (
-    id,
-    nome,
-    slug,
-    marca,
-    modelo,
-    ano,
-    preco_por_dia,
-    caucao,
-    motor,
-    potencia,
-    transmissao,
-    capacidade_tanque,
-    altura_assento,
-    peso,
-    itens,
-    disponivel,
-    destaque,
-    categoria_id
-) VALUES (
-    '33333333-3333-3333-3333-333333333333'::uuid,
-    'Yamaha XMAX 250',
-    'yamaha-xmax-250',
-    'Yamaha',
-    'XMAX 250',
-    2024,
-    159,
-    1000,
-    '250 cc',
-    '22.8 cv',
-    'CVT automático',
-    '13 L',
-    '795 mm',
-    '179 kg',
-    'ABS, Controle de Tração, Painel TFT 7, Smart Key, Porta-malas 45L',
-    true,
-    true,
-    'fe460ec8-e080-452b-9d5f-b69238eba014'
-);
-
--- YAMAHA MT-07
-INSERT INTO motos (
-    id,
-    nome,
-    slug,
-    marca,
-    modelo,
-    ano,
-    preco_por_dia,
-    caucao,
-    motor,
-    potencia,
-    transmissao,
-    capacidade_tanque,
-    altura_assento,
-    peso,
-    itens,
-    disponivel,
-    destaque,
-    categoria_id
-) VALUES (
-    '44444444-4444-4444-4444-444444444444'::uuid,
-    'Yamaha MT-07',
-    'yamaha-mt-07',
-    'Yamaha',
-    'MT-07',
-    2024,
-    229,
-    2000,
-    '689 cc',
-    '74.8 cv',
-    'Manual',
-    '14 L',
-    '805 mm',
-    '184 kg',
-    'ABS, Painel Digital, Farol LED, Modos de Pilotagem',
-    true,
-    true,
-    'e71c9032-1fbc-49cf-89ca-a18ab051c259'
-);
-
--- KAWASAKI Z900
-INSERT INTO motos (
-    id,
-    nome,
-    slug,
-    marca,
-    modelo,
-    ano,
-    preco_por_dia,
-    caucao,
-    motor,
-    potencia,
-    transmissao,
-    capacidade_tanque,
-    altura_assento,
-    peso,
-    itens,
-    disponivel,
-    destaque,
-    categoria_id
-) VALUES (
-    '55555555-5555-5555-5555-555555555555'::uuid,
-    'Kawasaki Z900',
-    'kawasaki-z900',
-    'Kawasaki',
-    'Z900',
-    2024,
-    289,
-    2500,
-    '948 cc',
-    '125 cv',
-    'Manual',
-    '17 L',
-    '820 mm',
-    '212 kg',
-    'ABS, Controle de Tração, Painel TFT, 4 Modos de Pilotagem',
-    true,
-    false,
-    'e71c9032-1fbc-49cf-89ca-a18ab051c259'
-);
+-- MOTOS
+INSERT INTO motos (id, nome, slug, marca, modelo, ano, preco_por_dia, caucao, motor, potencia, transmissao, capacidade_tanque, altura_assento, peso, itens, disponivel, destaque, categoria_id) VALUES
+('11111111-1111-1111-1111-111111111111'::uuid, 'Honda PCX 160', 'honda-pcx-160', 'Honda', 'PCX 160', 2024, 89, 500, '157 cc', '15.8 cv', 'CVT automático', '8.1 L', '764 mm', '132 kg', 'Freios CBS, Painel Digital, Porta USB, Porta-malas 30L', true, true, '2905c8df-e6c5-4877-a6ed-b2aa814bf587'),
+('22222222-2222-2222-2222-222222222222'::uuid, 'Yamaha NMAX 160', 'yamaha-nmax-160', 'Yamaha', 'NMAX 160', 2024, 95, 500, '155 cc', '14.7 cv', 'CVT automático', '7.1 L', '765 mm', '127 kg', 'ABS, Painel Digital TFT, Conectividade Bluetooth, LED', true, true, '2905c8df-e6c5-4877-a6ed-b2aa814bf587'),
+('33333333-3333-3333-3333-333333333333'::uuid, 'Yamaha XMAX 250', 'yamaha-xmax-250', 'Yamaha', 'XMAX 250', 2024, 159, 1000, '250 cc', '22.8 cv', 'CVT automático', '13 L', '795 mm', '179 kg', 'ABS, Controle de Tração, Painel TFT 7, Smart Key, Porta-malas 45L', true, true, 'fe460ec8-e080-452b-9d5f-b69238eba014'),
+('44444444-4444-4444-4444-444444444444'::uuid, 'Yamaha MT-07', 'yamaha-mt-07', 'Yamaha', 'MT-07', 2024, 229, 2000, '689 cc', '74.8 cv', 'Manual', '14 L', '805 mm', '184 kg', 'ABS, Painel Digital, Farol LED, Modos de Pilotagem', true, true, 'e71c9032-1fbc-49cf-89ca-a18ab051c259'),
+('55555555-5555-5555-5555-555555555555'::uuid, 'Kawasaki Z900', 'kawasaki-z900', 'Kawasaki', 'Z900', 2024, 289, 2500, '948 cc', '125 cv', 'Manual', '17 L', '820 mm', '212 kg', 'ABS, Controle de Tração, Painel TFT, 4 Modos de Pilotagem', true, false, 'e71c9032-1fbc-49cf-89ca-a18ab051c259')
+ON CONFLICT (id) DO NOTHING;
 
 -- ACESSORIOS
 INSERT INTO acessorios (id, nome, descricao, preco_por_dia, quantidade_maxima, ativo) VALUES
@@ -270,123 +28,110 @@ INSERT INTO acessorios (id, nome, descricao, preco_por_dia, quantidade_maxima, a
 ('20000000-0000-0000-0000-000000000003'::uuid, 'GPS', 'Navegador GPS com mapas atualizados.', 25, 1, true),
 ('20000000-0000-0000-0000-000000000004'::uuid, 'Baú (Top Case)', 'Baú traseiro com capacidade de 45 litros.', 20, 1, true),
 ('20000000-0000-0000-0000-000000000005'::uuid, 'Capa de Chuva', 'Conjunto de capa de chuva impermeável.', 8, 2, true),
-('20000000-0000-0000-0000-000000000006'::uuid, 'Suporte para Celular', 'Suporte universal com carregador USB.', 12, 1, true);
+('20000000-0000-0000-0000-000000000006'::uuid, 'Suporte para Celular', 'Suporte universal com carregador USB.', 12, 1, true)
+ON CONFLICT (id) DO NOTHING;
 
-
--- LAVAGEM (serviços opcionais)
+-- LAVAGEM
 INSERT INTO lavagem_servicos (id, nome, descricao, valor, tipo_cobranca, ativo) VALUES
-('30000000-0000-0000-0000-000000000001'::uuid, 'Limpeza Garantida', 'O carro deve ser devolvido limpo, mas com a Limpeza Garantida você não precisa se preocupar com isso. Mas para casos de sujeira excessiva (lama, areia, manchas, pelos de animais, odores fortes e similares), a lavagem vai custar R$ 110,00.', 41.95, 'VALOR_UNICO', true);
-
+('30000000-0000-0000-0000-000000000001'::uuid, 'Limpeza Garantida', 'O carro deve ser devolvido limpo, mas com a Limpeza Garantida você não precisa se preocupar com isso. Mas para casos de sujeira excessiva (lama, areia, manchas, pelos de animais, odores fortes e similares), a lavagem vai custar R$ 110,00.', 41.95, 'VALOR_UNICO', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- SEGUROS
 INSERT INTO seguros (id, nome, slug, descricao, preco_por_dia, basico, valor_original, valor_com_desconto, percentual_desconto, valor_total_pacote, max_parcelas_sem_juros, recomendado, ativo) VALUES
 ('10000000-0000-0000-0000-000000000001'::uuid, 'Seguro Padrão', 'seguro-padrao', 'Cobertura básica para locação de motos.', 35.55, false, 39.90, 35.55, 10, 213.30, 3, false, true),
 ('10000000-0000-0000-0000-000000000002'::uuid, 'Seguro Completo', 'seguro-completo', 'Proteção total com cobertura ampla para sua tranquilidade.', 74.89, false, 92.84, 74.89, 19, 449.34, 4, true, true),
-('10000000-0000-0000-0000-000000000003'::uuid, 'Seguro Premium', 'seguro-premium', 'A proteção mais completa disponível para locações premium.', 85.48, false, 160.73, 85.48, 46, 512.91, 6, false, true);
+('10000000-0000-0000-0000-000000000003'::uuid, 'Seguro Premium', 'seguro-premium', 'A proteção mais completa disponível para locações premium.', 85.48, false, 160.73, 85.48, 46, 512.91, 6, false, true)
+ON CONFLICT (id) DO NOTHING;
 
--- SEGURO COBERTURAS
--- Seguro Padrão
-INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial em caso de avarias e perda total', 'PARCIAL', 0),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial para danos morais, corporais e materiais a terceiros', 'PARCIAL', 1),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial em caso de furto e roubo', 'PARCIAL', 2),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura para vidros e pneus', 'NAO_INCLUSO', 3),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Compensação de CO2', 'NAO_INCLUSO', 4),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Não pague a limpeza simples', 'NAO_INCLUSO', 5),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Compartilhe a direção com outros motoristas', 'NAO_INCLUSO', 6);
+-- SEGURO COBERTURAS (condicional: só insere se a tabela estiver vazia)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM seguro_coberturas LIMIT 1) THEN
+    INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial em caso de avarias e perda total', 'PARCIAL', 0),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial para danos morais, corporais e materiais a terceiros', 'PARCIAL', 1),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura parcial em caso de furto e roubo', 'PARCIAL', 2),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Cobertura para vidros e pneus', 'NAO_INCLUSO', 3),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Compensação de CO2', 'NAO_INCLUSO', 4),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Não pague a limpeza simples', 'NAO_INCLUSO', 5),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000001'::uuid, 'Compartilhe a direção com outros motoristas', 'NAO_INCLUSO', 6),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura total em caso de avarias e perda total', 'INCLUSO', 0),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura total para danos morais, corporais e materiais a terceiros', 'INCLUSO', 1),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura parcial em caso de furto e roubo', 'INCLUSO', 2),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura para vidros e pneus', 'INCLUSO', 3),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Compensação de CO2', 'INCLUSO', 4),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Não pague a limpeza simples', 'NAO_INCLUSO', 5),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Compartilhe a direção com outros motoristas', 'NAO_INCLUSO', 6),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura total em caso de avarias e perda total', 'INCLUSO', 0),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura total para danos morais, corporais e materiais a terceiros', 'INCLUSO', 1),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura parcial em caso de furto e roubo', 'INCLUSO', 2),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura para vidros e pneus', 'INCLUSO', 3),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Compensação de CO2', 'INCLUSO', 4),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Não pague a limpeza simples', 'INCLUSO', 5),
+    (gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Compartilhe a direção com outros motoristas', 'INCLUSO', 6);
+  END IF;
+END $$;
 
--- Seguro Completo
-INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura total em caso de avarias e perda total', 'INCLUSO', 0),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura total para danos morais, corporais e materiais a terceiros', 'INCLUSO', 1),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura parcial em caso de furto e roubo', 'INCLUSO', 2),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Cobertura para vidros e pneus', 'INCLUSO', 3),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Compensação de CO2', 'INCLUSO', 4),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Não pague a limpeza simples', 'NAO_INCLUSO', 5),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000002'::uuid, 'Compartilhe a direção com outros motoristas', 'NAO_INCLUSO', 6);
-
--- Seguro Premium
-INSERT INTO seguro_coberturas (id, seguro_id, nome, tipo, ordem) VALUES
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura total em caso de avarias e perda total', 'INCLUSO', 0),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura total para danos morais, corporais e materiais a terceiros', 'INCLUSO', 1),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura parcial em caso de furto e roubo', 'INCLUSO', 2),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Cobertura para vidros e pneus', 'INCLUSO', 3),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Compensação de CO2', 'INCLUSO', 4),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Não pague a limpeza simples', 'INCLUSO', 5),
-(gen_random_uuid(), '10000000-0000-0000-0000-000000000003'::uuid, 'Compartilhe a direção com outros motoristas', 'INCLUSO', 6);
-
-
--- MOTO FOTOS
--- Honda PCX 160
-INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '11111111-1111-1111-1111-111111111111'::uuid, '/images/motos/pcx-160.jpg', 0, true);
-
--- Yamaha NMAX 160
-INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '22222222-2222-2222-2222-222222222222'::uuid, '/images/motos/nmax-160.png', 0, true);
-
--- Yamaha XMAX 250
-INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '33333333-3333-3333-3333-333333333333'::uuid, '/images/motos/xmax-250.png', 0, true);
-
--- Yamaha MT-07
-INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '44444444-4444-4444-4444-444444444444'::uuid, '/images/motos/mt-07.png', 0, true);
-
--- Kawasaki Z900
-INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
-(gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900.png', 0, true);
-
+-- MOTO FOTOS (condicional)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM moto_fotos LIMIT 1) THEN
+    INSERT INTO moto_fotos (id, moto_id, url, ordem, principal) VALUES
+    (gen_random_uuid(), '11111111-1111-1111-1111-111111111111'::uuid, '/images/motos/pcx-160.jpg', 0, true),
+    (gen_random_uuid(), '22222222-2222-2222-2222-222222222222'::uuid, '/images/motos/nmax-160.png', 0, true),
+    (gen_random_uuid(), '33333333-3333-3333-3333-333333333333'::uuid, '/images/motos/xmax-250.png', 0, true),
+    (gen_random_uuid(), '44444444-4444-4444-4444-444444444444'::uuid, '/images/motos/mt-07.png', 0, true),
+    (gen_random_uuid(), '55555555-5555-5555-5555-555555555555'::uuid, '/images/motos/z900.png', 0, true);
+  END IF;
+END $$;
 
 -- LOCAIS
-INSERT INTO locais (id, nome, cep, logradouro, numero, complemento, bairro, cidade, estado, ativo, created_at) VALUES (
-    gen_random_uuid(),
-    'RIO MULTIMARCAS OFICINA DAS MOTOS',
-    '22780-070',
-    'Estr. de Camorim',
-    '628',
-    NULL,
-    'Jacarepaguá',
-    'Rio de Janeiro',
-    'RJ',
-    true,
-    now()
-);
-
+INSERT INTO locais (id, nome, cep, logradouro, numero, complemento, bairro, cidade, estado, ativo, created_at)
+SELECT gen_random_uuid(), 'RIO MULTIMARCAS OFICINA DAS MOTOS', '22780-070', 'Estr. de Camorim', '628', NULL, 'Jacarepaguá', 'Rio de Janeiro', 'RJ', true, now()
+WHERE NOT EXISTS (SELECT 1 FROM locais WHERE nome = 'RIO MULTIMARCAS OFICINA DAS MOTOS');
 
 -- PERMISSOES
-INSERT INTO permissao (nome) VALUES ('ADMIN_FULL');
-INSERT INTO permissao (nome) VALUES ('RESERVAS_LEITURA');
-INSERT INTO permissao (nome) VALUES ('RESERVAS_ESCRITA');
-INSERT INTO permissao (nome) VALUES ('USUARIOS_LEITURA');
-INSERT INTO permissao (nome) VALUES ('LOCAIS_LEITURA');
-INSERT INTO permissao (nome) VALUES ('LOCAIS_ESCRITA');
+INSERT INTO permissao (nome) VALUES ('ADMIN_FULL') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO permissao (nome) VALUES ('RESERVAS_LEITURA') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO permissao (nome) VALUES ('RESERVAS_ESCRITA') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO permissao (nome) VALUES ('USUARIOS_LEITURA') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO permissao (nome) VALUES ('LOCAIS_LEITURA') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO permissao (nome) VALUES ('LOCAIS_ESCRITA') ON CONFLICT (nome) DO NOTHING;
 
 -- GRUPOS
-INSERT INTO grupo (nome) VALUES ('DESENVOLVEDORES');
-INSERT INTO grupo (nome) VALUES ('ADMINS');
-INSERT INTO grupo (nome) VALUES ('GERAL');
+INSERT INTO grupo (nome) VALUES ('DESENVOLVEDORES') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO grupo (nome) VALUES ('ADMINS') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO grupo (nome) VALUES ('GERAL') ON CONFLICT (nome) DO NOTHING;
 
--- GRUPO_PERMISSOES: desenvolvedores tem todas as permissoes
-INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
-SELECT g.id, p.id FROM grupo g, permissao p WHERE g.nome = 'DESENVOLVEDORES';
+-- GRUPO_PERMISSOES (condicional: só insere se a tabela estiver vazia)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM grupo_permissoes LIMIT 1) THEN
+    INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
+    SELECT g.id, p.id FROM grupo g, permissao p WHERE g.nome = 'DESENVOLVEDORES';
 
--- GRUPO_PERMISSOES: admins tem ADMIN_FULL + RESERVAS + USUARIOS + LOCAIS
-INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
-SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('ADMIN_FULL', 'RESERVAS_LEITURA', 'RESERVAS_ESCRITA', 'USUARIOS_LEITURA', 'LOCAIS_LEITURA', 'LOCAIS_ESCRITA')
-WHERE g.nome = 'ADMINS';
+    INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
+    SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('ADMIN_FULL', 'RESERVAS_LEITURA', 'RESERVAS_ESCRITA', 'USUARIOS_LEITURA', 'LOCAIS_LEITURA', 'LOCAIS_ESCRITA')
+    WHERE g.nome = 'ADMINS';
 
--- GRUPO_PERMISSOES: geral tem RESERVAS_LEITURA e RESERVAS_ESCRITA (clientes)
-INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
-SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('RESERVAS_LEITURA', 'RESERVAS_ESCRITA')
-WHERE g.nome = 'GERAL';
+    INSERT INTO grupo_permissoes (grupo_id, permissoes_id)
+    SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('RESERVAS_LEITURA', 'RESERVAS_ESCRITA')
+    WHERE g.nome = 'GERAL';
+  END IF;
+END $$;
 
--- USUARIO: lucas / lucas123 no grupo DESENVOLVEDORES
-INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf, telefone)
-SELECT gen_random_uuid()::text, 'lucas@admin.com', '$2y$10$L7XVUu3GsRzMdQRwgfNKrOcXS37gi.gVmSGU4276FILy5gtqKwVHm', true, g.id, 'Lucas Andrade', '58126131203', '84596566089', '(11) 99999-9999'
-FROM grupo g WHERE g.nome = 'DESENVOLVEDORES';
+-- USUARIOS SEED (condicional)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE username = 'lucas@admin.com') THEN
+    INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf, telefone)
+    SELECT gen_random_uuid()::text, 'lucas@admin.com', '$2y$10$L7XVUu3GsRzMdQRwgfNKrOcXS37gi.gVmSGU4276FILy5gtqKwVHm', true, g.id, 'Lucas Andrade', '58126131203', '84596566089', '(11) 99999-9999'
+    FROM grupo g WHERE g.nome = 'DESENVOLVEDORES';
+  END IF;
 
--- USUARIO: danilo / admin123 no grupo ADMINS
-INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf, telefone)
-SELECT gen_random_uuid()::text, 'danilo@admin.com', '$2y$10$B/xxlqdGAHnD0CUdQZkWkegVW7IyFwOsuqZMjAxIAsRAck.0sYnHC', true, g.id, 'Danilo', '98765432101', '12345678909', '(11) 98888-8888'
-FROM grupo g WHERE g.nome = 'ADMINS';
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE username = 'danilo@admin.com') THEN
+    INSERT INTO usuario (id, username, password, enabled, grupo_id, nome_completo, numero_cnh, cpf, telefone)
+    SELECT gen_random_uuid()::text, 'danilo@admin.com', '$2y$10$B/xxlqdGAHnD0CUdQZkWkegVW7IyFwOsuqZMjAxIAsRAck.0sYnHC', true, g.id, 'Danilo', '98765432101', '12345678909', '(11) 98888-8888'
+    FROM grupo g WHERE g.nome = 'ADMINS';
+  END IF;
+END $$;

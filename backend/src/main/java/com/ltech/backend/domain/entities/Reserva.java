@@ -82,7 +82,11 @@ public class Reserva {
 
     @Enumerated(EnumType.STRING)
     @Default
-    private StatusReserva status = StatusReserva.PENDENTE;
+    private StatusReserva status = StatusReserva.AGUARDANDO_RETIRADA;
+
+    private Integer valorAluguelCentavos;
+
+    private Integer valorCaucaoCentavos;
 
     private BigDecimal precoPorDia;
 

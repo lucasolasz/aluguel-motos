@@ -6,15 +6,11 @@ import java.util.List;
 
 import com.ltech.backend.domain.entities.Cnh;
 import com.ltech.backend.domain.entities.Contrato;
-import com.ltech.backend.domain.entities.Pagamento;
 import com.ltech.backend.domain.entities.Reserva;
+import com.ltech.backend.domain.entities.TransacaoPagbank;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.entities.Vistoria;
 
-/**
- * Detalhe completo de uma reserva para o atendimento presencial (retirada/devolução):
- * dados da reserva + cliente + CNH + pagamentos + vistorias + contrato + flags.
- */
 public record ReservaDetalheDTO(
         ReservaAdminDTO reserva,
         ClienteDetalheDTO cliente,
@@ -25,7 +21,7 @@ public record ReservaDetalheDTO(
         LocalDateTime retiradaConcluidaEm,
         LocalDateTime devolucaoConcluidaEm,
         Integer motoKmAtual,
-        List<PagamentoDTO> pagamentos,
+        List<TransacaoPagbankDTO> transacoes,
         List<VistoriaDTO> vistorias,
         ContratoDTO contrato) {
 
@@ -75,7 +71,7 @@ public record ReservaDetalheDTO(
     public static ReservaDetalheDTO from(
             Reserva reserva,
             Cnh cnh,
-            List<Pagamento> pagamentos,
+            List<TransacaoPagbank> transacoes,
             List<Vistoria> vistorias,
             Contrato contrato) {
 
@@ -89,7 +85,7 @@ public record ReservaDetalheDTO(
                 reserva.getRetiradaConcluidaEm(),
                 reserva.getDevolucaoConcluidaEm(),
                 reserva.getMoto().getKmAtual(),
-                pagamentos.stream().map(PagamentoDTO::from).toList(),
+                transacoes.stream().map(TransacaoPagbankDTO::from).toList(),
                 vistorias.stream().map(VistoriaDTO::from).toList(),
                 ContratoDTO.from(contrato));
     }

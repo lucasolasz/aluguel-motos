@@ -104,36 +104,26 @@ export function useStep5({ active }: UseStep5Args) {
 
   const buildCreateCartaoPayload = async (): Promise<CreateCartao> => {
     const cpfClean = newCardData.cpf.replace(/\D/g, '')
-    const mode = getCachedMode() ?? cardMode
 
-    if (mode === 'pagbank') {
-      const numeroClean = newCardData.numero.replace(/\s/g, '')
-      const validadeClean = newCardData.validade.replace(/\D/g, '')
-      const expMonth = validadeClean.substring(0, 2)
-      const expYear = validadeClean.length === 4
-        ? '20' + validadeClean.substring(2, 4)
-        : validadeClean.substring(2, 6)
+    const numeroClean = newCardData.numero.replace(/\s/g, '')
+    const validadeClean = newCardData.validade.replace(/\D/g, '')
+    const expMonth = validadeClean.substring(0, 2)
+    const expYear = validadeClean.length === 4
+      ? '20' + validadeClean.substring(2, 4)
+      : validadeClean.substring(2, 6)
 
-      const encrypted = encryptCardData({
-        holder: newCardData.nome,
-        number: numeroClean,
-        expMonth,
-        expYear,
-        securityCode: newCardData.cvv.replace(/\D/g, ''),
-      })
-
-      return {
-        nome: newCardData.nome,
-        cpf: cpfClean,
-        encrypted,
-      }
-    }
+    const encrypted = encryptCardData({
+      holder: newCardData.nome,
+      number: numeroClean,
+      expMonth,
+      expYear,
+      securityCode: newCardData.cvv.replace(/\D/g, ''),
+    })
 
     return {
       nome: newCardData.nome,
       cpf: cpfClean,
-      numero: newCardData.numero.replace(/\s/g, ''),
-      validade: newCardData.validade,
+      encrypted,
     }
   }
 

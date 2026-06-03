@@ -177,19 +177,19 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const status = r.status
 
   const cnhOk = d.cnhVerificada
-  const pagoAluguel = d.pagamentos.some((p) => p.tipo === 'ALUGUEL' && p.status === 'PAGO')
-  const pagoCaucao = d.pagamentos.some((p) => p.tipo === 'CAUCAO' && p.status === 'AUTORIZADO')
+  const pagoAluguel = d.transacoes.some((t) => t.tipo === 'ALUGUEL' && t.status === 'PAID')
+  const pagoCaucao = d.transacoes.some((t) => t.tipo === 'CAUCAO_PRE_AUTH' && t.status === 'AUTHORIZED')
   const pagoOk = pagoAluguel && pagoCaucao
   const vistoriaSaida = d.vistorias.find((v) => v.tipo === 'SAIDA')
   const contratoOk = !!d.contrato?.assinadoEm
   const retiradaOk = cnhOk && pagoOk && !!vistoriaSaida && contratoOk
 
   const vistoriaRetorno = d.vistorias.find((v) => v.tipo === 'RETORNO')
-  const caucaoAcertada = d.pagamentos.some(
-    (p) => p.tipo === 'CAUCAO' && (p.status === 'CAPTURADO' || p.status === 'LIBERADO'),
+  const caucaoAcertada = d.transacoes.some(
+    (t) => t.tipo === 'CAUCAO_PRE_AUTH' && (t.status === 'PAID' || t.status === 'CANCELED'),
   )
 
-  const isRetirada = status === 'PENDENTE' || status === 'CONFIRMADA'
+  const isRetirada = status === 'AGUARDANDO_RETIRADA'
   const isDevolucao = status === 'EM_ANDAMENTO'
 
   const parseDesconto = (): number => {
@@ -484,8 +484,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
               {caucaoAcertada ? (
                 <p className="text-sm text-muted-foreground">
                   Caução já acertada.{' '}
-                  {d.pagamentos.find((p) => p.tipo === 'CAUCAO')?.status === 'CAPTURADO'
-                    ? `Retido: ${formatCurrency(d.pagamentos.find((p) => p.tipo === 'CAUCAO')?.valor ?? 0)}`
+                  {d.transacoes.find((t) => t.tipo === 'CAUCAO_PRE_AUTH')?.status === 'PAID'
+                    ? `Retido: ${formatCurrency((d.transacoes.find((t) => t.tipo === 'CAUCAO_PRE_AUTH')?.valorCentavos ?? 0) / 100)}`
                     : 'Caução liberada integralmente.'}
                 </p>
               ) : (
@@ -559,8 +559,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
             {d.devolucaoConcluidaEm && <p>Devolução: {formatDate(d.devolucaoConcluidaEm)}</p>}
             <Separator className="my-2" />
             <p>
-              Pagamentos:{' '}
-              {d.pagamentos.map((p) => `${p.tipo} ${p.status} ${formatCurrency(p.valor)}`).join(' · ') ||
+              Transações:{' '}
+              {d.transacoes.map((t) => `${t.tipo} ${t.status} ${formatCurrency(t.valorCentavos / 100)}`).join(' · ') ||
                 '—'}
             </p>
           </CardContent>

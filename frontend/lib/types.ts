@@ -146,7 +146,7 @@ export interface Local {
 
 export interface Reservation {
   id: string
-  status: 'PENDENTE' | 'CONFIRMADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA'
+  status: 'AGUARDANDO_RETIRADA' | 'EM_ANDAMENTO' | 'FINALIZADA' | 'FINALIZADA_COM_AVARIA' | 'CANCELADA'
   dataRetirada: string
   dataDevolucao: string
   horaRetirada: string | null
@@ -225,6 +225,8 @@ export interface Cartao {
   validade: string
   cpf: string
   bandeira: string | null
+  apelido: string | null
+  ativo: boolean
   enderecoCobranca: EnderecoCobranca | null
   vinculadoAReservas: boolean
   createdAt: string
@@ -233,9 +235,8 @@ export interface Cartao {
 export interface CreateCartao {
   nome: string
   cpf: string
-  encrypted?: string
-  numero?: string
-  validade?: string
+  encrypted: string
+  apelido?: string
 }
 
 export interface EnderecoCobranca {

@@ -36,10 +36,10 @@ export default function ReservationsPage() {
   }, [])
 
   const activeReservations = reservations.filter((r) =>
-    ['PENDENTE', 'CONFIRMADA', 'EM_ANDAMENTO'].includes(r.status)
+    ['AGUARDANDO_RETIRADA', 'EM_ANDAMENTO'].includes(r.status)
   )
   const pastReservations = reservations.filter((r) =>
-    ['CONCLUIDA', 'CANCELADA'].includes(r.status)
+    ['FINALIZADA', 'FINALIZADA_COM_AVARIA', 'CANCELADA'].includes(r.status)
   )
 
   const handleCancel = (id: string) => {

@@ -12,23 +12,33 @@ public record CartaoDTO(
         String validade,
         String cpf,
         String bandeira,
+        String apelido,
+        boolean ativo,
         EnderecoCobrancaDTO enderecoCobranca,
         boolean vinculadoAReservas,
         LocalDateTime createdAt) {
 
     public static CartaoDTO from(Cartao c) {
-        return from(c, false);
+        return from(c, false, c.getNome(), c.getCpf());
     }
 
     public static CartaoDTO from(Cartao c, boolean vinculadoAReservas) {
+        return from(c, vinculadoAReservas, c.getNome(), c.getCpf());
+    }
+
+    public static CartaoDTO from(Cartao c, boolean vinculadoAReservas,
+                                  String nomeDecrypted, String cpfDecrypted) {
         return new CartaoDTO(
                 c.getId(),
-                c.getNome(),
+                nomeDecrypted,
                 c.getNumeroMascarado(),
                 c.getValidade(),
-                c.getCpf(),
+                cpfDecrypted,
                 c.getBandeira(),
-                c.getEnderecoCobranca() != null ? EnderecoCobrancaDTO.from(c.getEnderecoCobranca()) : null,
+                c.getApelido(),
+                c.getAtivo() != null ? c.getAtivo() : true,
+                c.getEnderecoCobranca() != null
+                        ? EnderecoCobrancaDTO.from(c.getEnderecoCobranca()) : null,
                 vinculadoAReservas,
                 c.getCreatedAt());
     }

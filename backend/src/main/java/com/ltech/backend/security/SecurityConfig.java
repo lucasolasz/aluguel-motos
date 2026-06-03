@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/cartoes/**").authenticated()
                         .requestMatchers("/api/enderecos-cobranca/**").authenticated()
                         .requestMatchers("/api/cnh/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/webhooks/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

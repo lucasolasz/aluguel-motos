@@ -1,9 +1,9 @@
 package com.ltech.backend.domain.entities;
 
 public enum StatusReserva {
-    PENDENTE,
-    CONFIRMADA,
+    AGUARDANDO_RETIRADA,
     EM_ANDAMENTO,
-    CONCLUIDA,
+    FINALIZADA,
+    FINALIZADA_COM_AVARIA,
     CANCELADA
 }

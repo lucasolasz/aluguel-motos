@@ -23,7 +23,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
     @Query("""
         SELECT COUNT(r) FROM Reserva r
         WHERE r.usuario.id = :usuarioId
-          AND r.status = com.ltech.backend.domain.entities.StatusReserva.PENDENTE
+          AND r.status = com.ltech.backend.domain.entities.StatusReserva.AGUARDANDO_RETIRADA
     """)
     int countPendentesByUsuario(@Param("usuarioId") String usuarioId);
 
@@ -31,8 +31,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
         SELECT r FROM Reserva r
         WHERE r.moto.id = :motoId
           AND r.status IN (
-              com.ltech.backend.domain.entities.StatusReserva.PENDENTE,
-              com.ltech.backend.domain.entities.StatusReserva.CONFIRMADA,
+              com.ltech.backend.domain.entities.StatusReserva.AGUARDANDO_RETIRADA,
               com.ltech.backend.domain.entities.StatusReserva.EM_ANDAMENTO
           )
           AND r.dataRetirada <= :fim
@@ -46,8 +45,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, UUID> {
     @Query("""
         SELECT DISTINCT r.moto.id FROM Reserva r
         WHERE r.status IN (
-              com.ltech.backend.domain.entities.StatusReserva.PENDENTE,
-              com.ltech.backend.domain.entities.StatusReserva.CONFIRMADA,
+              com.ltech.backend.domain.entities.StatusReserva.AGUARDANDO_RETIRADA,
               com.ltech.backend.domain.entities.StatusReserva.EM_ANDAMENTO
           )
           AND r.dataRetirada <= :fim

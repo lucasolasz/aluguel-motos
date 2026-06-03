@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -55,6 +56,12 @@ public class Cartao {
     private String tokenPagBank;
 
     private String bandeira;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean ativo = true;
+
+    private String apelido;
 
     @CreatedDate
     private LocalDateTime createdAt;

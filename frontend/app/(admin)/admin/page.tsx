@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
     ])
       .then(([motos, reservas, clientes]) => {
         const receitaMes = reservas
-          .filter((r: Reservation) => r.status === 'CONCLUIDA')
+          .filter((r: Reservation) => r.status === 'FINALIZADA')
           .reduce((sum: number, r: Reservation) => sum + Number(r.total), 0)
 
         setData({

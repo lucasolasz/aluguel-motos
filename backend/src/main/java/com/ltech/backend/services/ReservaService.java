@@ -102,6 +102,7 @@ public class ReservaService {
             if (!cartao.getUsuario().getId().equals(usuario.getId())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cartão não pertence ao usuário");
             }
+            validarCartaoParaReserva(cartao, dto.dataDevolucao());
         }
 
         boolean seguroPremium = seguro != null && seguro.getSlug() != null
@@ -183,7 +184,7 @@ public class ReservaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sem permissão");
         }
 
-        if (reserva.getStatus() != StatusReserva.PENDENTE && reserva.getStatus() != StatusReserva.CONFIRMADA) {
+        if (reserva.getStatus() != StatusReserva.AGUARDANDO_RETIRADA) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Reserva não pode ser cancelada");
         }
 
@@ -254,6 +255,37 @@ public class ReservaService {
             return UUID.fromString(value);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + " inválido");
+        }
+    }
+
+    private void validarCartaoParaReserva(Cartao cartao, LocalDate dataDevolucao) {
+        if (!Boolean.TRUE.equals(cartao.getAtivo())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cartão inativo. Cadastre um novo cartão.");
+        }
+
+        if (cartao.getValidade() == null || cartao.getValidade().isBlank()) {
+            return;
+        }
+
+        try {
+            String[] partes = cartao.getValidade().split("/");
+            if (partes.length != 2) return;
+
+            int mes = Integer.parseInt(partes[0]);
+            int ano = Integer.parseInt(partes[1]);
+            if (ano < 100) ano += 2000;
+            if (mes < 1 || mes > 12) return;
+
+            java.time.YearMonth validade = java.time.YearMonth.of(ano, mes);
+            java.time.YearMonth fim = java.time.YearMonth.from(dataDevolucao);
+
+            if (validade.isBefore(fim)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Cartão expira antes da data de devolução");
+            }
+        } catch (NumberFormatException e) {
+            return;
         }
     }
 }

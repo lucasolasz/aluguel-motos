@@ -10,7 +10,9 @@ public class PagBankProperties {
 
     private String baseUrl = "https://sandbox.api.pagseguro.com";
 
-    private String apiKey;
+    private String token;
+
+    private String webhookSecret;
 
     private boolean enabled = false;
 }

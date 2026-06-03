@@ -35,18 +35,18 @@ import { adminListarReservas } from '@/services/reservas.service'
 import type { AdminReservaResumo, StatusReserva } from '@/lib/atendimento-types'
 
 const statusLabels: Record<StatusReserva, string> = {
-  PENDENTE: 'Pendente',
-  CONFIRMADA: 'Confirmada',
+  AGUARDANDO_RETIRADA: 'Aguardando Retirada',
   EM_ANDAMENTO: 'Em andamento',
-  CONCLUIDA: 'Concluída',
+  FINALIZADA: 'Finalizada',
+  FINALIZADA_COM_AVARIA: 'Finalizada c/ Avaria',
   CANCELADA: 'Cancelada',
 }
 
 const statusVariants: Record<StatusReserva, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  PENDENTE: 'outline',
-  CONFIRMADA: 'default',
-  EM_ANDAMENTO: 'secondary',
-  CONCLUIDA: 'secondary',
+  AGUARDANDO_RETIRADA: 'outline',
+  EM_ANDAMENTO: 'default',
+  FINALIZADA: 'secondary',
+  FINALIZADA_COM_AVARIA: 'secondary',
   CANCELADA: 'destructive',
 }
 
@@ -207,8 +207,7 @@ export default function AdminReservationsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {(reservation.status === 'PENDENTE' ||
-                          reservation.status === 'CONFIRMADA') && (
+                        {reservation.status === 'AGUARDANDO_RETIRADA' && (
                           <Button asChild size="sm">
                             <Link href={`/admin/reservas/${reservation.id}`}>
                               <KeyRound className="mr-1 h-4 w-4" />

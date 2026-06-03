@@ -19,43 +19,36 @@ import com.ltech.backend.domain.dtos.SalvarContratoDTO;
 import com.ltech.backend.domain.entities.Cnh;
 import com.ltech.backend.domain.entities.Contrato;
 import com.ltech.backend.domain.entities.NivelCombustivel;
-import com.ltech.backend.domain.entities.Pagamento;
 import com.ltech.backend.domain.entities.Reserva;
-import com.ltech.backend.domain.entities.StatusPagamento;
 import com.ltech.backend.domain.entities.StatusReserva;
 import com.ltech.backend.domain.entities.TipoAssinatura;
-import com.ltech.backend.domain.entities.TipoPagamento;
 import com.ltech.backend.domain.entities.TipoVistoria;
+import com.ltech.backend.domain.entities.TransacaoPagbank;
 import com.ltech.backend.domain.entities.Vistoria;
 import com.ltech.backend.domain.entities.VistoriaFoto;
 import com.ltech.backend.domain.repositories.CnhRepository;
 import com.ltech.backend.domain.repositories.ContratoRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
-import com.ltech.backend.domain.repositories.PagamentoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
+import com.ltech.backend.domain.repositories.TransacaoPagbankRepository;
 import com.ltech.backend.domain.repositories.VistoriaRepository;
-import com.ltech.backend.services.payment.PagamentoResult;
-import com.ltech.backend.services.payment.PaymentService;
 import com.ltech.backend.services.storage.StorageService;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * Atendimento presencial: retirada (CNH, pagamento, vistoria de saída, contrato,
- * conclusão → EM_ANDAMENTO) e devolução (vistoria de retorno, acerto de caução,
- * conclusão → CONCLUIDA).
- */
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AtendimentoService {
 
     private final ReservaRepository reservaRepository;
     private final CnhRepository cnhRepository;
-    private final PagamentoRepository pagamentoRepository;
+    private final TransacaoPagbankRepository transacaoPagbankRepository;
     private final VistoriaRepository vistoriaRepository;
     private final ContratoRepository contratoRepository;
     private final MotoRepository motoRepository;
-    private final PaymentService paymentService;
+    private final CobrancaService cobrancaService;
     private final StorageService storageService;
 
     @Transactional(readOnly = true)
@@ -90,19 +83,42 @@ public class AtendimentoService {
             throw unprocessable("Assine o contrato antes de cobrar");
         }
 
-        if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
-            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal(), cvv);
-            registrarPagamento(reserva, TipoPagamento.ALUGUEL,
-                    r.sucesso() ? StatusPagamento.PAGO : StatusPagamento.FALHOU,
-                    reserva.getTotal(), r);
+        TransacaoPagbank aluguel = transacaoPagbankRepository
+                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
+                        reserva.getId(), TransacaoPagbank.Tipo.ALUGUEL)
+                .orElse(null);
+
+        if (aluguel == null || aluguel.getStatus() != TransacaoPagbank.Status.PAID) {
+            Integer aluguelCentavos = reserva.getTotal()
+                    .multiply(BigDecimal.valueOf(100)).intValue();
+            aluguel = cobrancaService.cobrarAluguel(reserva, aluguelCentavos, cvv);
+
+            if (aluguel.getStatus() == TransacaoPagbank.Status.DECLINED) {
+                throw unprocessable("Aluguel recusado pelo gateway de pagamento");
+            }
         }
 
-        if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {
-            PagamentoResult r = paymentService.autorizarCaucao(reserva, reserva.getCaucao(), cvv);
-            registrarPagamento(reserva, TipoPagamento.CAUCAO,
-                    r.sucesso() ? StatusPagamento.AUTORIZADO : StatusPagamento.FALHOU,
-                    reserva.getCaucao(), r);
+        TransacaoPagbank caucao = transacaoPagbankRepository
+                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
+                        reserva.getId(), TransacaoPagbank.Tipo.CAUCAO_PRE_AUTH)
+                .orElse(null);
+
+        if (caucao == null || caucao.getStatus() != TransacaoPagbank.Status.AUTHORIZED) {
+            Integer caucaoCentavos = reserva.getCaucao()
+                    .multiply(BigDecimal.valueOf(100)).intValue();
+            caucao = cobrancaService.autorizarCaucao(reserva, caucaoCentavos, cvv);
+
+            if (caucao.getStatus() == TransacaoPagbank.Status.DECLINED) {
+                Integer aluguelCentavos = aluguel.getValorCentavos();
+                log.warn("Caução recusada na reserva {}. Estornando aluguel.", reserva.getId());
+                cobrancaService.estornar(aluguel, aluguelCentavos);
+                throw unprocessable("Caução recusada. Aluguel foi estornado.");
+            }
         }
+
+        reserva.setValorAluguelCentavos(aluguel.getValorCentavos());
+        reserva.setValorCaucaoCentavos(caucao.getValorCentavos());
+        reservaRepository.save(reserva);
 
         return detalhe(reserva);
     }
@@ -115,8 +131,10 @@ public class AtendimentoService {
                 ? null
                 : parseEnum(NivelCombustivel.class, dto.nivelCombustivel(), "nivelCombustivel");
 
-        if (vistoriaRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), tipo).isPresent()) {
-            throw unprocessable("Já existe vistoria de " + tipo.name().toLowerCase() + " registrada para esta reserva");
+        if (vistoriaRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
+                reserva.getId(), tipo).isPresent()) {
+            throw unprocessable("Já existe vistoria de " + tipo.name().toLowerCase()
+                    + " registrada para esta reserva");
         }
 
         Vistoria vistoria = Vistoria.builder()
@@ -155,16 +173,19 @@ public class AtendimentoService {
         Reserva reserva = carregarReserva(id);
         TipoAssinatura tipo = parseEnum(TipoAssinatura.class, dto.tipoAssinatura(), "tipoAssinatura");
 
-        if (tipo == TipoAssinatura.MANUAL && (dto.urlDocumento() == null || dto.urlDocumento().isBlank())) {
+        if (tipo == TipoAssinatura.MANUAL
+                && (dto.urlDocumento() == null || dto.urlDocumento().isBlank())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Assinatura manual requer o documento escaneado (urlDocumento)");
         }
-        if (tipo == TipoAssinatura.DIGITAL && (dto.assinaturaUrl() == null || dto.assinaturaUrl().isBlank())) {
+        if (tipo == TipoAssinatura.DIGITAL
+                && (dto.assinaturaUrl() == null || dto.assinaturaUrl().isBlank())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Assinatura digital requer a imagem da assinatura (assinaturaUrl)");
         }
 
-        Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
+        Contrato contrato = contratoRepository
+                .findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
                 .orElseGet(() -> Contrato.builder().reserva(reserva).build());
         String urlDocumentoAntiga = contrato.getUrlDocumento();
         String assinaturaUrlAntiga = contrato.getAssinaturaUrl();
@@ -174,14 +195,12 @@ public class AtendimentoService {
         contrato.setAssinadoEm(LocalDateTime.now());
         contratoRepository.save(contrato);
 
-        // Remove do storage os arquivos antigos que deixaram de ser referenciados (evita orfaos)
         removerSeDesreferenciado(urlDocumentoAntiga, dto.urlDocumento());
         removerSeDesreferenciado(assinaturaUrlAntiga, dto.assinaturaUrl());
 
         return detalhe(reserva);
     }
 
-    /** Remove a url antiga do storage se ela foi sobrescrita por outra (ou removida). */
     private void removerSeDesreferenciado(String urlAntiga, String urlNova) {
         if (urlAntiga != null && !urlAntiga.equals(urlNova)) {
             storageService.deleteByPublicUrl(urlAntiga);
@@ -192,8 +211,8 @@ public class AtendimentoService {
     public ReservaDetalheDTO concluirRetirada(String id) {
         Reserva reserva = carregarReserva(id);
 
-        if (reserva.getStatus() != StatusReserva.PENDENTE && reserva.getStatus() != StatusReserva.CONFIRMADA) {
-            throw unprocessable("Retirada só pode ser concluída para reservas PENDENTE ou CONFIRMADA");
+        if (reserva.getStatus() != StatusReserva.AGUARDANDO_RETIRADA) {
+            throw unprocessable("Retirada só pode ser concluída para reservas AGUARDANDO_RETIRADA");
         }
         if (!Boolean.TRUE.equals(reserva.getCnhVerificada())) {
             throw unprocessable("CNH ainda não foi verificada");
@@ -202,20 +221,23 @@ public class AtendimentoService {
                 reserva.getId(), TipoVistoria.SAIDA).isEmpty()) {
             throw unprocessable("Vistoria de saída ainda não foi registrada");
         }
-        Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
-                .orElse(null);
+        Contrato contrato = contratoRepository
+                .findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId()).orElse(null);
         if (contrato == null || contrato.getAssinadoEm() == null) {
             throw unprocessable("Contrato ainda não foi assinado");
         }
-        if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
+        if (!temTransacao(reserva, TransacaoPagbank.Tipo.ALUGUEL, TransacaoPagbank.Status.PAID)) {
             throw unprocessable("Aluguel ainda não foi pago");
         }
-        if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {
+        if (!temTransacao(reserva, TransacaoPagbank.Tipo.CAUCAO_PRE_AUTH,
+                TransacaoPagbank.Status.AUTHORIZED)) {
             throw unprocessable("Caução ainda não foi autorizada");
         }
 
         reserva.setStatus(StatusReserva.EM_ANDAMENTO);
         reserva.setRetiradaConcluidaEm(LocalDateTime.now());
+        reserva.getMoto().setDisponivel(false);
+        motoRepository.save(reserva.getMoto());
         reservaRepository.save(reserva);
         return detalhe(reserva);
     }
@@ -224,35 +246,35 @@ public class AtendimentoService {
     public ReservaDetalheDTO acertarCaucao(String id, AcertarCaucaoDTO dto) {
         Reserva reserva = carregarReserva(id);
 
-        Pagamento caucao = pagamentoRepository
-                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), TipoPagamento.CAUCAO)
+        TransacaoPagbank caucao = transacaoPagbankRepository
+                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
+                        reserva.getId(), TransacaoPagbank.Tipo.CAUCAO_PRE_AUTH)
                 .orElseThrow(() -> unprocessable("Não há caução registrada para esta reserva"));
 
-        if (caucao.getStatus() != StatusPagamento.AUTORIZADO) {
+        if (caucao.getStatus() != TransacaoPagbank.Status.AUTHORIZED) {
             throw unprocessable("Caução já foi acertada (status: " + caucao.getStatus() + ")");
         }
 
-        BigDecimal desconto = dto.valorDescontoCaucao() != null ? dto.valorDescontoCaucao() : BigDecimal.ZERO;
+        BigDecimal desconto = dto.valorDescontoCaucao() != null
+                ? dto.valorDescontoCaucao() : BigDecimal.ZERO;
 
         if (desconto.compareTo(BigDecimal.ZERO) < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Valor de desconto não pode ser negativo");
         }
-        if (desconto.compareTo(caucao.getValor()) > 0) {
-            throw unprocessable("Valor de desconto (" + desconto + ") excede a caução autorizada (" + caucao.getValor() + ")");
+
+        Integer caucaoCentavos = caucao.getValorCentavos();
+        Integer descontoCentavos = desconto.multiply(BigDecimal.valueOf(100)).intValue();
+
+        if (descontoCentavos > caucaoCentavos) {
+            throw unprocessable("Valor de desconto excede a caução autorizada");
         }
 
-        if (desconto.compareTo(BigDecimal.ZERO) > 0) {
-            PagamentoResult r = paymentService.capturarCaucao(caucao, desconto);
-            caucao.setStatus(r.sucesso() ? StatusPagamento.CAPTURADO : StatusPagamento.FALHOU);
-            caucao.setValor(desconto);
-            caucao.setGatewayTransactionId(r.gatewayTransactionId());
+        if (descontoCentavos > 0) {
+            cobrancaService.capturarCaucao(caucao, descontoCentavos);
         } else {
-            PagamentoResult r = paymentService.liberarCaucao(caucao);
-            caucao.setStatus(r.sucesso() ? StatusPagamento.LIBERADO : StatusPagamento.FALHOU);
-            caucao.setGatewayTransactionId(r.gatewayTransactionId());
+            cobrancaService.cancelarCaucao(caucao);
         }
-        pagamentoRepository.save(caucao);
 
         return detalhe(reserva);
     }
@@ -269,16 +291,19 @@ public class AtendimentoService {
             throw unprocessable("Vistoria de retorno ainda não foi registrada");
         }
 
-        Pagamento caucao = pagamentoRepository
-                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), TipoPagamento.CAUCAO)
+        TransacaoPagbank caucao = transacaoPagbankRepository
+                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
+                        reserva.getId(), TransacaoPagbank.Tipo.CAUCAO_PRE_AUTH)
                 .orElseThrow(() -> unprocessable("Não há caução registrada para esta reserva"));
 
-        if (caucao.getStatus() != StatusPagamento.CAPTURADO
-                && caucao.getStatus() != StatusPagamento.LIBERADO) {
+        boolean caucaoOk = caucao.getStatus() == TransacaoPagbank.Status.CANCELED
+                || caucao.getStatus() == TransacaoPagbank.Status.PAID;
+
+        if (!caucaoOk) {
             throw unprocessable("Caução ainda não foi acertada. Use /acertar-caucao antes de concluir a devolução.");
         }
 
-        reserva.setStatus(StatusReserva.CONCLUIDA);
+        reserva.setStatus(StatusReserva.FINALIZADA);
         reserva.setDevolucaoConcluidaEm(LocalDateTime.now());
         reserva.getMoto().setDisponivel(true);
         motoRepository.save(reserva.getMoto());
@@ -296,41 +321,35 @@ public class AtendimentoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id inválido");
         }
         return reservaRepository.findById(uuid)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Reserva não encontrada"));
     }
 
     private ReservaDetalheDTO detalhe(Reserva reserva) {
         Cnh cnh = cnhRepository.findByUsuarioId(reserva.getUsuario().getId()).orElse(null);
-        List<Pagamento> pagamentos = pagamentoRepository.findByReservaIdOrderByCreatedAtAsc(reserva.getId());
-        List<Vistoria> vistorias = vistoriaRepository.findByReservaIdOrderByCreatedAtAsc(reserva.getId());
-        Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
-                .orElse(null);
-        return ReservaDetalheDTO.from(reserva, cnh, pagamentos, vistorias, contrato);
+        List<TransacaoPagbank> transacoes = transacaoPagbankRepository
+                .findByReservaIdOrderByCreatedAtAsc(reserva.getId());
+        List<Vistoria> vistorias = vistoriaRepository
+                .findByReservaIdOrderByCreatedAtAsc(reserva.getId());
+        Contrato contrato = contratoRepository
+                .findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId()).orElse(null);
+        return ReservaDetalheDTO.from(reserva, cnh, transacoes, vistorias, contrato);
     }
 
-    private boolean temPagamento(Reserva reserva, TipoPagamento tipo, StatusPagamento status) {
-        return pagamentoRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), tipo)
-                .map(p -> p.getStatus() == status)
+    private boolean temTransacao(Reserva reserva, TransacaoPagbank.Tipo tipo,
+                                  TransacaoPagbank.Status status) {
+        return transacaoPagbankRepository
+                .findFirstByReservaIdAndTipoOrderByCreatedAtDesc(reserva.getId(), tipo)
+                .map(t -> t.getStatus() == status)
                 .orElse(false);
-    }
-
-    private void registrarPagamento(Reserva reserva, TipoPagamento tipo, StatusPagamento status,
-            BigDecimal valor, PagamentoResult r) {
-        pagamentoRepository.save(Pagamento.builder()
-                .reserva(reserva)
-                .tipo(tipo)
-                .status(status)
-                .valor(valor)
-                .gatewayTransactionId(r.gatewayTransactionId())
-                .metodo(r.metodo())
-                .build());
     }
 
     private <E extends Enum<E>> E parseEnum(Class<E> type, String value, String field) {
         try {
             return Enum.valueOf(type, value.trim().toUpperCase());
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + " inválido: " + value);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    field + " inválido: " + value);
         }
     }
 
