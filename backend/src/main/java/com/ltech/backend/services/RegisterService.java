@@ -12,8 +12,10 @@ import com.ltech.backend.domain.dtos.CreateCnhDTO;
 import com.ltech.backend.domain.dtos.CreateEnderecoCobrancaDTO;
 import com.ltech.backend.domain.dtos.CreateEnderecoDTO;
 import com.ltech.backend.domain.dtos.LoginResponseDTO;
+import com.ltech.backend.domain.entities.ClienteAsass;
 import com.ltech.backend.domain.entities.Grupo;
 import com.ltech.backend.domain.entities.Usuario;
+import com.ltech.backend.domain.repositories.ClienteAsassRepository;
 import com.ltech.backend.domain.repositories.GrupoRepository;
 import com.ltech.backend.security.TokenService;
 import com.ltech.backend.security.UsuarioDetails;
@@ -32,6 +34,8 @@ public class RegisterService {
     private final EnderecoService enderecoService;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final AsaasService asaasService;
+    private final ClienteAsassRepository clienteAsassRepository;
 
     @Transactional
     public LoginResponseDTO registrarCompleto(CompleteRegisterRequestDTO dto) {
@@ -99,6 +103,13 @@ public class RegisterService {
                 cartaoDTO.id().toString(),
                 enderecoDTO.id().toString(),
                 savedUsuario.getId());
+
+        String customerId = asaasService.buscarOuCriarCliente(savedUsuario, dto.enderecoUsuario());
+        ClienteAsass clienteAsass = ClienteAsass.builder()
+                .customerId(customerId)
+                .usuario(savedUsuario)
+                .build();
+        clienteAsassRepository.save(clienteAsass);
 
         UsuarioDetails userDetails = new UsuarioDetails(savedUsuario);
         String token = tokenService.generateToken(userDetails);
