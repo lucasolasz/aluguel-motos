@@ -1,55 +1,65 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { MaskedInput } from './masked-input'
-import { PasswordChecklist } from './password-checklist'
-import { validarDados, type DadosPessoais } from './dados-form'
-import { checkEmailAvailable, checkCpfAvailable } from '@/services/auth.service'
-import type { Genero } from '@/lib/types'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import type { Genero } from "@/lib/types";
+import {
+  checkCpfAvailable,
+  checkEmailAvailable,
+} from "@/services/auth.service";
+import { useState } from "react";
+import { IoMdInformationCircle } from "react-icons/io";
+import { validarDados, type DadosPessoais } from "./dados-form";
+import { MaskedInput } from "./masked-input";
+import { PasswordChecklist } from "./password-checklist";
 
 interface Step1Props {
-  dados: DadosPessoais
-  onChange: (patch: Partial<DadosPessoais>) => void
-  onNext: () => void
-  error: string
-  setError: (e: string) => void
+  dados: DadosPessoais;
+  onChange: (patch: Partial<DadosPessoais>) => void;
+  onNext: () => void;
+  error: string;
+  setError: (e: string) => void;
 }
 
-export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Props) {
-  const [checking, setChecking] = useState(false)
+export function Step1Dados({
+  dados,
+  onChange,
+  onNext,
+  error,
+  setError,
+}: Step1Props) {
+  const [checking, setChecking] = useState(false);
 
   async function handleNext() {
-    const err = validarDados(dados)
+    const err = validarDados(dados);
     if (err) {
-      setError(err)
-      return
+      setError(err);
+      return;
     }
-    setChecking(true)
-    setError('')
+    setChecking(true);
+    setError("");
     try {
       const [emailOk, cpfOk] = await Promise.all([
         checkEmailAvailable(dados.email),
         checkCpfAvailable(dados.cpf),
-      ])
+      ]);
       if (!emailOk) {
-        setError('E-mail já cadastrado.')
-        setChecking(false)
-        return
+        setError("E-mail já cadastrado.");
+        setChecking(false);
+        return;
       }
       if (!cpfOk) {
-        setError('CPF já cadastrado.')
-        setChecking(false)
-        return
+        setError("CPF já cadastrado.");
+        setChecking(false);
+        return;
       }
-      setChecking(false)
-      onNext()
+      setChecking(false);
+      onNext();
     } catch {
-      setError('Erro ao verificar dados. Tente novamente.')
-      setChecking(false)
+      setError("Erro ao verificar dados. Tente novamente.");
+      setChecking(false);
     }
   }
 
@@ -57,14 +67,22 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
     <div className="space-y-8">
       {/* Dados pessoais */}
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Dados Pessoais</h2>
+        <h2 className="text-lg font-semibold text-foreground">
+          Dados Pessoais
+        </h2>
 
         <div className="space-y-2">
           <Label htmlFor="nomeCompleto">Nome completo*</Label>
           <Input
             id="nomeCompleto"
             value={dados.nomeCompleto}
-            onChange={(e) => onChange({ nomeCompleto: e.target.value.replace(/[^A-ZÀ-Ú\s]/gi, '').toUpperCase() })}
+            onChange={(e) =>
+              onChange({
+                nomeCompleto: e.target.value
+                  .replace(/[^A-ZÀ-Ú\s]/gi, "")
+                  .toUpperCase(),
+              })
+            }
             placeholder="SEU NOME COMPLETO"
           />
         </div>
@@ -91,15 +109,21 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             >
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="FEMININO" id="genero-f" />
-                <Label htmlFor="genero-f" className="font-normal">Feminino</Label>
+                <Label htmlFor="genero-f" className="font-normal">
+                  Feminino
+                </Label>
               </div>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="MASCULINO" id="genero-m" />
-                <Label htmlFor="genero-m" className="font-normal">Masculino</Label>
+                <Label htmlFor="genero-m" className="font-normal">
+                  Masculino
+                </Label>
               </div>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="OUTRO" id="genero-o" />
-                <Label htmlFor="genero-o" className="font-normal">Outro</Label>
+                <Label htmlFor="genero-o" className="font-normal">
+                  Outro
+                </Label>
               </div>
             </RadioGroup>
           </div>
@@ -205,8 +229,6 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             />
           </div>
         </div>
-
-
       </section>
 
       {/* Senha */}
@@ -237,13 +259,23 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
         <PasswordChecklist senha={dados.senha} />
       </section>
 
+      <section>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-300 rounded-xl p-2">
+          <IoMdInformationCircle size={100} />
+          Todos os dados coletados no cadastro do cliente serão utilizadas para
+          identificação das reservas e execução de contrato entre o titular e a
+          Localiza. Para mais informações sobre o tratamento de dados pessoais,
+          acesse nosso Aviso de Privacidade.
+        </p>
+      </section>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="flex justify-end">
         <Button onClick={handleNext} disabled={checking}>
-          {checking ? 'Verificando...' : 'Continuar'}
+          {checking ? "Verificando..." : "Continuar"}
         </Button>
       </div>
     </div>
-  )
+  );
 }

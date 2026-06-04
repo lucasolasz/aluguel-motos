@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
 import { BookingStepper } from '@/app/(public)/reservar/[step]/_components/booking-stepper'
+import { Card, CardContent } from '@/components/ui/card'
+import Link from 'next/link'
+import { useState } from 'react'
+import { EMPTY_DADOS, type DadosPessoais } from './_components/dados-form'
 import { Step1Dados } from './_components/step1-dados'
 import { Step2Confirmacao } from './_components/step2-confirmacao'
 import { Step3Conclusao } from './_components/step3-conclusao'
-import { EMPTY_DADOS, type DadosPessoais } from './_components/dados-form'
 
 const STEPS = [
   { id: 1, name: 'Dados Pessoais' },

@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import {
   CnhFields,
   isoToMasked,
   validarCnh,
   type CnhValues,
 } from '@/components/cnh-fields'
-import { getMinhaCnh, salvarCnh } from '@/services/cnh.service'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Cnh } from '@/lib/types'
+import { getMinhaCnh, salvarCnh } from '@/services/cnh.service'
+import { useEffect, useState } from 'react'
+import { IoMdInformationCircle } from 'react-icons/io'
 
 const EMPTY_CNH: CnhValues = {
   rg: '',
@@ -106,7 +107,8 @@ export default function CnhPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <CnhFields values={values} onChange={patch} />
 
-            <p className="text-sm text-muted-foreground bg-gray-300 rounded-xl p-4">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-300 rounded-xl p-4">
+              <IoMdInformationCircle size={30} />
               Todos os dados coletados no cadastro do cliente serão utilizados para identificação
               das reservas e execução de contrato entre o titular e a Rio Ride Rental.
             </p>
