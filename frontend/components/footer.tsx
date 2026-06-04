@@ -1,99 +1,75 @@
 import Link from 'next/link'
+import { HomeLink } from './home-link'
 
-const navigation = {
-  motos: [
-    { name: 'Scooters', href: '/categorias/scooter' },
-    { name: 'Scooters Premium', href: '/categorias/scooter-premium' },
-    { name: 'Street Premium', href: '/categorias/street-premium' },
-    { name: 'Adventure Touring', href: '/categorias/adventure-touring' },
-  ],
-  empresa: [
-    { name: 'Sobre Nós', href: '/sobre' },
-    { name: 'Como Funciona', href: '/como-funciona' },
-    { name: 'Contato', href: '/contato' },
-    { name: 'Trabalhe Conosco', href: '/carreiras' },
-  ],
-  suporte: [
-    { name: 'Central de Ajuda', href: '/ajuda' },
-    { name: 'Política de Cancelamento', href: '/cancelamento' },
-    { name: 'Termos de Uso', href: '/termos' },
-    { name: 'Privacidade', href: '/privacidade' },
-  ],
-}
+const links = [
+  { name: 'Como Funciona', href: '/como-funciona' },
+  { name: 'Contato', href: '/contato' },
+  { name: 'Categorias', href: '/categorias' },
+  { name: 'Motos', href: '/motos' },
+]
+
+const legalLinks = [
+  { name: 'Termos de Uso', href: '/termos-de-uso' },
+  { name: 'Portal da Privacidade', href: '/portal-da-privacidade' },
+]
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <span className="text-lg font-bold text-primary-foreground">M</span>
-              </div>
-              <span className="text-xl font-bold tracking-tight">Rio Ride Rental</span>
-            </Link>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Alugue a moto dos seus sonhos com segurança e praticidade. 
-              Scooters, motos esportivas, touring e muito mais.
-            </p>
-          </div>
-
-          {/* Motos */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Motos</h3>
-            <ul className="mt-4 space-y-3">
-              {navigation.motos.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Empresa */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Empresa</h3>
-            <ul className="mt-4 space-y-3">
-              {navigation.empresa.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Suporte */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Suporte</h3>
-            <ul className="mt-4 space-y-3">
-              {navigation.suporte.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* Brand */}
+        <div className="mb-8">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+              <span className="text-lg font-bold text-primary-foreground">M</span>
+            </div>
+            <span className="text-xl font-bold tracking-tight">Rio Ride Rental</span>
+          </Link>
         </div>
 
-        <div className="mt-12 border-t border-border pt-8">
-          <p className="text-center text-sm text-muted-foreground">
+        {/* Links principais */}
+        <nav className="flex flex-wrap gap-x-6 gap-y-3 mb-8">
+          <HomeLink className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            Aluguel de Motos
+          </HomeLink>
+          {links.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Endereço */}
+        <address className="not-italic mb-8 space-y-1">
+          <p className="text-sm font-semibold text-foreground">RIO MULTIMARCAS OFICINA DAS MOTOS</p>
+          <p className="text-sm text-muted-foreground">
+            Estr. de Camorim, n° 628 - Jacarepaguá, Rio de Janeiro - RJ, 22780-070
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <a href="tel:+5521998884703" className="transition-colors hover:text-foreground">
+              (21) 99888-4703
+            </a>
+          </p>
+        </address>
+
+        {/* Links legais + copyright */}
+        <div className="border-t border-border pt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <nav className="flex flex-wrap gap-x-6 gap-y-2">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </nav>
+          <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} Rio Ride Rental. Todos os direitos reservados.
           </p>
         </div>
