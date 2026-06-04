@@ -44,7 +44,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
         <h2 className="text-lg font-semibold text-foreground">Dados Pessoais</h2>
 
         <div className="space-y-2">
-          <Label htmlFor="nomeCompleto">Nome completo</Label>
+          <Label htmlFor="nomeCompleto">Nome completo*</Label>
           <Input
             id="nomeCompleto"
             value={dados.nomeCompleto}
@@ -55,7 +55,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="nacionalidade">Nacionalidade</Label>
+            <Label htmlFor="nacionalidade">Nacionalidade*</Label>
             <Select
               value={dados.nacionalidade}
               onValueChange={(v) => onChange({ nacionalidade: v })}
@@ -74,7 +74,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tipoDocumento">Tipo de documento</Label>
+            <Label htmlFor="tipoDocumento">Tipo de documento*</Label>
             <Select value={dados.tipoDocumento} onValueChange={(v) => onChange({ tipoDocumento: v })}>
               <SelectTrigger id="tipoDocumento" className="w-full">
                 <SelectValue />
@@ -88,7 +88,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="cpf">Número do CPF</Label>
+            <Label htmlFor="cpf">Número do CPF*</Label>
             <MaskedInput
               id="cpf"
               mask="000.000.000-00"
@@ -100,7 +100,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
           </div>
 
           <div className="space-y-2">
-            <Label>Gênero</Label>
+            <Label>Gênero*</Label>
             <RadioGroup
               className="flex gap-6 pt-1"
               value={dados.genero}
@@ -129,7 +129,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="ddi">DDI</Label>
+            <Label htmlFor="ddi">DDI*</Label>
             <MaskedInput
               id="ddi"
               mask="+00"
@@ -140,7 +140,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="ddd">DDD</Label>
+            <Label htmlFor="ddd">DDD*</Label>
             <MaskedInput
               id="ddd"
               mask="00"
@@ -151,7 +151,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="celular">Número do celular</Label>
+            <Label htmlFor="celular">Número do celular*</Label>
             <MaskedInput
               id="celular"
               mask="00000-0000"
@@ -163,9 +163,45 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
           </div>
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="confirmarDdi">DDI*</Label>
+            <MaskedInput
+              id="confirmarDdi"
+              mask="+00"
+              value={dados.confirmarDdi}
+              onAccept={(v) => onChange({ confirmarDdi: v })}
+              placeholder="55"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmarDdd">DDD*</Label>
+            <MaskedInput
+              id="confirmarDdd"
+              mask="00"
+              value={dados.confirmarDdd}
+              onAccept={(v) => onChange({ confirmarDdd: v })}
+              placeholder="11"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmarCelular">Confirmação do celular*</Label>
+            <MaskedInput
+              id="confirmarCelular"
+              mask="00000-0000"
+              value={dados.confirmarCelular}
+              onAccept={(v) => onChange({ confirmarCelular: v })}
+              placeholder="99999-9999"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="email">E-mail*</Label>
             <Input
               id="email"
               type="email"
@@ -175,7 +211,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmarEmail">Confirmação do e-mail</Label>
+            <Label htmlFor="confirmarEmail">Confirmação do e-mail*</Label>
             <Input
               id="confirmarEmail"
               type="email"
@@ -187,17 +223,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
           </div>
         </div>
 
-        <div className="space-y-2 sm:w-1/3">
-          <Label htmlFor="confirmarCelular">Confirmação do celular</Label>
-          <MaskedInput
-            id="confirmarCelular"
-            mask="00000-0000"
-            value={dados.confirmarCelular}
-            onAccept={(v) => onChange({ confirmarCelular: v })}
-            placeholder="99999-9999"
-            inputMode="numeric"
-          />
-        </div>
+
       </section>
 
       {/* Senha */}
@@ -205,7 +231,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
         <h2 className="text-lg font-semibold text-foreground">Senha</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="senha">Senha</Label>
+            <Label htmlFor="senha">Senha*</Label>
             <Input
               id="senha"
               type="password"
@@ -215,7 +241,7 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmarSenha">Confirmar senha</Label>
+            <Label htmlFor="confirmarSenha">Confirmar senha*</Label>
             <Input
               id="confirmarSenha"
               type="password"
