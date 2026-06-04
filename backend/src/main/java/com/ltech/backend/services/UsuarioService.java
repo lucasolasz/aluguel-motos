@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.UsuarioRepository;
+import com.ltech.backend.security.AesEncryptor;
 
 import lombok.AllArgsConstructor;
 
@@ -12,13 +13,14 @@ import lombok.AllArgsConstructor;
 public class UsuarioService {
 
     private UsuarioRepository usuarioRepository;
+    private AesEncryptor aesEncryptor;
 
     public boolean existsByUsername(String username) {
         return this.usuarioRepository.findByUsername(username).isPresent();
     }
 
     public boolean existsByCpf(String cpf) {
-        return this.usuarioRepository.existsByCpf(cpf);
+        return this.usuarioRepository.existsByCpf(aesEncryptor.convertToDatabaseColumn(cpf));
     }
 
     public Usuario save(Usuario usuario) {

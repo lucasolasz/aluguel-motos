@@ -6,7 +6,9 @@ import java.util.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.ltech.backend.security.AesEncryptor;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -47,6 +49,7 @@ public class Cartao {
     private String nome;
     private String numeroMascarado;
     private String validade;
+    @Convert(converter = AesEncryptor.class)
     private String cpf;
 
     @Column(nullable = false)

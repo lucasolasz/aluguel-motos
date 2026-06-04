@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.ltech.backend.security.AesEncryptor;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -36,6 +38,7 @@ public class Usuario {
     private String nomeCompleto;
     private String telefone;
     @Column(unique = true)
+    @Convert(converter = AesEncryptor.class)
     private String cpf;
     @Enumerated(EnumType.STRING)
     private Genero genero;
