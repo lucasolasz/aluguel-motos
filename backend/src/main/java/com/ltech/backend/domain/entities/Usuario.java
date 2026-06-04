@@ -54,6 +54,9 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario")
     private Endereco endereco;
 
+    @OneToOne(mappedBy = "usuario")
+    private ClienteAsass clienteAsass;
+
     public Usuario(String username, String password, boolean enabled, Grupo grupo) {
         this.username = username;
         this.password = password;
