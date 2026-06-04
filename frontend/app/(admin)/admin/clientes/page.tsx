@@ -29,7 +29,6 @@ interface Cliente {
   nomeCompleto: string | null
   telefone: string | null
   cpf: string | null
-  numeroCnh: string | null
   fotoPerfil: string | null
   createdAt: string
   totalReservas: number
@@ -78,7 +77,6 @@ export default function AdminClientesPage() {
                   <TableHead>E-mail</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>CPF</TableHead>
-                  <TableHead>CNH</TableHead>
                   <TableHead>Grupos</TableHead>
                   <TableHead>Reservas</TableHead>
                   <TableHead>Cadastro</TableHead>
@@ -98,7 +96,6 @@ export default function AdminClientesPage() {
                     <TableCell>{cliente.username}</TableCell>
                     <TableCell>{cliente.telefone || '-'}</TableCell>
                     <TableCell>{cliente.cpf || '-'}</TableCell>
-                    <TableCell>{cliente.numeroCnh || '-'}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         {cliente.grupos.map((grupo) => (

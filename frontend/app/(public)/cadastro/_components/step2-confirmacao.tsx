@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { registrarCliente, login } from '@/services/auth.service'
 import { montarTelefone, type DadosPessoais } from './dados-form'
 
 interface Step2Props {
@@ -27,32 +25,6 @@ function Linha({ label, value }: { label: string; value: string }) {
 }
 
 export function Step2Confirmacao({ dados, onBack, onConfirmed }: Step2Props) {
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleConfirmar() {
-    setSubmitting(true)
-    setError('')
-    try {
-      const telefone = montarTelefone(dados)
-      await registrarCliente({
-        username: dados.email,
-        password: dados.senha,
-        nomeCompleto: dados.nomeCompleto,
-        telefone,
-        cpf: dados.cpf.replace(/\D/g, ''),
-        genero: dados.genero as 'FEMININO' | 'MASCULINO' | 'OUTRO',
-      })
-      // auto-login para liberar os endpoints autenticados da etapa 3
-      await login(dados.email, dados.senha)
-      onConfirmed()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erro ao realizar cadastro.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -70,14 +42,12 @@ export function Step2Confirmacao({ dados, onBack, onConfirmed }: Step2Props) {
         <Linha label="E-mail" value={dados.email} />
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-
       <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack} disabled={submitting}>
+        <Button variant="outline" onClick={onBack}>
           Voltar
         </Button>
-        <Button onClick={handleConfirmar} disabled={submitting}>
-          {submitting ? 'Enviando...' : 'Confirmar cadastro'}
+        <Button onClick={onConfirmed}>
+          Confirmar e continuar
         </Button>
       </div>
     </div>

@@ -18,13 +18,13 @@ public record ClienteDTO(
         List<String> grupos) {
 
     /** Versão completa — uso restrito (detalhe do cliente p/ atendimento). */
-    public static ClienteDTO from(Usuario usuario, int totalReservas) {
-        return build(usuario, totalReservas, usuario.getCpf(), usuario.getNumeroCnh());
+    public static ClienteDTO from(Usuario usuario, int totalReservas, String numeroCnh) {
+        return build(usuario, totalReservas, usuario.getCpf(), numeroCnh);
     }
 
     /** Versão mascarada — listagem ampla (LGPD: minimização da exposição de CPF/CNH). */
-    public static ClienteDTO fromMasked(Usuario usuario, int totalReservas) {
-        return build(usuario, totalReservas, maskCpf(usuario.getCpf()), maskTail(usuario.getNumeroCnh()));
+    public static ClienteDTO fromMasked(Usuario usuario, int totalReservas, String numeroCnh) {
+        return build(usuario, totalReservas, maskCpf(usuario.getCpf()), maskTail(numeroCnh));
     }
 
     private static ClienteDTO build(Usuario usuario, int totalReservas, String cpf, String numeroCnh) {

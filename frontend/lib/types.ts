@@ -114,21 +114,11 @@ export interface UserProfile {
   nomeCompleto: string | null
   telefone: string | null
   cpf: string | null
-  numeroCnh: string | null
   fotoPerfil: string | null
   createdAt: string
 }
 
 export type Genero = 'FEMININO' | 'MASCULINO' | 'OUTRO'
-
-export interface CreateClienteRegister {
-  username: string  // e-mail
-  password: string
-  nomeCompleto: string
-  telefone: string  // ex: +5511999999999
-  cpf: string
-  genero: Genero
-}
 
 export interface LocalResumo {
   id: string

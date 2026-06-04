@@ -12,6 +12,7 @@ import com.ltech.backend.domain.dtos.ReservaAdminDTO;
 import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.StatusReserva;
 import com.ltech.backend.domain.entities.Usuario;
+import com.ltech.backend.domain.repositories.CnhRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
 import com.ltech.backend.domain.repositories.UsuarioRepository;
 
@@ -23,6 +24,7 @@ public class AdminService {
 
     private UsuarioRepository usuarioRepository;
     private ReservaRepository reservaRepository;
+    private CnhRepository cnhRepository;
 
     public List<ReservaAdminDTO> listarTodasReservas() {
         return listarTodasReservas(null);
@@ -52,7 +54,10 @@ public class AdminService {
                 .stream()
                 .map(usuario -> {
                     int totalReservas = reservaRepository.countByUsuarioId(usuario.getId());
-                    return ClienteDTO.fromMasked(usuario, totalReservas);
+                    String numeroCnh = cnhRepository.findByUsuarioId(usuario.getId())
+                            .map(cnh -> cnh.getNumeroCnh())
+                            .orElse(null);
+                    return ClienteDTO.fromMasked(usuario, totalReservas, numeroCnh);
                 })
                 .toList();
     }
@@ -62,6 +67,9 @@ public class AdminService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
 
         int totalReservas = reservaRepository.countByUsuarioId(usuario.getId());
-        return ClienteDTO.from(usuario, totalReservas);
+        String numeroCnh = cnhRepository.findByUsuarioId(id)
+                .map(cnh -> cnh.getNumeroCnh())
+                .orElse(null);
+        return ClienteDTO.from(usuario, totalReservas, numeroCnh);
     }
 }

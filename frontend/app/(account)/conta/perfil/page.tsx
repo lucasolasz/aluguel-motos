@@ -14,7 +14,6 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     nomeCompleto: '',
     telefone: '',
-    numeroCnh: '',
     fotoPerfil: '',
   })
   const [loading, setLoading] = useState(true)
@@ -28,7 +27,6 @@ export default function ProfilePage() {
         setForm({
           nomeCompleto: p.nomeCompleto ?? '',
           telefone: p.telefone ?? '',
-          numeroCnh: p.numeroCnh ?? '',
           fotoPerfil: p.fotoPerfil ?? '',
         })
       })
@@ -132,14 +130,6 @@ export default function ProfilePage() {
                 disabled
               />
               <p className="text-xs text-muted-foreground">CPF não pode ser alterado</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="numeroCnh">Número da CNH</Label>
-              <Input
-                id="numeroCnh"
-                value={form.numeroCnh}
-                onChange={(e) => handleChange('numeroCnh', e.target.value)}
-              />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="fotoPerfil">URL da Foto de Perfil</Label>

@@ -63,7 +63,6 @@ export interface ClienteDetalhe {
   email: string
   cpf: string | null
   telefone: string | null
-  numeroCnh: string | null
 }
 
 export interface CnhDetalhe {

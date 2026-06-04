@@ -36,7 +36,6 @@ public class UsuarioService {
 
         if (dto.nomeCompleto() != null) usuario.setNomeCompleto(dto.nomeCompleto());
         if (dto.telefone() != null) usuario.setTelefone(dto.telefone());
-        if (dto.numeroCnh() != null) usuario.setNumeroCnh(dto.numeroCnh());
         if (dto.fotoPerfil() != null) usuario.setFotoPerfil(dto.fotoPerfil());
 
         return this.usuarioRepository.save(usuario);

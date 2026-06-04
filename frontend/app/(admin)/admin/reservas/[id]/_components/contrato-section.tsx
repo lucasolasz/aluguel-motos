@@ -43,7 +43,7 @@ function gerarHtmlContrato(d: ReservaDetalhe): string {
   <table>
     <tr><td class="l">Nome</td><td>${esc(d.cliente.nomeCompleto)}</td></tr>
     <tr><td class="l">CPF</td><td>${esc(d.cliente.cpf)}</td></tr>
-    <tr><td class="l">CNH</td><td>${esc(d.cnh?.numeroCnh ?? d.cliente.numeroCnh)} (validade ${
+    <tr><td class="l">CNH</td><td>${esc(d.cnh?.numeroCnh ?? '—')} (validade ${
       d.cnh?.dataValidade ? formatDate(d.cnh.dataValidade) : '—'
     })</td></tr>
     <tr><td class="l">Telefone</td><td>${esc(d.cliente.telefone)}</td></tr>

@@ -89,7 +89,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/uploads/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.DELETE, "/api/uploads/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register/cliente").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/register/complete").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-email", "/auth/check-cpf").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").hasAnyRole("ADMINS", "DESENVOLVEDORES")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN_FULL")

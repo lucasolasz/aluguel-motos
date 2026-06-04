@@ -58,7 +58,7 @@ export default function CadastroPage() {
               onConfirmed={() => setCurrentStep(3)}
             />
           )}
-          {currentStep === 3 && <Step3Conclusao />}
+          {currentStep === 3 && <Step3Conclusao dados={dados} />}
         </CardContent>
       </Card>
     </div>

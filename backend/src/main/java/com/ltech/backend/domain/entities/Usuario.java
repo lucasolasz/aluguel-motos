@@ -37,11 +37,8 @@ public class Usuario {
     private String telefone;
     @Column(unique = true)
     private String cpf;
-    private String numeroCnh;
     @Enumerated(EnumType.STRING)
     private Genero genero;
-    private String nacionalidade;
-    private String tipoDocumento;
     private String fotoPerfil;
     @CreatedDate
     private LocalDateTime createdAt;
@@ -58,7 +55,7 @@ public class Usuario {
     }
 
     public Usuario(String username, String password, boolean enabled, Grupo grupo,
-                   String nomeCompleto, String telefone, String cpf, String numeroCnh) {
+                   String nomeCompleto, String telefone, String cpf) {
         this.username = username;
         this.password = password;
         this.enabled = enabled;
@@ -66,6 +63,5 @@ public class Usuario {
         this.nomeCompleto = nomeCompleto;
         this.telefone = telefone;
         this.cpf = cpf;
-        this.numeroCnh = numeroCnh;
     }
 }

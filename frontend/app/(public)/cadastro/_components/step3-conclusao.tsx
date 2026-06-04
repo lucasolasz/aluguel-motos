@@ -16,13 +16,11 @@ import {
 } from '@/components/ui/select'
 import { CnhFields, validarCnh, type CnhValues } from '@/components/cnh-fields'
 import { MaskedInput } from './masked-input'
-import { salvarCnh } from '@/services/cnh.service'
-import { criarCartao } from '@/services/cartao.service'
-import { criarEndereco } from '@/services/endereco.service'
-import { associarEndereco } from '@/services/cartao.service'
+import { registrarCompleto } from '@/services/auth.service'
 import { getCidadesByEstado, type Cidade } from '@/services/ibge.service'
 import { validarCartaoCompleto, validarEnderecoCompleto } from '@/lib/validations'
 import { ESTADOS_BRASIL } from '@/lib/estados'
+import { montarTelefone, type DadosPessoais } from './dados-form'
 
 const EMPTY_CNH: CnhValues = {
   rg: '',
@@ -65,7 +63,11 @@ const EMPTY_ADDRESS: AddressData = {
   bairro: '',
 }
 
-export function Step3Conclusao() {
+interface Step3Props {
+  dados: DadosPessoais
+}
+
+export function Step3Conclusao({ dados }: Step3Props) {
   const router = useRouter()
   const [cnh, setCnh] = useState<CnhValues>(EMPTY_CNH)
   const [card, setCard] = useState<CardData>(EMPTY_CARD)
@@ -153,34 +155,41 @@ export function Step3Conclusao() {
     }
     setSubmitting(true)
     try {
-      await salvarCnh({
-        rg: cnh.rg,
-        dataNascimento: cnhResult.dataNascimentoIso,
-        numeroRegistro: cnh.numeroRegistro,
-        numeroCnh: cnh.numeroCnh,
-        dataValidade: cnhResult.dataValidadeIso,
-        estado: cnh.estado,
+      await registrarCompleto({
+        username: dados.email,
+        password: dados.senha,
+        nomeCompleto: dados.nomeCompleto,
+        telefone: montarTelefone(dados),
+        cpf: dados.cpf.replace(/\D/g, ''),
+        genero: dados.genero as 'FEMININO' | 'MASCULINO' | 'OUTRO',
+        cnh: {
+          rg: cnh.rg,
+          dataNascimento: cnhResult.dataNascimentoIso,
+          numeroRegistro: cnh.numeroRegistro,
+          numeroCnh: cnh.numeroCnh,
+          dataValidade: cnhResult.dataValidadeIso,
+          estado: cnh.estado,
+        },
+        cartao: {
+          nome: card.nome,
+          cpf: card.cpf.replace(/\D/g, ''),
+          numero: card.numero.replace(/\s/g, ''),
+          validade: card.validade,
+        },
+        endereco: {
+          cep: address.cep.replace(/\D/g, ''),
+          logradouro: address.logradouro,
+          numero: address.numero,
+          semNumero: address.semNumero,
+          complemento: address.complemento,
+          estado: address.estado,
+          cidade: address.cidade,
+          bairro: address.bairro,
+        },
       })
-      const newCard = await criarCartao({
-        nome: card.nome,
-        cpf: card.cpf.replace(/\D/g, ''),
-        numero: card.numero.replace(/\s/g, ''),
-        validade: card.validade,
-      })
-      const savedAddress = await criarEndereco({
-        cep: address.cep.replace(/\D/g, ''),
-        logradouro: address.logradouro,
-        numero: address.numero,
-        semNumero: address.semNumero,
-        complemento: address.complemento,
-        estado: address.estado,
-        cidade: address.cidade,
-        bairro: address.bairro,
-      })
-      await associarEndereco(newCard.id, savedAddress.id)
       setDone(true)
-    } catch {
-      setError('Erro ao concluir o cadastro. Verifique os dados e tente novamente.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro ao concluir o cadastro. Verifique os dados e tente novamente.')
     } finally {
       setSubmitting(false)
     }

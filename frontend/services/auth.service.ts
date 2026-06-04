@@ -1,30 +1,68 @@
 import { API_URL } from '@/lib/config'
 import { setToken } from '@/lib/auth'
-import type { CreateClienteRegister } from '@/lib/types'
+
+export interface CompleteRegisterData {
+  username: string
+  password: string
+  nomeCompleto: string
+  telefone: string
+  cpf: string
+  genero: 'FEMININO' | 'MASCULINO' | 'OUTRO'
+  cnh: {
+    rg: string
+    dataNascimento: string
+    numeroRegistro: string
+    numeroCnh: string
+    dataValidade: string
+    estado: string
+  }
+  cartao: {
+    nome: string
+    cpf: string
+    numero: string
+    validade: string
+  }
+  endereco: {
+    cep: string
+    logradouro: string
+    numero: string
+    semNumero: boolean
+    complemento: string
+    estado: string
+    cidade: string
+    bairro: string
+  }
+}
+
+async function extractErrorMessage(res: Response, defaultMessage: string): Promise<string> {
+  try {
+    const body = await res.json()
+    if (body?.message) return body.message
+  } catch {
+    // resposta sem corpo JSON
+  }
+  return defaultMessage
+}
 
 /**
- * Auto-cadastro de cliente (público, grupo GERAL). Lê a mensagem de erro do
- * backend (ex.: 409 "E-mail já cadastrado" / "CPF já cadastrado").
+ * Cadastro completo: cria usuário + CNH + cartão + endereço em uma transação atômica.
+ * Retorna o token JWT e já o armazena no cookie.
  */
-export async function registrarCliente(data: CreateClienteRegister): Promise<void> {
-  const res = await fetch(`${API_URL}/auth/register/cliente`, {
+export async function registrarCompleto(data: CompleteRegisterData): Promise<void> {
+  const res = await fetch(`${API_URL}/auth/register/complete`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
   if (!res.ok) {
-    let message = 'Erro ao realizar cadastro.'
-    try {
-      const body = await res.json()
-      if (body?.message) message = body.message
-    } catch {
-      // resposta sem corpo JSON
-    }
+    const message = await extractErrorMessage(res, 'Erro ao realizar cadastro.')
     throw new Error(message)
   }
+  const result = await res.json()
+  setToken(result.token)
 }
 
-/** Login → grava o cookie auth-token (auto-login após cadastro). */
+/** Login → grava o cookie auth-token. */
 export async function login(username: string, password: string): Promise<void> {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',

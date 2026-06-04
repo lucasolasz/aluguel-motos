@@ -7,17 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.ltech.backend.domain.dtos.ClienteRegisterRequestDTO;
+import com.ltech.backend.domain.dtos.CompleteRegisterRequestDTO;
 import com.ltech.backend.domain.dtos.LoginRequestDTO;
 import com.ltech.backend.domain.dtos.LoginResponseDTO;
 import com.ltech.backend.domain.dtos.RegisterRequestDTO;
@@ -27,6 +26,7 @@ import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.GrupoRepository;
 import com.ltech.backend.security.TokenService;
 import com.ltech.backend.security.UsuarioDetails;
+import com.ltech.backend.services.RegisterService;
 import com.ltech.backend.services.UsuarioService;
 
 import jakarta.validation.Valid;
@@ -39,12 +39,15 @@ public class AuthenticationController {
 
     private AuthenticationManager authenticationManager;
 
-    // private UsuarioRepository usuarioRepository;
     private UsuarioService usuarioService;
 
     private GrupoRepository grupoRepository;
 
+    private PasswordEncoder passwordEncoder;
+
     private TokenService tokenService;
+
+    private RegisterService registerService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> autenticarUsuario(@RequestBody @Valid LoginRequestDTO loginRequestDTO) {
@@ -65,7 +68,7 @@ public class AuthenticationController {
         }
 
         Grupo grupo = this.grupoRepository.findById(Long.parseLong(registerRequestDTO.grupoId())).orElse(null);
-        String encryptedPassword = new BCryptPasswordEncoder().encode(registerRequestDTO.password());
+        String encryptedPassword = passwordEncoder.encode(registerRequestDTO.password());
 
         Usuario newUser = new Usuario(registerRequestDTO.username(), encryptedPassword, registerRequestDTO.enabled(),
                 grupo);
@@ -79,38 +82,11 @@ public class AuthenticationController {
                 new RegisterResponseDTO.GrupoDTO(grupo != null ? grupo.getNome() : null)));
     }
 
-    @PostMapping("/register/cliente")
-    public ResponseEntity<RegisterResponseDTO> registrarCliente(
-            @RequestBody @Valid ClienteRegisterRequestDTO dto,
-            UriComponentsBuilder uriBuilder) {
-
-        if (this.usuarioService.existsByUsername(dto.username())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
-        }
-
-        if (this.usuarioService.existsByCpf(dto.cpf())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "CPF já cadastrado");
-        }
-
-        Grupo grupoGeral = this.grupoRepository.findByNome("GERAL")
-                .orElseThrow(() -> new RuntimeException("Grupo GERAL não encontrado"));
-
-        String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
-
-        // numeroCnh não é coletado no cadastro; cliente informa depois no perfil/CNH.
-        Usuario newUser = new Usuario(
-                dto.username(), encryptedPassword, true, grupoGeral,
-                dto.nomeCompleto(), dto.telefone(), dto.cpf(), null);
-        newUser.setGenero(dto.genero());
-
-        Usuario saved = this.usuarioService.save(newUser);
-        URI location = uriBuilder.path("/usuarios/{id}").buildAndExpand(saved.getId()).toUri();
-
-        return ResponseEntity.created(location).body(new RegisterResponseDTO(
-                saved.getUsername(),
-                saved.isEnabled(),
-                saved.getCreatedAt(),
-                new RegisterResponseDTO.GrupoDTO(grupoGeral.getNome())));
+    @PostMapping("/register/complete")
+    public ResponseEntity<LoginResponseDTO> registrarCompleto(
+            @RequestBody @Valid CompleteRegisterRequestDTO dto) {
+        LoginResponseDTO response = registerService.registrarCompleto(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/check-email")
