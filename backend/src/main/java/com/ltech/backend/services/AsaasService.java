@@ -1,5 +1,7 @@
 package com.ltech.backend.services;
 
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -83,14 +85,18 @@ public class AsaasService {
         String cep = endereco != null ? endereco.getCep() : "";
         String numeroEndereco = endereco != null ? endereco.getNumero() : "";
 
+        DateTimeFormatter fmtData = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter fmtHora = DateTimeFormatter.ofPattern("HH:mm");
         String description = String.format(
-                "Aluguel da %s %s. Retirada %s às %s, devolução %s às %s.",
+                "Aluguel da %s %s. Retirada em %s dia %s às %s, devolução em %s dia %s às %s.",
                 reserva.getMoto().getMarca(),
                 reserva.getMoto().getModelo(),
-                reserva.getDataRetirada(),
-                reserva.getHoraRetirada(),
-                reserva.getDataDevolucao(),
-                reserva.getHoraDevolucao());
+                reserva.getLocalRetirada().getNome(),
+                reserva.getDataRetirada().format(fmtData),
+                reserva.getHoraRetirada().format(fmtHora),
+                reserva.getLocalDevolucao().getNome(),
+                reserva.getDataDevolucao().format(fmtData),
+                reserva.getHoraDevolucao().format(fmtHora));
 
         AsaasPaymentRequest request = new AsaasPaymentRequest(
                 "CREDIT_CARD",
