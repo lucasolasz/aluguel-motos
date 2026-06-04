@@ -42,8 +42,6 @@ export function Step2Confirmacao({ dados, onBack, onConfirmed }: Step2Props) {
         telefone,
         cpf: dados.cpf.replace(/\D/g, ''),
         genero: dados.genero as 'FEMININO' | 'MASCULINO' | 'OUTRO',
-        nacionalidade: dados.nacionalidade,
-        tipoDocumento: dados.tipoDocumento,
       })
       // auto-login para liberar os endpoints autenticados da etapa 3
       await login(dados.email, dados.senha)
@@ -66,8 +64,7 @@ export function Step2Confirmacao({ dados, onBack, onConfirmed }: Step2Props) {
 
       <div className="rounded-xl border border-border p-4">
         <Linha label="Nome completo" value={dados.nomeCompleto} />
-        <Linha label="Nacionalidade" value={dados.nacionalidade} />
-        <Linha label="Documento" value={`${dados.tipoDocumento} ${dados.cpf}`} />
+        <Linha label="CPF" value={dados.cpf} />
         <Linha label="Gênero" value={GENERO_LABEL[dados.genero] ?? '-'} />
         <Linha label="Celular" value={montarTelefone(dados)} />
         <Linha label="E-mail" value={dados.email} />

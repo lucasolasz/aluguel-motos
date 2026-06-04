@@ -4,21 +4,12 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { MaskedInput } from './masked-input'
 import { PasswordChecklist } from './password-checklist'
 import { validarDados, type DadosPessoais } from './dados-form'
 import { checkEmailAvailable, checkCpfAvailable } from '@/services/auth.service'
 import type { Genero } from '@/lib/types'
-
-const NACIONALIDADES = ['Brasil', 'Argentina', 'Portugal', 'Estados Unidos', 'Outra']
 
 interface Step1Props {
   dados: DadosPessoais
@@ -76,39 +67,6 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
             onChange={(e) => onChange({ nomeCompleto: e.target.value })}
             placeholder="Seu nome completo"
           />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="nacionalidade">Nacionalidade*</Label>
-            <Select
-              value={dados.nacionalidade}
-              onValueChange={(v) => onChange({ nacionalidade: v })}
-            >
-              <SelectTrigger id="nacionalidade" className="w-full">
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                {NACIONALIDADES.map((n) => (
-                  <SelectItem key={n} value={n}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tipoDocumento">Tipo de documento*</Label>
-            <Select value={dados.tipoDocumento} onValueChange={(v) => onChange({ tipoDocumento: v })}>
-              <SelectTrigger id="tipoDocumento" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <SelectItem value="CPF">CPF</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

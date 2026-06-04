@@ -15,7 +15,5 @@ public record ClienteRegisterRequestDTO(
         @NotBlank String nomeCompleto,
         @NotBlank String telefone,
         @NotBlank String cpf,
-        @NotNull Genero genero,
-        @NotBlank String nacionalidade,
-        @NotBlank String tipoDocumento) {
+        @NotNull Genero genero) {
 }

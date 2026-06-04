@@ -128,8 +128,6 @@ export interface CreateClienteRegister {
   telefone: string  // ex: +5511999999999
   cpf: string
   genero: Genero
-  nacionalidade: string
-  tipoDocumento: string
 }
 
 export interface LocalResumo {

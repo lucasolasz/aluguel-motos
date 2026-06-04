@@ -3,8 +3,6 @@ import { isSenhaForte } from './password-checklist'
 
 export interface DadosPessoais {
   nomeCompleto: string
-  nacionalidade: string
-  tipoDocumento: string
   cpf: string
   genero: Genero | ''
   ddi: string
@@ -21,8 +19,6 @@ export interface DadosPessoais {
 
 export const EMPTY_DADOS: DadosPessoais = {
   nomeCompleto: '',
-  nacionalidade: 'Brasil',
-  tipoDocumento: 'CPF',
   cpf: '',
   genero: 'FEMININO',
   ddi: '55',
@@ -42,7 +38,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 /** Valida a etapa 1. Retorna mensagem de erro ou null se ok. */
 export function validarDados(d: DadosPessoais): string | null {
   if (!d.nomeCompleto.trim()) return 'Informe o nome completo.'
-  if (!d.nacionalidade.trim()) return 'Informe a nacionalidade.'
   if (d.cpf.replace(/\D/g, '').length !== 11) return 'CPF inválido.'
   if (!d.genero) return 'Selecione o gênero.'
   if (!d.ddi.trim()) return 'Informe o DDI.'

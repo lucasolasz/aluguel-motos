@@ -102,8 +102,6 @@ public class AuthenticationController {
                 dto.username(), encryptedPassword, true, grupoGeral,
                 dto.nomeCompleto(), dto.telefone(), dto.cpf(), null);
         newUser.setGenero(dto.genero());
-        newUser.setNacionalidade(dto.nacionalidade());
-        newUser.setTipoDocumento(dto.tipoDocumento());
 
         Usuario saved = this.usuarioService.save(newUser);
         URI location = uriBuilder.path("/usuarios/{id}").buildAndExpand(saved.getId()).toUri();
