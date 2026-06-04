@@ -22,6 +22,9 @@ public class AesEncryptor implements AttributeConverter<String, String> {
 
     @Value("${security.encryption.key}")
     public void setEncryptionKey(String rawKey) {
+        if (rawKey == null || rawKey.isBlank()) {
+            throw new IllegalStateException("ENCRYPTION_KEY must not be empty");
+        }
         try {
             KEY_BYTES = MessageDigest.getInstance("SHA-256")
                     .digest(rawKey.getBytes(StandardCharsets.UTF_8));
