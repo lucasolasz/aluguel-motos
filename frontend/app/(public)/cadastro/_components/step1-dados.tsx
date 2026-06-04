@@ -64,8 +64,8 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
           <Input
             id="nomeCompleto"
             value={dados.nomeCompleto}
-            onChange={(e) => onChange({ nomeCompleto: e.target.value })}
-            placeholder="Seu nome completo"
+            onChange={(e) => onChange({ nomeCompleto: e.target.value.replace(/[^A-ZÀ-Ú\s]/gi, '').toUpperCase() })}
+            placeholder="SEU NOME COMPLETO"
           />
         </div>
 

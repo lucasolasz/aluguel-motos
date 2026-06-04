@@ -15,6 +15,7 @@ import {
 import { getMeuPerfil } from '@/services/usuario.service'
 import { getCidadesByEstado } from '@/services/ibge.service'
 import type { Cidade } from '@/services/ibge.service'
+import { validarCartaoCompleto } from '@/lib/validations'
 
 export type Step5Phase =
   | 'loading'
@@ -295,12 +296,7 @@ export function useStep5({ active }: UseStep5Args) {
     }
   }
 
-  const isCardFormValid =
-    newCardData.nome.trim().length > 0 &&
-    newCardData.numero.replace(/\D/g, '').length === 16 &&
-    newCardData.validade.replace(/\D/g, '').length === 4 &&
-    newCardData.cvv.replace(/\D/g, '').length >= 3 &&
-    newCardData.cpf.replace(/\D/g, '').length === 11
+  const isCardFormValid = validarCartaoCompleto(newCardData) === null
 
   const isAddressFormValid =
     !!newAddressData.cep && !!newAddressData.logradouro &&
