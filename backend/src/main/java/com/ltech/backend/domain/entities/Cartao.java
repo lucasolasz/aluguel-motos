@@ -7,6 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.ltech.backend.security.AesEncryptor;
+import com.ltech.backend.security.CartaoNumeroEncryptor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -54,6 +55,9 @@ public class Cartao {
 
     @Column(nullable = false)
     private String fingerprint;
+
+    @Convert(converter = CartaoNumeroEncryptor.class)
+    private String numeroEncriptado;
 
     @CreatedDate
     private LocalDateTime createdAt;

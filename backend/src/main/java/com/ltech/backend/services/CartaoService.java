@@ -62,6 +62,7 @@ public class CartaoService {
                 .validade(dto.validade())
                 .cpf(dto.cpf())
                 .fingerprint(fingerprint)
+                .numeroEncriptado(numero)
                 .build();
         return CartaoDTO.from(cartaoRepository.save(cartao));
     }

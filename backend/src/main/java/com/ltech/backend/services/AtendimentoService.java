@@ -91,10 +91,10 @@ public class AtendimentoService {
         }
 
         if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
-            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal(), cvv);
+            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotalAluguel(), cvv);
             registrarPagamento(reserva, TipoPagamento.ALUGUEL,
                     r.sucesso() ? StatusPagamento.PAGO : StatusPagamento.FALHOU,
-                    reserva.getTotal(), r);
+                    reserva.getTotalAluguel(), r);
         }
 
         if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {
@@ -323,6 +323,10 @@ public class AtendimentoService {
                 .valor(valor)
                 .gatewayTransactionId(r.gatewayTransactionId())
                 .metodo(r.metodo())
+                .netValue(r.netValue())
+                .billingType(r.billingType())
+                .invoiceUrl(r.invoiceUrl())
+                .transactionReceiptUrl(r.transactionReceiptUrl())
                 .build());
     }
 

@@ -51,11 +51,18 @@ public class Pagamento {
     @Column(nullable = false)
     private BigDecimal valor;
 
-    /** Identificador da transação no gateway. */
     private String gatewayTransactionId;
 
-    /** Forma/canal do pagamento (ex: "SIMULADO", "PIX", "CREDITO"). */
     private String metodo;
+
+    private BigDecimal netValue;
+
+    @Enumerated(EnumType.STRING)
+    private BillingType billingType;
+
+    private String invoiceUrl;
+
+    private String transactionReceiptUrl;
 
     @CreatedDate
     private LocalDateTime createdAt;

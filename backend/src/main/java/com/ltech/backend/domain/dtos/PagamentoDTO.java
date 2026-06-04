@@ -10,8 +10,12 @@ public record PagamentoDTO(
         String tipo,
         String status,
         BigDecimal valor,
+        BigDecimal netValue,
+        String billingType,
         String gatewayTransactionId,
         String metodo,
+        String invoiceUrl,
+        String transactionReceiptUrl,
         LocalDateTime createdAt) {
 
     public static PagamentoDTO from(Pagamento p) {
@@ -20,8 +24,12 @@ public record PagamentoDTO(
                 p.getTipo().name(),
                 p.getStatus().name(),
                 p.getValor(),
+                p.getNetValue(),
+                p.getBillingType() != null ? p.getBillingType().name() : null,
                 p.getGatewayTransactionId(),
                 p.getMetodo(),
+                p.getInvoiceUrl(),
+                p.getTransactionReceiptUrl(),
                 p.getCreatedAt());
     }
 }

@@ -11,6 +11,13 @@ import com.ltech.backend.domain.dtos.CompleteRegisterRequestDTO.EnderecoData;
 import com.ltech.backend.domain.dtos.asaas.AsaasCustomerListResponse;
 import com.ltech.backend.domain.dtos.asaas.AsaasCustomerRequest;
 import com.ltech.backend.domain.dtos.asaas.AsaasCustomerResponse;
+import com.ltech.backend.domain.dtos.asaas.AsaasPaymentRequest;
+import com.ltech.backend.domain.dtos.asaas.AsaasPaymentRequest.CreditCard;
+import com.ltech.backend.domain.dtos.asaas.AsaasPaymentRequest.CreditCardHolderInfo;
+import com.ltech.backend.domain.dtos.asaas.AsaasPaymentResponse;
+import com.ltech.backend.domain.entities.Cartao;
+import com.ltech.backend.domain.entities.Endereco;
+import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.Usuario;
 
 @Service
@@ -50,6 +57,79 @@ public class AsaasService {
         }
 
         return criarCliente(usuario, cpf, enderecoUsuario);
+    }
+
+    public AsaasPaymentResponse criarCobrancaCartao(Reserva reserva, String cvv) {
+        Cartao cartao = reserva.getCartao();
+        if (cartao == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Reserva não possui cartão associado");
+        }
+
+        Usuario usuario = reserva.getUsuario();
+        String customerId = usuario.getClienteAsass() != null
+                ? usuario.getClienteAsass().getCustomerId()
+                : null;
+        if (customerId == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Cliente não possui cadastro no Asaas");
+        }
+
+        String[] validadeParts = cartao.getValidade().split("/");
+        String expiryMonth = validadeParts[0];
+        String expiryYear = "20" + validadeParts[1];
+
+        Endereco endereco = usuario.getEndereco();
+        String cep = endereco != null ? endereco.getCep() : "";
+        String numeroEndereco = endereco != null ? endereco.getNumero() : "";
+
+        String description = String.format(
+                "Aluguel da %s %s. Retirada %s às %s, devolução %s às %s.",
+                reserva.getMoto().getMarca(),
+                reserva.getMoto().getModelo(),
+                reserva.getDataRetirada(),
+                reserva.getHoraRetirada(),
+                reserva.getDataDevolucao(),
+                reserva.getHoraDevolucao());
+
+        AsaasPaymentRequest request = new AsaasPaymentRequest(
+                "CREDIT_CARD",
+                customerId,
+                reserva.getTotalAluguel(),
+                reserva.getDataRetirada().toString(),
+                description,
+                new CreditCard(
+                        cartao.getNome(),
+                        cartao.getNumeroEncriptado(),
+                        expiryMonth,
+                        expiryYear,
+                        cvv),
+                new CreditCardHolderInfo(
+                        usuario.getNomeCompleto(),
+                        usuario.getUsername(),
+                        usuario.getCpf(),
+                        cep,
+                        numeroEndereco,
+                        usuario.getTelefone(),
+                        usuario.getTelefone()));
+
+        AsaasPaymentResponse response = restClient.post()
+                .uri(baseUrl + "/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .onStatus(status -> !status.is2xxSuccessful(), (req, res) -> {
+                    throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                            "Erro ao cobrar no Asaas: " + res.getStatusCode());
+                })
+                .body(AsaasPaymentResponse.class);
+
+        if (response == null || response.id() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Resposta inválida do Asaas ao cobrar");
+        }
+
+        return response;
     }
 
     private String criarCliente(Usuario usuario, String cpf, EnderecoData endereco) {
