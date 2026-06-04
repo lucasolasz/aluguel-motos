@@ -53,7 +53,7 @@ public class RegisterService {
 
         Usuario usuario = new Usuario(
                 dto.username(), encryptedPassword, true, grupoGeral,
-                dto.nomeCompleto(), dto.telefone(), dto.cpf());
+                dto.nomeCompleto(), dto.ddi(), dto.ddd(), dto.numero(), dto.cpf());
         usuario.setGenero(dto.genero());
         Usuario savedUsuario = usuarioService.save(usuario);
 

@@ -17,7 +17,11 @@ export function CustomerDataFields({ data }: CustomerDataFieldsProps) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone">Telefone</Label>
-        <Input id="phone" value={data.phone} disabled />
+        <Input
+          id="phone"
+          value={[data.ddi, data.ddd, data.numero].filter(Boolean).join(' ')}
+          disabled
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="cpf">CPF</Label>

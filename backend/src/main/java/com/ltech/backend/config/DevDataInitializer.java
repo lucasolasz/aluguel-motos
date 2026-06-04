@@ -24,12 +24,12 @@ public class DevDataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        seedUser("lucas@admin.com", "lucas123", "DESENVOLVEDORES", "Lucas Andrade", "84596566089", "(11) 99999-9999");
-        seedUser("danilo@admin.com", "admin123", "ADMINS", "Danilo", "12345678909", "(11) 98888-8888");
+        seedUser("lucas@admin.com", "lucas123", "DESENVOLVEDORES", "Lucas Andrade", "84596566089", "55", "11", "999999999");
+        seedUser("danilo@admin.com", "admin123", "ADMINS", "Danilo", "12345678909", "55", "11", "988888888");
     }
 
     private void seedUser(String username, String rawPassword, String grupoNome,
-                          String nomeCompleto, String cpf, String telefone) {
+                          String nomeCompleto, String cpf, String ddi, String ddd, String numero) {
         if (usuarioRepository.findByUsername(username).isPresent()) {
             log.debug("[DevDataInitializer] {} already exists, skipping", username);
             return;
@@ -37,7 +37,7 @@ public class DevDataInitializer implements ApplicationRunner {
         Grupo grupo = grupoRepository.findByNome(grupoNome)
                 .orElseThrow(() -> new IllegalStateException("Grupo " + grupoNome + " not found"));
         usuarioRepository.save(new Usuario(
-                username, passwordEncoder.encode(rawPassword), true, grupo, nomeCompleto, telefone, cpf));
+                username, passwordEncoder.encode(rawPassword), true, grupo, nomeCompleto, ddi, ddd, numero, cpf));
         log.info("[DevDataInitializer] Seeded: {}", username);
     }
 }

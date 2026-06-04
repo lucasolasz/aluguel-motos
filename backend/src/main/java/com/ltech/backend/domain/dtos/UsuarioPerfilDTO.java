@@ -8,7 +8,9 @@ public record UsuarioPerfilDTO(
         String id,
         String username,
         String nomeCompleto,
-        String telefone,
+        String ddi,
+        String ddd,
+        String numero,
         String cpf,
         String fotoPerfil,
         LocalDateTime createdAt) {
@@ -18,7 +20,9 @@ public record UsuarioPerfilDTO(
                 usuario.getId(),
                 usuario.getUsername(),
                 usuario.getNomeCompleto(),
-                usuario.getTelefone(),
+                usuario.getDdi(),
+                usuario.getDdd(),
+                usuario.getNumero(),
                 usuario.getCpf(),
                 usuario.getFotoPerfil(),
                 usuario.getCreatedAt());

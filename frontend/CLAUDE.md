@@ -56,7 +56,7 @@ Rota dinâmica por **step** (não por id). Estado global em `booking-page-client
 
 ## Types (lib/types.ts) — destaques
 ```ts
-UserProfile { id, username (=e-mail), nomeCompleto, telefone, cpf, numeroCnh, fotoPerfil, createdAt }
+UserProfile { id, username (=e-mail), nomeCompleto, ddi, ddd, numero, cpf, fotoPerfil, createdAt }
 Moto { ...specs, itens: string[], disponivel, destaque?, fotos: MotoFoto[], categoria }
 MotoRequest { ...specs, itens: string (CSV), categoriaId, fotos: {url,ordem,principal}[] }
 Categoria { id, nome, descricao, slug, imageUrl }

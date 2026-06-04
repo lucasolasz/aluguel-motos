@@ -116,8 +116,8 @@ public class AsaasService {
                         usuario.getCpf(),
                         cep,
                         numeroEndereco,
-                        usuario.getTelefone(),
-                        usuario.getTelefone()));
+                        buildPhone(usuario),
+                        buildPhone(usuario)));
 
         AsaasPaymentResponse response = restClient.post()
                 .uri(baseUrl + "/payments")
@@ -143,7 +143,7 @@ public class AsaasService {
                 usuario.getNomeCompleto(),
                 cpf,
                 usuario.getUsername(),
-                usuario.getTelefone(),
+                buildPhone(usuario),
                 endereco.logradouro(),
                 endereco.numero(),
                 endereco.complemento(),
@@ -169,5 +169,11 @@ public class AsaasService {
         }
 
         return response.id();
+    }
+
+    private String buildPhone(Usuario usuario) {
+        String ddd = usuario.getDdd() != null ? usuario.getDdd() : "";
+        String numero = usuario.getNumero() != null ? usuario.getNumero() : "";
+        return ddd + numero;
     }
 }

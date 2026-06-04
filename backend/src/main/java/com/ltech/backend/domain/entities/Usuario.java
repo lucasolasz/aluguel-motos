@@ -37,7 +37,9 @@ public class Usuario {
     private String password;
     private boolean enabled;
     private String nomeCompleto;
-    private String telefone;
+    private String ddi;
+    private String ddd;
+    private String numero;
     @Column(unique = true)
     @Convert(converter = AesEncryptor.class)
     private String cpf;
@@ -65,13 +67,15 @@ public class Usuario {
     }
 
     public Usuario(String username, String password, boolean enabled, Grupo grupo,
-                   String nomeCompleto, String telefone, String cpf) {
+                   String nomeCompleto, String ddi, String ddd, String numero, String cpf) {
         this.username = username;
         this.password = password;
         this.enabled = enabled;
         this.grupo = grupo;
         this.nomeCompleto = nomeCompleto;
-        this.telefone = telefone;
+        this.ddi = ddi;
+        this.ddd = ddd;
+        this.numero = numero;
         this.cpf = cpf;
     }
 }

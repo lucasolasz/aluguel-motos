@@ -34,7 +34,9 @@ public record ReservaDetalheDTO(
             String nomeCompleto,
             String email,
             String cpf,
-            String telefone) {
+            String ddi,
+            String ddd,
+            String numero) {
 
         public static ClienteDetalheDTO from(Usuario u) {
             return new ClienteDetalheDTO(
@@ -42,7 +44,9 @@ public record ReservaDetalheDTO(
                     u.getNomeCompleto(),
                     u.getUsername(),
                     u.getCpf(),
-                    u.getTelefone());
+                    u.getDdi(),
+                    u.getDdd(),
+                    u.getNumero());
         }
     }
 

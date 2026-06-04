@@ -27,7 +27,9 @@ interface Cliente {
   id: string
   username: string
   nomeCompleto: string | null
-  telefone: string | null
+  ddi: string | null
+  ddd: string | null
+  numero: string | null
   cpf: string | null
   fotoPerfil: string | null
   createdAt: string
@@ -94,7 +96,7 @@ export default function AdminClientesPage() {
                       </div>
                     </TableCell>
                     <TableCell>{cliente.username}</TableCell>
-                    <TableCell>{cliente.telefone || '-'}</TableCell>
+                    <TableCell>{[cliente.ddi, cliente.ddd, cliente.numero].filter(Boolean).join(' ') || '-'}</TableCell>
                     <TableCell>{cliente.cpf || '-'}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">

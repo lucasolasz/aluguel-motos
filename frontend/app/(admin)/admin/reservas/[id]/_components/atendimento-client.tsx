@@ -237,7 +237,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
             <p className="font-medium">{d.cliente.nomeCompleto ?? 'Cliente'}</p>
             <p className="text-muted-foreground">{d.cliente.email}</p>
             <p className="text-muted-foreground">CPF: {d.cliente.cpf ?? '—'}</p>
-            <p className="text-muted-foreground">Tel: {d.cliente.telefone ?? '—'}</p>
+            <p className="text-muted-foreground">Tel: {[d.cliente.ddi, d.cliente.ddd, d.cliente.numero].filter(Boolean).join(' ') || '—'}</p>
           </div>
           <div>
             <p className="font-medium">{r.moto.nome}</p>

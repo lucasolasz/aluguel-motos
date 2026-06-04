@@ -13,7 +13,9 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [form, setForm] = useState({
     nomeCompleto: '',
-    telefone: '',
+    ddi: '',
+    ddd: '',
+    numero: '',
     fotoPerfil: '',
   })
   const [loading, setLoading] = useState(true)
@@ -26,7 +28,9 @@ export default function ProfilePage() {
         setProfile(p)
         setForm({
           nomeCompleto: p.nomeCompleto ?? '',
-          telefone: p.telefone ?? '',
+          ddi: p.ddi ?? '',
+          ddd: p.ddd ?? '',
+          numero: p.numero ?? '',
           fotoPerfil: p.fotoPerfil ?? '',
         })
       })
@@ -115,11 +119,30 @@ export default function ProfilePage() {
               <p className="text-xs text-muted-foreground">E-mail não pode ser alterado</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="telefone">Telefone</Label>
+              <Label htmlFor="ddi">DDI</Label>
               <Input
-                id="telefone"
-                value={form.telefone}
-                onChange={(e) => handleChange('telefone', e.target.value)}
+                id="ddi"
+                placeholder="55"
+                value={form.ddi}
+                onChange={(e) => handleChange('ddi', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ddd">DDD</Label>
+              <Input
+                id="ddd"
+                placeholder="11"
+                value={form.ddd}
+                onChange={(e) => handleChange('ddd', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="numero">Número</Label>
+              <Input
+                id="numero"
+                placeholder="999999999"
+                value={form.numero}
+                onChange={(e) => handleChange('numero', e.target.value)}
               />
             </div>
             <div className="space-y-2">

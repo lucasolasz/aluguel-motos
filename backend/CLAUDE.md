@@ -19,7 +19,7 @@ services/storage/ StorageService (interface), S3StorageService, StorageException
 ### Usuario
 ```
 id (String UUID), username (= e-mail), password, enabled
-nomeCompleto, telefone, cpf (unique), numeroCnh
+nomeCompleto, ddi, ddd, numero, cpf (unique), numeroCnh
 fotoPerfil (String URL), createdAt, grupo (ManyToOne)
 ```
 > NÃO tem campo `email` — o `username` É o e-mail.

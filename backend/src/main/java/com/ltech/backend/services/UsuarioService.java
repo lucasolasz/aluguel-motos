@@ -37,7 +37,9 @@ public class UsuarioService {
                         org.springframework.http.HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         if (dto.nomeCompleto() != null) usuario.setNomeCompleto(dto.nomeCompleto());
-        if (dto.telefone() != null) usuario.setTelefone(dto.telefone());
+        if (dto.ddi() != null) usuario.setDdi(dto.ddi());
+        if (dto.ddd() != null) usuario.setDdd(dto.ddd());
+        if (dto.numero() != null) usuario.setNumero(dto.numero());
         if (dto.fotoPerfil() != null) usuario.setFotoPerfil(dto.fotoPerfil());
 
         return this.usuarioRepository.save(usuario);

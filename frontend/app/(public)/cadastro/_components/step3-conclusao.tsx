@@ -11,7 +11,7 @@ import { CnhFields, validarCnh, type CnhValues } from '@/components/cnh-fields'
 import { MaskedInput } from './masked-input'
 import { registrarCompleto } from '@/services/auth.service'
 import { validarCartaoCompleto, validarEnderecoCompleto } from '@/lib/validations'
-import { montarTelefone, type DadosPessoais } from './dados-form'
+import { type DadosPessoais } from './dados-form'
 import { AddressFields, EMPTY_ADDRESS, type AddressData } from '@/components/address-fields'
 
 const EMPTY_CNH: CnhValues = {
@@ -77,7 +77,9 @@ export function Step3Conclusao({ dados }: Step3Props) {
         username: dados.email,
         password: dados.senha,
         nomeCompleto: dados.nomeCompleto,
-        telefone: montarTelefone(dados),
+        ddi: dados.ddi.replace(/\D/g, ''),
+        ddd: dados.ddd.replace(/\D/g, ''),
+        numero: dados.celular.replace(/\D/g, ''),
         cpf: dados.cpf.replace(/\D/g, ''),
         genero: dados.genero as 'FEMININO' | 'MASCULINO' | 'OUTRO',
         cnh: {

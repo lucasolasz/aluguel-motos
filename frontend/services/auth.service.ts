@@ -5,7 +5,9 @@ export interface CompleteRegisterData {
   username: string
   password: string
   nomeCompleto: string
-  telefone: string
+  ddi: string
+  ddd: string
+  numero: string
   cpf: string
   genero: 'FEMININO' | 'MASCULINO' | 'OUTRO'
   cnh: {

@@ -16,7 +16,9 @@ public record CompleteRegisterRequestDTO(
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{10,}$",
                 message = "Senha não atende aos requisitos de segurança") String password,
         @NotBlank String nomeCompleto,
-        @NotBlank String telefone,
+        @NotBlank String ddi,
+        @NotBlank String ddd,
+        @NotBlank String numero,
         @NotBlank String cpf,
         @NotNull Genero genero,
 

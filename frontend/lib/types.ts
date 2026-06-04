@@ -112,7 +112,9 @@ export interface UserProfile {
   id: string
   username: string  // é o e-mail do usuário
   nomeCompleto: string | null
-  telefone: string | null
+  ddi: string | null
+  ddd: string | null
+  numero: string | null
   cpf: string | null
   fotoPerfil: string | null
   createdAt: string

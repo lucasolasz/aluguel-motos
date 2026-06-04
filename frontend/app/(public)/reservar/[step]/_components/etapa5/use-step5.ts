@@ -26,7 +26,9 @@ export type Step5Phase =
 
 export interface CustomerData {
   fullName: string
-  phone: string
+  ddi: string
+  ddd: string
+  numero: string
   cpf: string
 }
 
@@ -64,7 +66,7 @@ interface UseStep5Args {
 
 export function useStep5({ active }: UseStep5Args) {
   const [customerData, setCustomerData] = useState<CustomerData>({
-    fullName: '', phone: '', cpf: '',
+    fullName: '', ddi: '', ddd: '', numero: '', cpf: '',
   })
   const [profileLoaded, setProfileLoaded] = useState(false)
   const [step5Phase, setStep5Phase] = useState<Step5Phase>('loading')
@@ -110,7 +112,9 @@ export function useStep5({ active }: UseStep5Args) {
       .then(([profile, cards, addresses]) => {
         setCustomerData({
           fullName: profile.nomeCompleto ?? '',
-          phone: profile.telefone ?? '',
+          ddi: profile.ddi ?? '',
+          ddd: profile.ddd ?? '',
+          numero: profile.numero ?? '',
           cpf: profile.cpf ?? '',
         })
         setUserCards(cards)
