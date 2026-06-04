@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { MaskedInput } from './masked-input'
 import { PasswordChecklist } from './password-checklist'
 import { validarDados, type DadosPessoais } from './dados-form'
+import { checkEmailAvailable, checkCpfAvailable } from '@/services/auth.service'
 import type { Genero } from '@/lib/types'
 
 const NACIONALIDADES = ['Brasil', 'Argentina', 'Portugal', 'Estados Unidos', 'Outra']
@@ -27,14 +29,37 @@ interface Step1Props {
 }
 
 export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Props) {
-  function handleNext() {
+  const [checking, setChecking] = useState(false)
+
+  async function handleNext() {
     const err = validarDados(dados)
     if (err) {
       setError(err)
       return
     }
+    setChecking(true)
     setError('')
-    onNext()
+    try {
+      const [emailOk, cpfOk] = await Promise.all([
+        checkEmailAvailable(dados.email),
+        checkCpfAvailable(dados.cpf),
+      ])
+      if (!emailOk) {
+        setError('E-mail já cadastrado.')
+        setChecking(false)
+        return
+      }
+      if (!cpfOk) {
+        setError('CPF já cadastrado.')
+        setChecking(false)
+        return
+      }
+      setChecking(false)
+      onNext()
+    } catch {
+      setError('Erro ao verificar dados. Tente novamente.')
+      setChecking(false)
+    }
   }
 
   return (
@@ -257,7 +282,9 @@ export function Step1Dados({ dados, onChange, onNext, error, setError }: Step1Pr
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="flex justify-end">
-        <Button onClick={handleNext}>Continuar</Button>
+        <Button onClick={handleNext} disabled={checking}>
+          {checking ? 'Verificando...' : 'Continuar'}
+        </Button>
       </div>
     </div>
   )

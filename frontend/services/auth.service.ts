@@ -37,3 +37,20 @@ export async function login(username: string, password: string): Promise<void> {
   const data = await res.json()
   setToken(data.token)
 }
+
+/** Verifica se o e-mail já está cadastrado. */
+export async function checkEmailAvailable(email: string): Promise<boolean> {
+  const res = await fetch(`${API_URL}/auth/check-email?email=${encodeURIComponent(email)}`)
+  if (!res.ok) return true
+  const data = await res.json()
+  return data.available
+}
+
+/** Verifica se o CPF já está cadastrado. */
+export async function checkCpfAvailable(cpf: string): Promise<boolean> {
+  const digits = cpf.replace(/\D/g, '')
+  const res = await fetch(`${API_URL}/auth/check-cpf?cpf=${encodeURIComponent(digits)}`)
+  if (!res.ok) return true
+  const data = await res.json()
+  return data.available
+}

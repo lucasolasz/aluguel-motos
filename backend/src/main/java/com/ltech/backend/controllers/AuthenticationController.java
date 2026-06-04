@@ -1,15 +1,18 @@
 package com.ltech.backend.controllers;
 
 import java.net.URI;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -110,5 +113,17 @@ public class AuthenticationController {
                 saved.isEnabled(),
                 saved.getCreatedAt(),
                 new RegisterResponseDTO.GrupoDTO(grupoGeral.getNome())));
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+        boolean available = !this.usuarioService.existsByUsername(email);
+        return ResponseEntity.ok(Map.of("available", available));
+    }
+
+    @GetMapping("/check-cpf")
+    public ResponseEntity<Map<String, Boolean>> checkCpf(@RequestParam String cpf) {
+        boolean available = !this.usuarioService.existsByCpf(cpf);
+        return ResponseEntity.ok(Map.of("available", available));
     }
 }
