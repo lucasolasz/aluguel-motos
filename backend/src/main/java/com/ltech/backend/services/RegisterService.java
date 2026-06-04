@@ -10,6 +10,7 @@ import com.ltech.backend.domain.dtos.CompleteRegisterRequestDTO;
 import com.ltech.backend.domain.dtos.CreateCartaoDTO;
 import com.ltech.backend.domain.dtos.CreateCnhDTO;
 import com.ltech.backend.domain.dtos.CreateEnderecoCobrancaDTO;
+import com.ltech.backend.domain.dtos.CreateEnderecoDTO;
 import com.ltech.backend.domain.dtos.LoginResponseDTO;
 import com.ltech.backend.domain.entities.Grupo;
 import com.ltech.backend.domain.entities.Usuario;
@@ -28,6 +29,7 @@ public class RegisterService {
     private final CnhService cnhService;
     private final CartaoService cartaoService;
     private final EnderecoCobrancaService enderecoCobrancaService;
+    private final EnderecoService enderecoService;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
 
@@ -50,6 +52,18 @@ public class RegisterService {
                 dto.nomeCompleto(), dto.telefone(), dto.cpf());
         usuario.setGenero(dto.genero());
         Usuario savedUsuario = usuarioService.save(usuario);
+
+        enderecoService.criarEndereco(
+                new CreateEnderecoDTO(
+                        dto.enderecoUsuario().cep(),
+                        dto.enderecoUsuario().logradouro(),
+                        dto.enderecoUsuario().numero(),
+                        dto.enderecoUsuario().semNumero(),
+                        dto.enderecoUsuario().complemento(),
+                        dto.enderecoUsuario().estado(),
+                        dto.enderecoUsuario().cidade(),
+                        dto.enderecoUsuario().bairro()),
+                savedUsuario);
 
         cnhService.salvarCnh(
                 new CreateCnhDTO(

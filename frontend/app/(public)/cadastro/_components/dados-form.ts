@@ -1,6 +1,7 @@
 import type { Genero } from '@/lib/types'
 import { isSenhaForte } from './password-checklist'
-import { validarCpf, validarNomeCompleto, validarDdi, validarDdd } from '@/lib/validations'
+import { validarCpf, validarNomeCompleto, validarDdi, validarDdd, validarEnderecoCompleto } from '@/lib/validations'
+import type { AddressData } from '@/components/address-fields'
 
 export interface DadosPessoais {
   nomeCompleto: string
@@ -16,6 +17,7 @@ export interface DadosPessoais {
   confirmarEmail: string
   senha: string
   confirmarSenha: string
+  endereco: AddressData
 }
 
 export const EMPTY_DADOS: DadosPessoais = {
@@ -32,6 +34,16 @@ export const EMPTY_DADOS: DadosPessoais = {
   confirmarEmail: '',
   senha: '',
   confirmarSenha: '',
+  endereco: {
+    cep: '',
+    logradouro: '',
+    numero: '',
+    semNumero: false,
+    complemento: '',
+    estado: '',
+    cidade: '',
+    bairro: '',
+  },
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -54,6 +66,8 @@ export function validarDados(d: DadosPessoais): string | null {
   if (d.email !== d.confirmarEmail) return 'A confirmação do e-mail não confere.'
   if (!isSenhaForte(d.senha)) return 'A senha não atende aos requisitos.'
   if (d.senha !== d.confirmarSenha) return 'A confirmação da senha não confere.'
+  const enderecoErr = validarEnderecoCompleto(d.endereco)
+  if (enderecoErr) return enderecoErr
   return null
 }
 

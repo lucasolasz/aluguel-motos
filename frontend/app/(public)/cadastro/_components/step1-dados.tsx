@@ -14,6 +14,8 @@ import { IoMdInformationCircle } from "react-icons/io";
 import { validarDados, type DadosPessoais } from "./dados-form";
 import { MaskedInput } from "./masked-input";
 import { PasswordChecklist } from "./password-checklist";
+import { AddressFields } from "@/components/address-fields";
+import { MapPin } from "lucide-react";
 
 interface Step1Props {
   dados: DadosPessoais;
@@ -229,6 +231,18 @@ export function Step1Dados({
             />
           </div>
         </div>
+      </section>
+
+      {/* Endereço */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-muted-foreground" />
+          Endereço
+        </h2>
+        <AddressFields
+          value={dados.endereco}
+          onChange={(patch) => onChange({ endereco: { ...dados.endereco, ...patch } })}
+        />
       </section>
 
       {/* Senha */}

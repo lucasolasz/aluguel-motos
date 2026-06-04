@@ -251,6 +251,41 @@ export interface CreateEnderecoCobranca {
   bairro: string
 }
 
+export interface Endereco {
+  id: string
+  cep: string
+  logradouro: string
+  numero: string | null
+  semNumero: boolean
+  complemento: string | null
+  estado: string
+  cidade: string
+  bairro: string
+  createdAt: string
+}
+
+export interface CreateEndereco {
+  cep: string
+  logradouro: string
+  numero: string
+  semNumero: boolean
+  complemento: string
+  estado: string
+  cidade: string
+  bairro: string
+}
+
+export interface UpdateEndereco {
+  cep?: string
+  logradouro?: string
+  numero?: string
+  semNumero?: boolean
+  complemento?: string
+  estado?: string
+  cidade?: string
+  bairro?: string
+}
+
 export interface Moto {
   id: string;
   nome: string;

@@ -22,7 +22,8 @@ public record CompleteRegisterRequestDTO(
 
         @NotNull @Valid CnhData cnh,
         @NotNull @Valid CartaoData cartao,
-        @NotNull @Valid EnderecoData endereco) {
+        @NotNull @Valid EnderecoData endereco,
+        @NotNull @Valid EnderecoData enderecoUsuario) {
 
     public record CnhData(
             @NotBlank String rg,

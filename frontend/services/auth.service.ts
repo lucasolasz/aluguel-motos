@@ -32,6 +32,16 @@ export interface CompleteRegisterData {
     cidade: string
     bairro: string
   }
+  enderecoUsuario: {
+    cep: string
+    logradouro: string
+    numero: string
+    semNumero: boolean
+    complemento: string
+    estado: string
+    cidade: string
+    bairro: string
+  }
 }
 
 async function extractErrorMessage(res: Response, defaultMessage: string): Promise<string> {

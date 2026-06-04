@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { User, Calendar, FileText, Settings, CreditCard } from 'lucide-react'
+import { User, Calendar, FileText, Settings, CreditCard, MapPin } from 'lucide-react'
 
 const navigation = [
   { name: 'Minhas Reservas', href: '/conta/reservas', icon: Calendar },
   { name: 'Meu Perfil', href: '/conta/perfil', icon: User },
+  { name: 'Endereço', href: '/conta/enderecos', icon: MapPin },
   { name: 'CNH', href: '/conta/documentos', icon: FileText },
   { name: 'Meus Cartões', href: '/conta/cartoes', icon: CreditCard },
   { name: 'Configurações', href: '/conta/configuracoes', icon: Settings },
