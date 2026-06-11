@@ -63,6 +63,10 @@ export function PriceSummary({
   const diariaFinal = isIlimitada ? diariaIlimitada : diariaEconomica
 
   const dailyRate = diariaFinal * effectiveDays
+  const diariaBaseTotal = diariaEconomica * effectiveDays
+  const franquiaIlimitadaTotal = isIlimitada ? (diariaEconomica * 0.25 * effectiveDays) : 0
+  const kmPorDia = 100
+  const kmTotal = kmPorDia * effectiveDays
   const insuranceCost = seguro ? seguro.precoPorDia * effectiveDays : 0
   const accessoriesCost = acessorios.reduce(
     (total, item) => total + item.acessorio.precoPorDia * item.quantity * effectiveDays,
@@ -70,7 +74,6 @@ export function PriceSummary({
   )
   const lavagemCost = lavagem ? lavagem.valor : 0
   const subtotal = dailyRate + insuranceCost + accessoriesCost + lavagemCost
-  const descontoPct = config ? Math.round((1 - fDesc) * 100) : 0
   const fotoPrincipal =
     moto.fotos.find((f) => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
 
@@ -128,41 +131,58 @@ export function PriceSummary({
 
         <Separator />
 
-        {/* Franquia de km */}
+        {/* Grupo */}
         <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">Grupo</p>
+          <p className="text-sm text-muted-foreground">{moto.categoria.nome}</p>
+          <p className="text-sm text-muted-foreground">{moto.nome}</p>
+        </div>
+
+        <Separator />
+
+        {/* Diárias */}
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">Diárias</p>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">
-              {isIlimitada ? 'Quilometragem ilimitada' : 'Quilometragem econômica'}
+            <span className="text-sm text-muted-foreground">
+              {effectiveDays} diária(s) x {formatCurrency(diariaEconomica)}
             </span>
             <span className="text-sm font-semibold text-foreground">
-              {formatCurrency(dailyRate)}
+              {formatCurrency(diariaBaseTotal)}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {formatCurrency(diariaFinal)}/dia × {effectiveDays} {effectiveDays === 1 ? 'dia' : 'dias'}
-          </p>
-          {descontoPct > 0 && (
-            <p className="text-xs text-green-600 font-medium">
-              {descontoPct}% de desconto aplicado ({effectiveDays} {effectiveDays === 1 ? 'dia' : 'dias'})
-            </p>
-          )}
-          {fSaz !== 1 && (
-            <p className="text-xs text-muted-foreground">
-              Fator sazonal: {fSaz > 1 ? '+' : ''}{Math.round((fSaz - 1) * 100)}%
-            </p>
-          )}
-          {isIlimitada && (
-            <p className="text-xs text-muted-foreground">
-              +25% quilometragem ilimitada
-            </p>
-          )}
+        </div>
+
+        <Separator />
+
+        {/* Franquia de km */}
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">Franquia de km</p>
+          <div className="flex items-center justify-between">
+            {isIlimitada ? (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  {effectiveDays} diária(s) x {formatCurrency(diariaEconomica * 0.25)}
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {formatCurrency(franquiaIlimitadaTotal)}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  {effectiveDays} diária(s) x {kmPorDia}km = {kmTotal}km
+                </span>
+                <span className="text-sm font-semibold text-foreground">Incluso(s)</span>
+              </>
+            )}
+          </div>
         </div>
 
         <Separator />
 
         {seguro && (
           <>
-            <Separator />
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-foreground">{seguro.nome}</span>
