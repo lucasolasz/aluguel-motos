@@ -98,6 +98,14 @@ public class Reserva {
 
     private BigDecimal total;
 
+    @Enumerated(EnumType.STRING)
+    @Default
+    private TipoQuilometragem tipoQuilometragem = TipoQuilometragem.ECONOMICA;
+
+    private BigDecimal fatorDesconto;
+
+    private BigDecimal fatorSazonal;
+
     @Default
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReservaAcessorioItem> acessorios = new ArrayList<>();

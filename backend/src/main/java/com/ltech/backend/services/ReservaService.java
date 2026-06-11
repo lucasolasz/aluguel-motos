@@ -25,6 +25,7 @@ import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.ReservaAcessorioItem;
 import com.ltech.backend.domain.entities.Seguro;
 import com.ltech.backend.domain.entities.StatusReserva;
+import com.ltech.backend.domain.entities.TipoQuilometragem;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.AcessorioRepository;
 import com.ltech.backend.domain.repositories.CartaoRepository;
@@ -49,6 +50,7 @@ public class ReservaService {
     private CartaoRepository cartaoRepository;
     private LocalRepository localRepository;
     private LavagemServicoRepository lavagemServicoRepository;
+    private PrecificacaoService precificacaoService;
 
     public List<ReservaDTO> listarMinhasReservas(String usuarioId) {
         return reservaRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId)
@@ -75,6 +77,17 @@ public class ReservaService {
 
         long dias = Math.max(1, ChronoUnit.DAYS.between(dto.dataRetirada(), dto.dataDevolucao()));
 
+        TipoQuilometragem tipoKm = TipoQuilometragem.valueOf(
+                dto.tipoQuilometragem() != null && !dto.tipoQuilometragem().isBlank()
+                        ? dto.tipoQuilometragem()
+                        : "ECONOMICA");
+
+        var configPrecificacao = precificacaoService.obterConfigAtual();
+        BigDecimal fatorDesc = precificacaoService.fatorDesconto((int) dias, configPrecificacao);
+        BigDecimal fatorSaz = precificacaoService.fatorSazonal(dto.dataRetirada(), configPrecificacao);
+        BigDecimal diariaEfetiva = precificacaoService.calcularDiariaEfetiva(
+                moto.getPrecoPorDia(), (int) dias, dto.dataRetirada(), tipoKm);
+
         List<Reserva> conflitos = reservaRepository.findOverlapping(
                 moto.getId(), dto.dataRetirada(), dto.dataDevolucao());
         if (!conflitos.isEmpty()) {
@@ -92,7 +105,7 @@ public class ReservaService {
             totalSeguro = seguro.getPrecoPorDia().multiply(BigDecimal.valueOf(dias));
         }
 
-        BigDecimal totalAluguel = moto.getPrecoPorDia().multiply(BigDecimal.valueOf(dias));
+        BigDecimal totalAluguel = diariaEfetiva.multiply(BigDecimal.valueOf(dias));
         BigDecimal totalAcessorios = BigDecimal.ZERO;
 
         Cartao cartao = null;
@@ -133,8 +146,11 @@ public class ReservaService {
                 .localRetirada(localRetirada)
                 .localDevolucao(localDevolucao)
                 .totalDias((int) dias)
-                .precoPorDia(moto.getPrecoPorDia())
+                .precoPorDia(diariaEfetiva)
                 .caucao(moto.getCaucao())
+                .tipoQuilometragem(tipoKm)
+                .fatorDesconto(fatorDesc)
+                .fatorSazonal(fatorSaz)
                 .totalAluguel(totalAluguel)
                 .totalSeguro(totalSeguro)
                 .totalAcessorios(BigDecimal.ZERO)

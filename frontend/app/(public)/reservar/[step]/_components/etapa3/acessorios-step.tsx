@@ -9,7 +9,7 @@ interface AcessoriosStepProps {
   acessorios: Acessorio[]
   selected: { acessorioId: string; quantity: number }[]
   onUpdate: (acessorioId: string, quantity: number) => void
-  precoPorDia: number
+  precoEfetivo: number
   days: number
   selectedQuilometragem: QuilometragemPlano
   onQuilometragemChange: (plano: QuilometragemPlano) => void
@@ -23,7 +23,7 @@ export function AcessoriosStep({
   acessorios,
   selected,
   onUpdate,
-  precoPorDia,
+  precoEfetivo,
   days,
   selectedQuilometragem,
   onQuilometragemChange,
@@ -55,7 +55,7 @@ export function AcessoriosStep({
       <div>
         <h3 className="mb-3 text-base font-semibold text-foreground">Quilometragem</h3>
         <KilometragemSelector
-          precoPorDia={precoPorDia}
+          precoEfetivo={precoEfetivo}
           days={days}
           selected={selectedQuilometragem}
           onSelect={onQuilometragemChange}

@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import type { Moto, Seguro, Acessorio, LavagemServico, Local } from '@/lib/types'
 import type { QuilometragemPlano } from './etapa3/_components/kilometragem-selector'
-import { formatCurrency, formatDate } from '@/lib/data'
+import type { PrecificacaoConfig } from '@/lib/pricing'
+import { fatorDesconto, fatorSazonal } from '@/lib/pricing'
+import { formatCurrency } from '@/lib/data'
 
 interface PriceSummaryProps {
   moto: Moto
@@ -20,6 +22,7 @@ interface PriceSummaryProps {
   horaDevolucao?: string
   localRetirada?: Local | null
   localDevolucao?: Local | null
+  precificacaoConfig?: PrecificacaoConfig | null
 }
 
 export function PriceSummary({
@@ -35,6 +38,7 @@ export function PriceSummary({
   horaDevolucao,
   localRetirada,
   localDevolucao,
+  precificacaoConfig,
 }: PriceSummaryProps) {
   const formatDateLong = (date: Date, hora?: string) => {
     const label = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
@@ -42,16 +46,31 @@ export function PriceSummary({
   }
 
   const isIlimitada = quilometragem === 'ilimitada'
-  const dailyRate = isIlimitada
-    ? (moto.precoPorDia + 20) * days
-    : moto.precoPorDia * days
-  const insuranceCost = seguro ? seguro.precoPorDia * days : 0
+
+  const config = precificacaoConfig
+  const effectiveDays = days > 0 ? days : 1
+  const dataRetirada = pickupDate ?? new Date()
+
+  const fDesc = config ? fatorDesconto(effectiveDays, config) : 1
+  const fSaz = config ? fatorSazonal(dataRetirada, config) : 1
+
+  const precoBaseComDesconto = config
+    ? moto.precoPorDia * fDesc * fSaz
+    : moto.precoPorDia
+
+  const diariaEconomica = Math.round(precoBaseComDesconto * 100) / 100
+  const diariaIlimitada = Math.round(diariaEconomica * 1.25 * 100) / 100
+  const diariaFinal = isIlimitada ? diariaIlimitada : diariaEconomica
+
+  const dailyRate = diariaFinal * effectiveDays
+  const insuranceCost = seguro ? seguro.precoPorDia * effectiveDays : 0
   const accessoriesCost = acessorios.reduce(
-    (total, item) => total + item.acessorio.precoPorDia * item.quantity * days,
+    (total, item) => total + item.acessorio.precoPorDia * item.quantity * effectiveDays,
     0
   )
   const lavagemCost = lavagem ? lavagem.valor : 0
   const subtotal = dailyRate + insuranceCost + accessoriesCost + lavagemCost
+  const descontoPct = config ? Math.round((1 - fDesc) * 100) : 0
   const fotoPrincipal =
     moto.fotos.find((f) => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
 
@@ -112,16 +131,31 @@ export function PriceSummary({
         {/* Franquia de km */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">Franquia de km</span>
             <span className="text-sm font-semibold text-foreground">
-              {isIlimitada ? formatCurrency(dailyRate) : 'Incluso'}
+              {isIlimitada ? 'Quilometragem ilimitada' : 'Quilometragem econômica'}
+            </span>
+            <span className="text-sm font-semibold text-foreground">
+              {formatCurrency(dailyRate)}
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            {isIlimitada
-              ? `Quilometragem ilimitada — ${formatCurrency(moto.precoPorDia + 20)}/dia × ${days} ${days === 1 ? 'dia' : 'dias'}`
-              : `Quilometragem econômica — ${formatCurrency(moto.precoPorDia)}/dia × ${days} ${days === 1 ? 'dia' : 'dias'}`}
+            {formatCurrency(diariaFinal)}/dia × {effectiveDays} {effectiveDays === 1 ? 'dia' : 'dias'}
           </p>
+          {descontoPct > 0 && (
+            <p className="text-xs text-green-600 font-medium">
+              {descontoPct}% de desconto aplicado ({effectiveDays} {effectiveDays === 1 ? 'dia' : 'dias'})
+            </p>
+          )}
+          {fSaz !== 1 && (
+            <p className="text-xs text-muted-foreground">
+              Fator sazonal: {fSaz > 1 ? '+' : ''}{Math.round((fSaz - 1) * 100)}%
+            </p>
+          )}
+          {isIlimitada && (
+            <p className="text-xs text-muted-foreground">
+              +25% quilometragem ilimitada
+            </p>
+          )}
         </div>
 
         <Separator />

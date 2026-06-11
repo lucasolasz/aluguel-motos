@@ -33,6 +33,9 @@ public record ReservaDTO(
         BigDecimal totalAcessorios,
         BigDecimal totalLavagem,
         BigDecimal total,
+        String tipoQuilometragem,
+        BigDecimal fatorDesconto,
+        BigDecimal fatorSazonal,
         String cartaoNumeroMascarado,
         LocalDateTime createdAt) {
 
@@ -140,6 +143,9 @@ public record ReservaDTO(
                 reserva.getTotalAcessorios(),
                 reserva.getTotalLavagem(),
                 reserva.getTotal(),
+                reserva.getTipoQuilometragem() != null ? reserva.getTipoQuilometragem().name() : null,
+                reserva.getFatorDesconto(),
+                reserva.getFatorSazonal(),
                 cartaoNumeroMascarado,
                 reserva.getCreatedAt());
     }
