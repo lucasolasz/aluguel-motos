@@ -99,8 +99,7 @@ public class Reserva {
     private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
-    @Default
-    private TipoQuilometragem tipoQuilometragem = TipoQuilometragem.ECONOMICA;
+    private TipoQuilometragem tipoQuilometragem;
 
     private BigDecimal fatorDesconto;
 

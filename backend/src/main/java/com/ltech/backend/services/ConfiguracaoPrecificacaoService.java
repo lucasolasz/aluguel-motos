@@ -2,8 +2,10 @@ package com.ltech.backend.services;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ltech.backend.domain.dtos.ConfiguracaoPrecificacaoDTO;
 import com.ltech.backend.domain.dtos.ConfiguracaoPrecificacaoRequestDTO;
@@ -63,20 +65,10 @@ public class ConfiguracaoPrecificacaoService {
 
     public ConfiguracaoPrecificacao obterOuCriarDefault() {
         List<ConfiguracaoPrecificacao> configs = repository.findAll();
-        if (!configs.isEmpty()) {
-            return configs.get(0);
+        if (configs.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Configuração de precificação não encontrada. Execute o data.sql.");
         }
-
-        ConfiguracaoPrecificacao config = ConfiguracaoPrecificacao.builder().build();
-        config = repository.save(config);
-
-        List<DescontoTier> tiersDefault = List.of(
-                DescontoTier.builder().min(1).max(2).desconto(0).ordem(0).configuracao(config).build(),
-                DescontoTier.builder().min(3).max(4).desconto(10).ordem(1).configuracao(config).build(),
-                DescontoTier.builder().min(5).max(7).desconto(20).ordem(2).configuracao(config).build(),
-                DescontoTier.builder().min(8).max(999).desconto(30).ordem(3).configuracao(config).build());
-
-        config.getDescontoTiers().addAll(tiersDefault);
-        return repository.save(config);
+        return configs.get(0);
     }
 }

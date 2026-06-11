@@ -31,56 +31,39 @@ public class ConfiguracaoPrecificacao {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Builder.Default
-    private BigDecimal janeiro = BigDecimal.ONE;
+    private BigDecimal janeiro;
 
-    @Builder.Default
-    private BigDecimal fevereiro = BigDecimal.ONE;
+    private BigDecimal fevereiro;
 
-    @Builder.Default
-    private BigDecimal marco = BigDecimal.ONE;
+    private BigDecimal marco;
 
-    @Builder.Default
-    private BigDecimal abril = BigDecimal.ONE;
+    private BigDecimal abril;
 
-    @Builder.Default
-    private BigDecimal maio = BigDecimal.ONE;
+    private BigDecimal maio;
 
-    @Builder.Default
-    private BigDecimal junho = BigDecimal.ONE;
+    private BigDecimal junho;
 
-    @Builder.Default
-    private BigDecimal julho = new BigDecimal("0.75");
+    private BigDecimal julho;
 
-    @Builder.Default
-    private BigDecimal agosto = BigDecimal.ONE;
+    private BigDecimal agosto;
 
-    @Builder.Default
-    private BigDecimal setembro = BigDecimal.ONE;
+    private BigDecimal setembro;
 
-    @Builder.Default
-    private BigDecimal outubro = BigDecimal.ONE;
+    private BigDecimal outubro;
 
-    @Builder.Default
-    private BigDecimal novembro = BigDecimal.ONE;
+    private BigDecimal novembro;
 
-    @Builder.Default
-    private BigDecimal dezembro = new BigDecimal("1.25");
+    private BigDecimal dezembro;
 
-    @Builder.Default
-    private int carnavalInicioMes = 2;
+    private int carnavalInicioMes;
 
-    @Builder.Default
-    private int carnavalInicioDia = 10;
+    private int carnavalInicioDia;
 
-    @Builder.Default
-    private int carnavalFimMes = 2;
+    private int carnavalFimMes;
 
-    @Builder.Default
-    private int carnavalFimDia = 17;
+    private int carnavalFimDia;
 
-    @Builder.Default
-    private BigDecimal carnavalFator = new BigDecimal("1.40");
+    private BigDecimal carnavalFator;
 
     @Default
     @OneToMany(mappedBy = "configuracao", cascade = CascadeType.ALL, orphanRemoval = true)
