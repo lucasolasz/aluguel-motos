@@ -27,10 +27,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,26 +43,32 @@ public class Reserva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id")
+    @ToString.Exclude
     private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "moto_id")
+    @ToString.Exclude
     private Moto moto;
 
     @ManyToOne
     @JoinColumn(name = "seguro_id")
+    @ToString.Exclude
     private Seguro seguro;
 
     @ManyToOne
     @JoinColumn(name = "cartao_id", nullable = true)
+    @ToString.Exclude
     private Cartao cartao;
 
     @ManyToOne
     @JoinColumn(name = "lavagem_servico_id", nullable = true)
+    @ToString.Exclude
     private LavagemServico lavagemServico;
 
     private LocalDate dataRetirada;
@@ -72,10 +81,12 @@ public class Reserva {
 
     @ManyToOne
     @JoinColumn(name = "local_retirada_id")
+    @ToString.Exclude
     private Local localRetirada;
 
     @ManyToOne
     @JoinColumn(name = "local_devolucao_id")
+    @ToString.Exclude
     private Local localDevolucao;
 
     private int totalDias;
@@ -107,6 +118,7 @@ public class Reserva {
 
     @Default
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private List<ReservaAcessorioItem> acessorios = new ArrayList<>();
 
     // ─── Atendimento presencial (retirada / devolução) ───────────────────────────

@@ -15,10 +15,13 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,15 +30,18 @@ public class ReservaAcessorioItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "reserva_id")
     @JsonIgnore
+    @ToString.Exclude
     private Reserva reserva;
 
     @ManyToOne
     @JoinColumn(name = "acessorio_id")
+    @ToString.Exclude
     private Acessorio acessorio;
 
     private int quantidade;

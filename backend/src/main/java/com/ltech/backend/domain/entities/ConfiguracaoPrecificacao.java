@@ -17,10 +17,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +32,7 @@ public class ConfiguracaoPrecificacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private UUID id;
 
     private BigDecimal janeiro;
@@ -68,5 +72,6 @@ public class ConfiguracaoPrecificacao {
     @Default
     @OneToMany(mappedBy = "configuracao", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
+    @ToString.Exclude
     private List<DescontoTier> descontoTiers = new ArrayList<>();
 }
