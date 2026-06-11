@@ -58,5 +58,30 @@
     "name": "storage.s3.ssl.trust-all",
     "type": "java.lang.String",
     "description": "Configuração para confiar em todos os certificados SSL do serviço de armazenamento usando o GARAGE S3. Exemplo: true ou false"
+  },
+  {
+    "name": "security.encryption.key",
+    "type": "java.lang.String",
+    "description": "Chave de criptografia para o cpf"
+  },
+  {
+    "name": "asaas.api-key",
+    "type": "java.lang.String",
+    "description": "API key para utilizar o asaas"
+  },
+  {
+    "name": "asaas.base-url",
+    "type": "java.lang.String",
+    "description": "Define a URL de API do Asaas"
+  },
+  {
+    "name": "security.card-encryption.key",
+    "type": "java.lang.String",
+    "description": "Chave de criptografia para os cartões"
+  },
+  {
+    "name": "security.hsts.enabled",
+    "type": "java.lang.String",
+    "description": "Utilizado para desligar a verificacao de certificados. Utilizei no computador do tribunal"
   }
 ]}
