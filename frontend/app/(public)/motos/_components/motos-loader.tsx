@@ -6,6 +6,8 @@ import { MotosList, type SearchPeriod } from './motos-list'
 import { mapMotos, type MotoDTO } from '@/lib/mappers'
 import { API_URL } from '@/lib/config'
 import type { Moto, Categoria } from '@/lib/types'
+import type { PrecificacaoConfig } from '@/lib/pricing'
+import { getPrecificacao } from '@/services/precificacao.service'
 
 interface MotosLoaderProps {
   categorias: Categoria[]
@@ -14,6 +16,7 @@ interface MotosLoaderProps {
 export function MotosLoader({ categorias }: MotosLoaderProps) {
   const [motos, setMotos] = useState<Moto[]>([])
   const [period, setPeriod] = useState<SearchPeriod | null>(null)
+  const [precificacaoConfig, setPrecificacaoConfig] = useState<PrecificacaoConfig | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -38,13 +41,19 @@ export function MotosLoader({ categorias }: MotosLoaderProps) {
     }
     const suffix = qs.toString() ? `?${qs.toString()}` : ''
 
-    fetch(`${API_URL}/api/motos${suffix}`)
+    const fetchMotos = fetch(`${API_URL}/api/motos${suffix}`)
       .then((r) => {
         if (!r.ok) throw new Error('Erro ao buscar motos')
         return r.json()
       })
-      .then((data: MotoDTO[]) => {
-        setMotos(mapMotos(data))
+      .then((data: MotoDTO[]) => mapMotos(data))
+
+    const fetchConfig = p ? getPrecificacao().catch(() => null) : Promise.resolve(null)
+
+    Promise.all([fetchMotos, fetchConfig])
+      .then(([motosData, configData]) => {
+        setMotos(motosData)
+        setPrecificacaoConfig(configData)
         setLoading(false)
       })
       .catch(() => {
@@ -61,5 +70,5 @@ export function MotosLoader({ categorias }: MotosLoaderProps) {
     )
   }
 
-  return <MotosList motos={motos} categorias={categorias} period={period} />
+  return <MotosList motos={motos} categorias={categorias} period={period} precificacaoConfig={precificacaoConfig} />
 }

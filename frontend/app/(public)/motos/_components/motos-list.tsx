@@ -13,6 +13,8 @@ import { SlidersHorizontal, Grid, List, CalendarDays } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { MotoCard } from '@/components/moto-card'
 import type { Moto, Categoria } from '@/lib/types'
+import type { PrecificacaoConfig } from '@/lib/pricing'
+import { calcularDiariaEfetiva } from '@/lib/pricing'
 
 export interface SearchPeriod {
   pickup: string
@@ -27,9 +29,10 @@ interface MotosListProps {
   motos: Moto[]
   categorias: Categoria[]
   period: SearchPeriod | null
+  precificacaoConfig: PrecificacaoConfig | null
 }
 
-export function MotosList({ motos, categorias, period }: MotosListProps) {
+export function MotosList({ motos, categorias, period, precificacaoConfig }: MotosListProps) {
   const router = useRouter()
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -50,6 +53,17 @@ export function MotosList({ motos, categorias, period }: MotosListProps) {
     }
   }, [period])
 
+  const rentalDays = useMemo(() => {
+    if (!period?.pickup || !period?.return) return 0
+    const diff = new Date(period.return).getTime() - new Date(period.pickup).getTime()
+    return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+  }, [period])
+
+  const pickupDate = useMemo(() => {
+    if (!period?.pickup) return null
+    return new Date(period.pickup)
+  }, [period])
+
   const filteredMotos = useMemo(() => {
     let filtered = [...motos]
 
@@ -59,10 +73,26 @@ export function MotosList({ motos, categorias, period }: MotosListProps) {
 
     switch (sortBy) {
       case 'price-asc':
-        filtered.sort((a, b) => a.precoPorDia - b.precoPorDia)
+        filtered.sort((a, b) => {
+          const precoA = precificacaoConfig && rentalDays > 0 && pickupDate
+            ? calcularDiariaEfetiva(a.precoPorDia, rentalDays, pickupDate, 'economica', precificacaoConfig)
+            : a.precoPorDia
+          const precoB = precificacaoConfig && rentalDays > 0 && pickupDate
+            ? calcularDiariaEfetiva(b.precoPorDia, rentalDays, pickupDate, 'economica', precificacaoConfig)
+            : b.precoPorDia
+          return precoA - precoB
+        })
         break
       case 'price-desc':
-        filtered.sort((a, b) => b.precoPorDia - a.precoPorDia)
+        filtered.sort((a, b) => {
+          const precoA = precificacaoConfig && rentalDays > 0 && pickupDate
+            ? calcularDiariaEfetiva(a.precoPorDia, rentalDays, pickupDate, 'economica', precificacaoConfig)
+            : a.precoPorDia
+          const precoB = precificacaoConfig && rentalDays > 0 && pickupDate
+            ? calcularDiariaEfetiva(b.precoPorDia, rentalDays, pickupDate, 'economica', precificacaoConfig)
+            : b.precoPorDia
+          return precoB - precoA
+        })
         break
       case 'name':
         filtered.sort((a, b) => a.nome.localeCompare(b.nome))
@@ -73,7 +103,7 @@ export function MotosList({ motos, categorias, period }: MotosListProps) {
     }
 
     return filtered
-  }, [motos, selectedCategory, sortBy])
+  }, [motos, selectedCategory, sortBy, precificacaoConfig, rentalDays, pickupDate])
 
   return (
     <>
@@ -163,12 +193,19 @@ export function MotosList({ motos, categorias, period }: MotosListProps) {
               : 'flex flex-col gap-4'
           }
         >
-          {filteredMotos.map((moto) => (
-            <MotoCard
-              key={moto.id}
-              moto={moto}
-            />
-          ))}
+          {filteredMotos.map((moto) => {
+            const diariaEfetiva = precificacaoConfig && rentalDays > 0 && pickupDate
+              ? calcularDiariaEfetiva(moto.precoPorDia, rentalDays, pickupDate, 'economica', precificacaoConfig)
+              : undefined
+            return (
+              <MotoCard
+                key={moto.id}
+                moto={moto}
+                diariaEfetiva={diariaEfetiva}
+                hidePrice={!period}
+              />
+            )
+          })}
         </div>
       ) : (
         <div className="py-12 text-center">
