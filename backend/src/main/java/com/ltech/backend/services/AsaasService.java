@@ -101,7 +101,7 @@ public class AsaasService {
         AsaasPaymentRequest request = new AsaasPaymentRequest(
                 "CREDIT_CARD",
                 customerId,
-                reserva.getTotalAluguel(),
+                reserva.getTotal(),
                 reserva.getDataRetirada().toString(),
                 description,
                 new CreditCard(
