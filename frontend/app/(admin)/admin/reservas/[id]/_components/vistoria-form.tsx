@@ -149,6 +149,7 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
             id={`km-${tipo}`}
             type="number"
             inputMode="numeric"
+            max={999999}
             value={km}
             onChange={(e) => setKm(e.target.value)}
             placeholder="Ex: 12340"
