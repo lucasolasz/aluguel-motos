@@ -23,6 +23,7 @@ interface PriceSummaryProps {
   localRetirada?: Local | null
   localDevolucao?: Local | null
   precificacaoConfig?: PrecificacaoConfig | null
+  currentStep: number
 }
 
 export function PriceSummary({
@@ -39,6 +40,7 @@ export function PriceSummary({
   localRetirada,
   localDevolucao,
   precificacaoConfig,
+  currentStep,
 }: PriceSummaryProps) {
   const formatDateLong = (date: Date, hora?: string) => {
     const label = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
@@ -73,7 +75,9 @@ export function PriceSummary({
     0
   )
   const lavagemCost = lavagem ? lavagem.valor : 0
-  const subtotal = dailyRate + insuranceCost + accessoriesCost + lavagemCost
+  const showSeguro = currentStep >= 2
+  const showEtapa3 = currentStep >= 3
+  const subtotal = dailyRate + (showSeguro ? insuranceCost : 0) + (showEtapa3 ? accessoriesCost + lavagemCost : 0)
   const fotoPrincipal =
     moto.fotos.find((f) => f.principal)?.url || moto.fotos[0]?.url || '/images/placeholder-moto.jpg'
 
@@ -153,36 +157,37 @@ export function PriceSummary({
           </div>
         </div>
 
-        <Separator />
-
-        {/* Franquia de km */}
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-foreground">Franquia de km</p>
-          <div className="flex items-center justify-between">
-            {isIlimitada ? (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  {effectiveDays} diária(s) x {formatCurrency(diariaEconomica * 0.25)}
-                </span>
-                <span className="text-sm font-semibold text-foreground">
-                  {formatCurrency(franquiaIlimitadaTotal)}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  {effectiveDays} diária(s) x {kmPorDia}km = {kmTotal}km
-                </span>
-                <span className="text-sm font-semibold text-foreground">Incluso(s)</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <Separator />
-
-        {seguro && (
+        {showEtapa3 && (
           <>
+            <Separator />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">Franquia de km</p>
+              <div className="flex items-center justify-between">
+                {isIlimitada ? (
+                  <>
+                    <span className="text-sm text-muted-foreground">
+                      {effectiveDays} diária(s) x {formatCurrency(diariaEconomica * 0.25)}
+                    </span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {formatCurrency(franquiaIlimitadaTotal)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm text-muted-foreground">
+                      {effectiveDays} diária(s) x {kmPorDia}km = {kmTotal}km
+                    </span>
+                    <span className="text-sm font-semibold text-foreground">Incluso(s)</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {showSeguro && seguro && (
+          <>
+            <Separator />
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-foreground">{seguro.nome}</span>
@@ -191,13 +196,13 @@ export function PriceSummary({
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                {formatCurrency(seguro.precoPorDia)}/dia × {days} {days === 1 ? 'dia' : 'dias'}
+                {formatCurrency(seguro.precoPorDia)}/dia × {effectiveDays} {effectiveDays === 1 ? 'dia' : 'dias'}
               </p>
             </div>
           </>
         )}
 
-        {acessorios.map((item) => (
+        {showEtapa3 && acessorios.map((item) => (
           <div key={item.acessorio.id}>
             <Separator />
             <div className="space-y-1 mt-4">
@@ -206,18 +211,17 @@ export function PriceSummary({
                   {item.acessorio.nome} ×{item.quantity}
                 </span>
                 <span className="text-sm font-semibold text-foreground">
-                  {formatCurrency(item.acessorio.precoPorDia * item.quantity * days)}
+                  {formatCurrency(item.acessorio.precoPorDia * item.quantity * effectiveDays)}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                {formatCurrency(item.acessorio.precoPorDia)}/dia × {item.quantity}{' '}
-                {item.quantity === 1 ? 'un' : 'un'} × {days} {days === 1 ? 'dia' : 'dias'}
+                {formatCurrency(item.acessorio.precoPorDia)}/dia × {item.quantity} un × {effectiveDays} {effectiveDays === 1 ? 'dia' : 'dias'}
               </p>
             </div>
           </div>
         ))}
 
-        {lavagem && (
+        {showEtapa3 && lavagem && (
           <>
             <Separator />
             <div className="space-y-1">

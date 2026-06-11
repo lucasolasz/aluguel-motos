@@ -463,6 +463,7 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
                   localRetirada={locais.find((l) => l.id === localRetiradaId) ?? null}
                   localDevolucao={locais.find((l) => l.id === localDevolucaoId) ?? null}
                   precificacaoConfig={precificacaoConfig}
+                  currentStep={currentStep}
                 />
               </div>
             </div>
