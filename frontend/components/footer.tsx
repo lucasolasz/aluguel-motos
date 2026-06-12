@@ -1,17 +1,18 @@
-import Link from 'next/link'
-import { HomeLink } from './home-link'
+import Link from "next/link";
+import { HomeLink } from "./home-link";
+import Image from "next/image";
 
 const links = [
-  { name: 'Como Funciona', href: '/como-funciona' },
-  { name: 'Contato', href: '/contato' },
-  { name: 'Categorias', href: '/categorias' },
-  { name: 'Motos', href: '/motos' },
-]
+  { name: "Como Funciona", href: "/como-funciona" },
+  { name: "Contato", href: "/contato" },
+  { name: "Categorias", href: "/categorias" },
+  { name: "Motos", href: "/motos" },
+];
 
 const legalLinks = [
-  { name: 'Termos de Uso', href: '/termos-de-uso' },
-  { name: 'Portal da Privacidade', href: '/portal-da-privacidade' },
-]
+  { name: "Termos de Uso", href: "/termos-de-uso" },
+  { name: "Portal da Privacidade", href: "/portal-da-privacidade" },
+];
 
 export function Footer() {
   return (
@@ -20,10 +21,20 @@ export function Footer() {
         {/* Brand */}
         <div className="mb-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <span className="text-lg font-bold text-primary-foreground">M</span>
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary">
+              <Image
+                src="/images/logo_redonda2.png"
+                alt="Rio Ride Rental"
+                width={36}
+                height={36}
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="text-xl font-bold tracking-tight">Rio Ride Rental</span>
+
+            <span className="text-xl font-bold tracking-tight">
+              Rio Ride Rental
+            </span>
           </Link>
         </div>
 
@@ -45,12 +56,18 @@ export function Footer() {
 
         {/* Endereço */}
         <address className="not-italic mb-8 space-y-1">
-          <p className="text-sm font-semibold text-foreground">RIO MULTIMARCAS OFICINA DAS MOTOS</p>
-          <p className="text-sm text-muted-foreground">
-            Estr. de Camorim, n° 628 - Jacarepaguá, Rio de Janeiro - RJ, 22780-070
+          <p className="text-sm font-semibold text-foreground">
+            RIO MULTIMARCAS OFICINA DAS MOTOS
           </p>
           <p className="text-sm text-muted-foreground">
-            <a href="tel:+5521998884703" className="transition-colors hover:text-foreground">
+            Estr. de Camorim, n° 628 - Jacarepaguá, Rio de Janeiro - RJ,
+            22780-070
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <a
+              href="tel:+5521998884703"
+              className="transition-colors hover:text-foreground"
+            >
               (21) 99888-4703
             </a>
           </p>
@@ -70,10 +87,11 @@ export function Footer() {
             ))}
           </nav>
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Rio Ride Rental. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} Rio Ride Rental. Todos os direitos
+            reservados.
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }
