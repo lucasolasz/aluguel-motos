@@ -20,6 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   NIVEL_COMBUSTIVEL_LABELS,
+  type CriarVistoriaPayload,
   type NivelCombustivel,
   type ReservaDetalhe,
   type TipoVistoria,
@@ -29,22 +30,47 @@ import { deleteUploads, uploadVistoriaFoto } from "@/services/upload.service";
 import { cn } from "@/lib/utils";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { ImageDialog } from "./image-dialog";
+
+export interface CollectResult {
+  payload: CriarVistoriaPayload;
+  uploadedKeys: string[];
+}
+
+export interface VistoriaFormHandle {
+  /** Valida campos, faz upload das fotos pendentes e devolve o payload pronto.
+   *  Retorna null se a validação falhar (erros ficam inline no form). */
+  collect: () => Promise<CollectResult | null>;
+}
 
 interface VistoriaFormProps {
   reservaId: string;
   tipo: TipoVistoria;
-  onDone: (d: ReservaDetalhe) => void;
+  /** 'persist' (default): salva sozinho via botão. 'deferred': o pai persiste via ref.collect(). */
+  mode?: "persist" | "deferred";
+  onDone?: (d: ReservaDetalhe) => void;
   onPendingChange?: (count: number) => void;
+  onCompleteChange?: (complete: boolean) => void;
 }
 
-export default function VistoriaForm({
-  reservaId,
-  tipo,
-  onDone,
-  onPendingChange,
-}: VistoriaFormProps) {
+const VistoriaForm = forwardRef<VistoriaFormHandle, VistoriaFormProps>(function VistoriaForm(
+  {
+    reservaId,
+    tipo,
+    mode = "persist",
+    onDone,
+    onPendingChange,
+    onCompleteChange,
+  },
+  ref,
+) {
   const [km, setKm] = useState("");
   const [nivel, setNivel] = useState<NivelCombustivel | "">("");
   const [observacoes, setObservacoes] = useState("");
@@ -67,6 +93,10 @@ export default function VistoriaForm({
   useEffect(() => {
     onPendingChange?.(pendingFiles.length);
   }, [pendingFiles.length, onPendingChange]);
+
+  useEffect(() => {
+    onCompleteChange?.(!!km && !!nivel && fotos.length > 0);
+  }, [km, nivel, fotos.length, onCompleteChange]);
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -98,14 +128,19 @@ export default function VistoriaForm({
     setFotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const submit = async () => {
+  const validar = (): boolean => {
     setErro(null);
-
     let hasErrors = false;
-    if (!km)              { setKmErro(true);    hasErrors = true; }
-    if (!nivel)           { setNivelErro(true); hasErrors = true; }
+    if (!km)                { setKmErro(true);    hasErrors = true; }
+    if (!nivel)             { setNivelErro(true); hasErrors = true; }
     if (fotos.length === 0) { setFotosErro(true); hasErrors = true; }
-    if (hasErrors) return;
+    return !hasErrors;
+  };
+
+  // Faz upload das fotos pendentes e monta o payload. Em falha de upload, faz rollback
+  // dos objetos já enviados e devolve null. Não persiste a vistoria.
+  const collect = async (): Promise<CollectResult | null> => {
+    if (!validar()) return null;
 
     let finalFotos = [...fotos];
     const uploadedKeys: string[] = [];
@@ -113,7 +148,6 @@ export default function VistoriaForm({
     if (pendingFiles.length > 0) {
       setUploading(true);
       setUploadProgress({ current: 0, total: pendingFiles.length });
-
       try {
         const fotosNovas: string[] = [];
         for (let i = 0; i < pendingFiles.length; i++) {
@@ -133,26 +167,38 @@ export default function VistoriaForm({
         // Rollback: remove do storage os uploads parciais (evita orfaos)
         await deleteUploads(uploadedKeys);
         setErro(e instanceof Error ? e.message : "Falha no upload de fotos");
-        return;
+        return null;
       } finally {
         setUploading(false);
         setUploadProgress(null);
       }
     }
 
-    setSaving(true);
-    try {
-      const d = await adminRegistrarVistoria(reservaId, {
+    return {
+      payload: {
         tipo,
         kmRegistrado: km ? Number(km) : null,
         nivelCombustivel: nivel || null,
         observacoes: observacoes || null,
         fotos: finalFotos,
-      });
-      onDone(d);
+      },
+      uploadedKeys,
+    };
+  };
+
+  useImperativeHandle(ref, () => ({ collect }));
+
+  const submit = async () => {
+    const collected = await collect();
+    if (!collected) return;
+
+    setSaving(true);
+    try {
+      const d = await adminRegistrarVistoria(reservaId, collected.payload);
+      onDone?.(d);
     } catch (e) {
       // Rollback: upload ok mas persistencia falhou — remove os objetos enviados (evita orfaos)
-      await deleteUploads(uploadedKeys);
+      await deleteUploads(collected.uploadedKeys);
       setErro(e instanceof Error ? e.message : "Falha ao salvar vistoria");
     } finally {
       setSaving(false);
@@ -281,13 +327,15 @@ export default function VistoriaForm({
 
       {erro && <p className="text-sm text-destructive">{erro}</p>}
 
-      <Button onClick={submit} disabled={saving || uploading}>
-        {saving
-          ? "Salvando..."
-          : uploading
-            ? "Enviando fotos..."
-            : "Registrar vistoria"}
-      </Button>
+      {mode === "persist" && (
+        <Button onClick={submit} disabled={saving || uploading}>
+          {saving
+            ? "Salvando..."
+            : uploading
+              ? "Enviando fotos..."
+              : "Registrar vistoria"}
+        </Button>
+      )}
 
       <Dialog
         open={uploadProgress !== null}
@@ -320,4 +368,6 @@ export default function VistoriaForm({
       </Dialog>
     </div>
   );
-}
+});
+
+export default VistoriaForm;

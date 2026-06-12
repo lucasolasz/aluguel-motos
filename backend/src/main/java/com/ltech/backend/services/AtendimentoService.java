@@ -80,15 +80,8 @@ public class AtendimentoService {
         if (!Boolean.TRUE.equals(reserva.getCnhVerificada())) {
             throw unprocessable("Verifique a CNH antes de cobrar");
         }
-        if (vistoriaRepository.findFirstByReservaIdAndTipoOrderByCreatedAtDesc(
-                reserva.getId(), TipoVistoria.SAIDA).isEmpty()) {
-            throw unprocessable("Registre a vistoria de saída antes de cobrar");
-        }
-        Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
-                .orElse(null);
-        if (contrato == null || contrato.getAssinadoEm() == null) {
-            throw unprocessable("Assine o contrato antes de cobrar");
-        }
+        // Vistoria e contrato são tratados só no Concluir retirada (contrato agora é opcional),
+        // então não são pré-condição da cobrança — só a CNH é exigida aqui.
 
         if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
             PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal(), cvv);
@@ -202,11 +195,7 @@ public class AtendimentoService {
                 reserva.getId(), TipoVistoria.SAIDA).isEmpty()) {
             throw unprocessable("Vistoria de saída ainda não foi registrada");
         }
-        Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
-                .orElse(null);
-        if (contrato == null || contrato.getAssinadoEm() == null) {
-            throw unprocessable("Contrato ainda não foi assinado");
-        }
+        // Contrato assinado/enviado é opcional — apresentação ao cliente é confirmada no front.
         if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
             throw unprocessable("Aluguel ainda não foi pago");
         }

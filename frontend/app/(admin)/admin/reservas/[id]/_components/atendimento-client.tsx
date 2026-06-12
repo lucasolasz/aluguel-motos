@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -41,12 +41,14 @@ import {
   adminConcluirRetirada,
   adminConcluirDevolucao,
   adminAcertarCaucao,
+  adminRegistrarVistoria,
 } from '@/services/reservas.service'
+import { deleteUploads } from '@/services/upload.service'
 import {
   NIVEL_COMBUSTIVEL_LABELS,
   type ReservaDetalhe,
 } from '@/lib/atendimento-types'
-import VistoriaForm from './vistoria-form'
+import VistoriaForm, { type VistoriaFormHandle } from './vistoria-form'
 import ContratoSection from './contrato-section'
 import { ImageDialog } from './image-dialog'
 
@@ -137,6 +139,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [caucaoSimOpen, setCaucaoSimOpen] = useState(false)
   const [caucaoSimStatus, setCaucaoSimStatus] = useState<'loading' | 'success'>('loading')
   const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
+  const [vistoriaSaidaCompleta, setVistoriaSaidaCompleta] = useState(false)
+  const vistoriaRef = useRef<VistoriaFormHandle>(null)
   const [contratoPending, setContratoPending] = useState(false)
   const [voltarDialogOpen, setVoltarDialogOpen] = useState(false)
   const [cnhLocalChecked, setCnhLocalChecked] = useState(false)
@@ -219,7 +223,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const pagoOk = pagoAluguel && pagoCaucao
   const vistoriaSaida = d.vistorias.find((v) => v.tipo === 'SAIDA')
   const contratoOk = !!d.contrato?.assinadoEm
-  const retiradaLocalOk = cnhLocalChecked && pagoOk && !!vistoriaSaida && contratoOk && contratoApresentado
+  const retiradaLocalOk = cnhLocalChecked && pagoOk && vistoriaSaidaCompleta && contratoApresentado
 
   const vistoriaRetorno = d.vistorias.find((v) => v.tipo === 'RETORNO')
   const pagamentoCaucao = d.pagamentos.find((p) => p.tipo === 'CAUCAO')
@@ -247,12 +251,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
     const erros: string[] = []
     if (!cnhLocalChecked)
       erros.push('CNH não verificada — verifique a CNH antes de cobrar.')
-    if (!vistoriaSaida)
-      erros.push('Vistoria de saída não registrada — registre a vistoria antes de cobrar.')
-    if (!contratoApresentado)
-      erros.push('Contrato não apresentado — marque como apresentado antes de cobrar.')
-    if (!contratoOk)
-      erros.push('Contrato não assinado — assine o contrato antes de cobrar.')
+    if (!vistoriaSaidaCompleta)
+      erros.push('Vistoria de saída não preenchida — preencha km, combustível e ao menos 1 foto antes de cobrar.')
     if (erros.length > 0) {
       setValidationErrors(erros)
       return
@@ -265,12 +265,10 @@ export default function AtendimentoClient({ id }: { id: string }) {
     const erros: string[] = []
     if (!cnhLocalChecked)
       erros.push('CNH não verificada — marque como verificado antes de concluir.')
-    if (!vistoriaSaida)
-      erros.push('Vistoria de saída não registrada — preencha e salve a vistoria.')
+    if (!vistoriaSaidaCompleta)
+      erros.push('Vistoria de saída incompleta — preencha km, combustível e ao menos 1 foto.')
     if (!contratoApresentado)
       erros.push("Contrato não apresentado — clique em 'Imprimir' e marque como apresentado.")
-    if (!contratoOk)
-      erros.push('Contrato não assinado — envie o contrato assinado ou capture a assinatura digital.')
     if (!pagoAluguel)
       erros.push('Pagamento do aluguel não realizado.')
     if (!pagoCaucao)
@@ -280,8 +278,31 @@ export default function AtendimentoClient({ id }: { id: string }) {
       return
     }
     setValidationErrors([])
-    await run(() => adminConcluirRetirada(id))
-    router.push('/admin/reservas')
+    setErro(null)
+    setAcao(true)
+    try {
+      // Persiste a vistoria de saída só agora (upload das fotos + POST). O guard evita
+      // re-POST (422) caso uma tentativa anterior já tenha persistido a vistoria.
+      if (!vistoriaSaida) {
+        const collected = await vistoriaRef.current?.collect()
+        if (!collected) {
+          setAcao(false)
+          return
+        }
+        try {
+          setD(await adminRegistrarVistoria(id, collected.payload))
+        } catch (e) {
+          await deleteUploads(collected.uploadedKeys)
+          throw e
+        }
+      }
+      setD(await adminConcluirRetirada(id))
+      router.push('/admin/reservas')
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha ao concluir retirada')
+    } finally {
+      setAcao(false)
+    }
   }
 
   return (
@@ -372,7 +393,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
           <StepCard
             icon={ClipboardCheck}
             title="2. Vistoria de saída"
-            done={!!vistoriaSaida}
+            done={!!vistoriaSaida || vistoriaSaidaCompleta}
           >
             {vistoriaSaida ? (
               <div className="text-sm text-muted-foreground">
@@ -387,28 +408,35 @@ export default function AtendimentoClient({ id }: { id: string }) {
                 </div>
               </div>
             ) : (
-              <VistoriaForm reservaId={id} tipo="SAIDA" onDone={setD} onPendingChange={onVistoriaPendingChange} />
+              <VistoriaForm
+                ref={vistoriaRef}
+                mode="deferred"
+                reservaId={id}
+                tipo="SAIDA"
+                onPendingChange={onVistoriaPendingChange}
+                onCompleteChange={setVistoriaSaidaCompleta}
+              />
             )}
           </StepCard>
 
           <StepCard
             icon={FileSignature}
             title="3. Contrato"
-            done={contratoOk && contratoApresentado}
+            done={contratoApresentado}
           >
-            {contratoOk ? (
-              <p className="text-sm text-muted-foreground">
-                Contrato assinado ({d.contrato?.tipoAssinatura}) em{' '}
-                {d.contrato?.assinadoEm ? formatDate(d.contrato.assinadoEm) : ''}.
+            {contratoOk && (
+              <p className="mb-3 text-sm text-muted-foreground">
+                Contrato enviado ({d.contrato?.tipoAssinatura}) em{' '}
+                {d.contrato?.assinadoEm ? formatDate(d.contrato.assinadoEm) : ''}. Você pode
+                reenviar abaixo se precisar.
               </p>
-            ) : (
-              <ContratoSection
-                detalhe={d}
-                onDone={setD}
-                onPendingChange={onContratoPendingChange}
-                onPrint={() => setContratoApresentado(true)}
-              />
             )}
+            <ContratoSection
+              detalhe={d}
+              onDone={setD}
+              onPendingChange={onContratoPendingChange}
+              onPrint={() => setContratoApresentado(true)}
+            />
             <div className="mt-4 border-t pt-4">
               <ToggleConfirmButton
                 checked={contratoApresentado}
