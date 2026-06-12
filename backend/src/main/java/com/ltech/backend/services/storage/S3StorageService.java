@@ -3,6 +3,8 @@ package com.ltech.backend.services.storage;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -74,6 +76,12 @@ public class S3StorageService implements StorageService {
     public UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId, String subfolder) {
         ValidatedFile valid = validator.validate(file);
         return store(file, buildParentKey(prefix, parentId, subfolder, valid.extension()), valid.contentType());
+    }
+
+    @Override
+    public UploadResultDTO uploadReservaArquivo(MultipartFile file, UUID reservaId, String subfolder, String timestamp) {
+        ValidatedFile valid = validator.validate(file);
+        return store(file, buildRetiradaKey(reservaId, subfolder, timestamp, valid.extension()), valid.contentType());
     }
 
     @Override
@@ -165,8 +173,23 @@ public class S3StorageService implements StorageService {
         return "%s/%s/%s/%s.%s".formatted(sanitizePrefix(prefix), parentId, subfolder, UUID.randomUUID(), extension);
     }
 
+    /** Chave de retirada agrupada por timestamp: {@code reservas/{reservaId}{ts}/{subfolder}/{uuid}{ts}.ext}. */
+    private String buildRetiradaKey(UUID reservaId, String subfolder, String timestamp, String extension) {
+        String ts = sanitizeTimestamp(timestamp);
+        return "reservas/%s%s/%s/%s%s.%s".formatted(
+                reservaId, ts, sanitizePrefix(subfolder), UUID.randomUUID(), ts, extension);
+    }
+
     private String sanitizePrefix(String prefix) {
         return StringUtils.hasText(prefix) ? prefix.replaceAll("^/+|/+$", "") : DEFAULT_PREFIX;
+    }
+
+    /** Mantém só dígitos do timestamp do cliente; se vier vazio, gera {@code ddMMyyyyHHmmss}. */
+    private String sanitizeTimestamp(String timestamp) {
+        String digits = timestamp == null ? "" : timestamp.replaceAll("\\D", "");
+        return StringUtils.hasText(digits)
+                ? digits
+                : LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
     }
 
     // ─── URL pública ────────────────────────────────────────────────────────────

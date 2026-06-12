@@ -34,15 +34,17 @@ public class UploadController {
     @PostMapping(value = "/vistorias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UploadResultDTO> uploadVistoria(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("reservaId") UUID reservaId) {
-        return ResponseEntity.ok(storageService.upload(file, "reservas", reservaId, "fotos_vistoria"));
+            @RequestParam("reservaId") UUID reservaId,
+            @RequestParam(value = "timestamp", required = false) String timestamp) {
+        return ResponseEntity.ok(storageService.uploadReservaArquivo(file, reservaId, "vistoria", timestamp));
     }
 
     @PostMapping(value = "/contratos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UploadResultDTO> uploadContrato(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("reservaId") UUID reservaId) {
-        return ResponseEntity.ok(storageService.upload(file, "reservas", reservaId, "contrato"));
+            @RequestParam("reservaId") UUID reservaId,
+            @RequestParam(value = "timestamp", required = false) String timestamp) {
+        return ResponseEntity.ok(storageService.uploadReservaArquivo(file, reservaId, "contrato", timestamp));
     }
 
     @DeleteMapping

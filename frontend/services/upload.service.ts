@@ -37,10 +37,14 @@ async function uploadComReserva(
   endpoint: string,
   file: File,
   reservaId: string,
+  extra?: Record<string, string>,
 ): Promise<UploadResult> {
   const form = new FormData();
   form.append("file", file);
   form.append("reservaId", reservaId);
+  if (extra) {
+    for (const [key, value] of Object.entries(extra)) form.append(key, value);
+  }
 
   const res = await fetch(`${API_URL}${endpoint}`, {
     method: "POST",
@@ -62,12 +66,20 @@ async function uploadComReserva(
   return res.json();
 }
 
-export async function uploadVistoriaFoto(file: File, reservaId: string): Promise<UploadResult> {
-  return uploadComReserva("/api/uploads/vistorias", file, reservaId);
+export async function uploadVistoriaFoto(
+  file: File,
+  reservaId: string,
+  timestamp: string,
+): Promise<UploadResult> {
+  return uploadComReserva("/api/uploads/vistorias", file, reservaId, { timestamp });
 }
 
-export async function uploadContratoArquivo(file: File, reservaId: string): Promise<UploadResult> {
-  return uploadComReserva("/api/uploads/contratos", file, reservaId);
+export async function uploadContratoArquivo(
+  file: File,
+  reservaId: string,
+  timestamp: string,
+): Promise<UploadResult> {
+  return uploadComReserva("/api/uploads/contratos", file, reservaId, { timestamp });
 }
 
 export async function deleteUpload(key: string): Promise<void> {

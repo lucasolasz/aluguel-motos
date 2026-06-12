@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Printer, Upload, Loader2, X, FileText } from 'lucide-react'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatBucketTimestamp, formatCurrency, formatDate } from '@/lib/utils'
 import { uploadContratoArquivo, deleteUploads } from '@/services/upload.service'
 import { adminSalvarContrato } from '@/services/reservas.service'
 import { NIVEL_COMBUSTIVEL_LABELS, type ReservaDetalhe } from '@/lib/atendimento-types'
@@ -74,14 +74,31 @@ function gerarHtmlContrato(d: ReservaDetalhe): string {
   </body></html>`
 }
 
+export interface ContratoCollectResult {
+  url: string
+  uploadedKey: string
+}
+
+export interface ContratoSectionHandle {
+  /** Faz upload do contrato selecionado (sem persistir) e devolve a URL pública e a key.
+   *  Retorna null se nenhum arquivo foi selecionado (erro inline). O pai persiste via adminSalvarContrato. */
+  collect: (timestamp: string) => Promise<ContratoCollectResult | null>
+}
+
 interface ContratoSectionProps {
   detalhe: ReservaDetalhe
   onDone: (d: ReservaDetalhe) => void
+  /** 'persist' (default): sobe e salva sozinho via botão. 'deferred': o pai sobe via ref.collect(). */
+  mode?: 'persist' | 'deferred'
   onPendingChange?: (hasPending: boolean) => void
+  onCompleteChange?: (hasFile: boolean) => void
   onPrint?: () => void
 }
 
-export default function ContratoSection({ detalhe, onDone, onPendingChange, onPrint }: ContratoSectionProps) {
+const ContratoSection = forwardRef<ContratoSectionHandle, ContratoSectionProps>(function ContratoSection(
+  { detalhe, onDone, mode = 'persist', onPendingChange, onCompleteChange, onPrint },
+  ref,
+) {
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -90,6 +107,10 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange, onPr
   useEffect(() => {
     onPendingChange?.(!!pendingFile)
   }, [pendingFile, onPendingChange])
+
+  useEffect(() => {
+    onCompleteChange?.(!!pendingFile)
+  }, [pendingFile, onCompleteChange])
 
   const handleFileSelected = (files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -116,7 +137,7 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange, onPr
     setBusy(true)
     let uploadedKey: string | null = null
     try {
-      const up = await uploadContratoArquivo(pendingFile.file, detalhe.reserva.id)
+      const up = await uploadContratoArquivo(pendingFile.file, detalhe.reserva.id, formatBucketTimestamp())
       uploadedKey = up.key
       const d = await adminSalvarContrato(detalhe.reserva.id, {
         tipoAssinatura: 'MANUAL',
@@ -133,6 +154,28 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange, onPr
       setBusy(false)
     }
   }
+
+  // Modo deferred: só faz upload e devolve url+key. Quem persiste (adminSalvarContrato) e
+  // faz rollback em falha posterior é o pai (atendimento-client), no "Concluir retirada".
+  const collect = async (timestamp: string): Promise<ContratoCollectResult | null> => {
+    if (!pendingFile) {
+      setErro('Selecione o contrato assinado antes de concluir.')
+      return null
+    }
+    setErro(null)
+    setBusy(true)
+    try {
+      const up = await uploadContratoArquivo(pendingFile.file, detalhe.reserva.id, timestamp)
+      return { url: up.url, uploadedKey: up.key }
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha ao enviar contrato')
+      return null
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useImperativeHandle(ref, () => ({ collect }))
 
   const isImage = pendingFile?.file.type.startsWith('image/')
 
@@ -210,14 +253,16 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange, onPr
             </div>
 
             <div className="flex gap-2">
-              <Button
-                type="button"
-                disabled={busy}
-                onClick={enviarManual}
-              >
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Salvar contrato
-              </Button>
+              {mode === 'persist' && (
+                <Button
+                  type="button"
+                  disabled={busy}
+                  onClick={enviarManual}
+                >
+                  {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Salvar contrato
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -234,4 +279,6 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange, onPr
       {erro && <p className="text-sm text-destructive">{erro}</p>}
     </div>
   )
-}
+})
+
+export default ContratoSection

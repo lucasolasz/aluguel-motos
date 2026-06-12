@@ -33,7 +33,7 @@ import {
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { IMaskInput } from 'react-imask'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatBucketTimestamp, formatCurrency, formatDate } from '@/lib/utils'
 import {
   adminGetReservaDetalhe,
   adminVerificarCnh,
@@ -42,6 +42,7 @@ import {
   adminConcluirDevolucao,
   adminAcertarCaucao,
   adminRegistrarVistoria,
+  adminSalvarContrato,
 } from '@/services/reservas.service'
 import { deleteUploads } from '@/services/upload.service'
 import {
@@ -49,7 +50,7 @@ import {
   type ReservaDetalhe,
 } from '@/lib/atendimento-types'
 import VistoriaForm, { type VistoriaFormHandle } from './vistoria-form'
-import ContratoSection from './contrato-section'
+import ContratoSection, { type ContratoSectionHandle } from './contrato-section'
 import { ImageDialog } from './image-dialog'
 
 function ToggleConfirmButton({
@@ -112,7 +113,7 @@ function StepCard({
           {title}
         </CardTitle>
         {done ? (
-          <Badge className="gap-1">
+          <Badge className="gap-1 bg-green-800 text-white hover:bg-green-800">
             <Check className="h-3 w-3" /> Concluído
           </Badge>
         ) : (
@@ -141,6 +142,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
   const [vistoriaSaidaCompleta, setVistoriaSaidaCompleta] = useState(false)
   const vistoriaRef = useRef<VistoriaFormHandle>(null)
+  const contratoRef = useRef<ContratoSectionHandle>(null)
+  const [contratoFileSelected, setContratoFileSelected] = useState(false)
   const [contratoPending, setContratoPending] = useState(false)
   const [voltarDialogOpen, setVoltarDialogOpen] = useState(false)
   const [cnhLocalChecked, setCnhLocalChecked] = useState(false)
@@ -223,7 +226,9 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const pagoOk = pagoAluguel && pagoCaucao
   const vistoriaSaida = d.vistorias.find((v) => v.tipo === 'SAIDA')
   const contratoOk = !!d.contrato?.assinadoEm
-  const retiradaLocalOk = cnhLocalChecked && pagoOk && vistoriaSaidaCompleta && contratoApresentado
+  const vistoriaSaidaOk = !!vistoriaSaida || vistoriaSaidaCompleta
+  const retiradaLocalOk =
+    cnhLocalChecked && pagoOk && vistoriaSaidaOk && contratoApresentado
 
   const vistoriaRetorno = d.vistorias.find((v) => v.tipo === 'RETORNO')
   const pagamentoCaucao = d.pagamentos.find((p) => p.tipo === 'CAUCAO')
@@ -262,10 +267,12 @@ export default function AtendimentoClient({ id }: { id: string }) {
   }
 
   const handleConcluirRetirada = async () => {
+    // Validação única: nada sobe ao bucket enquanto houver pendência. Os guards
+    // (`!vistoriaSaida` / `!contratoOk`) ignoram etapas já persistidas numa tentativa anterior.
     const erros: string[] = []
     if (!cnhLocalChecked)
       erros.push('CNH não verificada — marque como verificado antes de concluir.')
-    if (!vistoriaSaidaCompleta)
+    if (!vistoriaSaida && !vistoriaSaidaCompleta)
       erros.push('Vistoria de saída incompleta — preencha km, combustível e ao menos 1 foto.')
     if (!contratoApresentado)
       erros.push("Contrato não apresentado — clique em 'Imprimir' e marque como apresentado.")
@@ -280,11 +287,12 @@ export default function AtendimentoClient({ id }: { id: string }) {
     setValidationErrors([])
     setErro(null)
     setAcao(true)
+    // Um único timestamp por retirada: agrupa fotos de vistoria + contrato na mesma pasta do bucket.
+    const ts = formatBucketTimestamp()
     try {
-      // Persiste a vistoria de saída só agora (upload das fotos + POST). O guard evita
-      // re-POST (422) caso uma tentativa anterior já tenha persistido a vistoria.
+      // Vistoria de saída: upload das fotos + POST só agora. Em falha, remove os uploads (sem órfãos).
       if (!vistoriaSaida) {
-        const collected = await vistoriaRef.current?.collect()
+        const collected = await vistoriaRef.current?.collect(ts)
         if (!collected) {
           setAcao(false)
           return
@@ -293,6 +301,20 @@ export default function AtendimentoClient({ id }: { id: string }) {
           setD(await adminRegistrarVistoria(id, collected.payload))
         } catch (e) {
           await deleteUploads(collected.uploadedKeys)
+          throw e
+        }
+      }
+      // Contrato assinado é opcional: só sobe se o atendente anexou um arquivo. Em falha, remove (sem órfãos).
+      if (!contratoOk && contratoFileSelected) {
+        const collected = await contratoRef.current?.collect(ts)
+        if (!collected) {
+          setAcao(false)
+          return
+        }
+        try {
+          setD(await adminSalvarContrato(id, { tipoAssinatura: 'MANUAL', urlDocumento: collected.url }))
+        } catch (e) {
+          await deleteUploads([collected.uploadedKey])
           throw e
         }
       }
@@ -357,7 +379,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
       {/* ─────────── RETIRADA ─────────── */}
       {isRetirada && (
         <div className="space-y-4">
-          <StepCard icon={ShieldCheck} title="1. Validação da CNH" done={cnhOk}>
+          <StepCard icon={ShieldCheck} title="1. Validação da CNH" done={cnhLocalChecked}>
             {d.cnh ? (
               <div className="space-y-2 text-sm">
                 <p>CNH: {d.cnh.numeroCnh} · Registro: {d.cnh.numeroRegistro}</p>
@@ -393,7 +415,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
           <StepCard
             icon={ClipboardCheck}
             title="2. Vistoria de saída"
-            done={!!vistoriaSaida || vistoriaSaidaCompleta}
+            done={vistoriaSaidaOk}
           >
             {vistoriaSaida ? (
               <div className="text-sm text-muted-foreground">
@@ -432,9 +454,12 @@ export default function AtendimentoClient({ id }: { id: string }) {
               </p>
             )}
             <ContratoSection
+              ref={contratoRef}
+              mode="deferred"
               detalhe={d}
               onDone={setD}
               onPendingChange={onContratoPendingChange}
+              onCompleteChange={setContratoFileSelected}
               onPrint={() => setContratoApresentado(true)}
             />
             <div className="mt-4 border-t pt-4">

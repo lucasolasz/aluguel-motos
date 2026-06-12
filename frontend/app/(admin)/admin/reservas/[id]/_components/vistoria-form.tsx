@@ -27,7 +27,7 @@ import {
 } from "@/lib/atendimento-types";
 import { adminRegistrarVistoria } from "@/services/reservas.service";
 import { deleteUploads, uploadVistoriaFoto } from "@/services/upload.service";
-import { cn } from "@/lib/utils";
+import { cn, formatBucketTimestamp } from "@/lib/utils";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import {
@@ -46,8 +46,9 @@ export interface CollectResult {
 
 export interface VistoriaFormHandle {
   /** Valida campos, faz upload das fotos pendentes e devolve o payload pronto.
-   *  Retorna null se a validação falhar (erros ficam inline no form). */
-  collect: () => Promise<CollectResult | null>;
+   *  Retorna null se a validação falhar (erros ficam inline no form).
+   *  `timestamp` (ddMMyyyyHHmmss) agrupa os arquivos da retirada; se omitido, é gerado. */
+  collect: (timestamp?: string) => Promise<CollectResult | null>;
 }
 
 interface VistoriaFormProps {
@@ -139,9 +140,10 @@ const VistoriaForm = forwardRef<VistoriaFormHandle, VistoriaFormProps>(function 
 
   // Faz upload das fotos pendentes e monta o payload. Em falha de upload, faz rollback
   // dos objetos já enviados e devolve null. Não persiste a vistoria.
-  const collect = async (): Promise<CollectResult | null> => {
+  const collect = async (timestamp?: string): Promise<CollectResult | null> => {
     if (!validar()) return null;
 
+    const ts = timestamp ?? formatBucketTimestamp();
     let finalFotos = [...fotos];
     const uploadedKeys: string[] = [];
 
@@ -151,7 +153,7 @@ const VistoriaForm = forwardRef<VistoriaFormHandle, VistoriaFormProps>(function 
       try {
         const fotosNovas: string[] = [];
         for (let i = 0; i < pendingFiles.length; i++) {
-          const res = await uploadVistoriaFoto(pendingFiles[i].file, reservaId);
+          const res = await uploadVistoriaFoto(pendingFiles[i].file, reservaId, ts);
           uploadedKeys.push(res.key);
           fotosNovas.push(res.url);
           setUploadProgress({ current: i + 1, total: pendingFiles.length });

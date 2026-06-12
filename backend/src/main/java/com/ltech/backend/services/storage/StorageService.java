@@ -40,6 +40,14 @@ public interface StorageService {
      */
     UploadResultDTO upload(MultipartFile file, String prefix, UUID parentId, String subfolder);
 
+    /**
+     * Envia um arquivo de uma retirada agrupando-o por timestamp da sessão:
+     * {@code reservas/{reservaId}{ts}/{subfolder}/{uuid}{ts}.ext}. O {@code timestamp}
+     * (formato {@code ddMMyyyyHHmmss}) é único por retirada — todas as fotos de vistoria e
+     * o contrato de uma mesma conclusão caem na mesma pasta. Se vier nulo/vazio, é gerado.
+     */
+    UploadResultDTO uploadReservaArquivo(MultipartFile file, UUID reservaId, String subfolder, String timestamp);
+
     /** Remove o objeto identificado pela chave. Idempotente. */
     void delete(String key);
 
