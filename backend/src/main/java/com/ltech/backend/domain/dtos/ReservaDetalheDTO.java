@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.ltech.backend.domain.entities.Cnh;
 import com.ltech.backend.domain.entities.Contrato;
+import com.ltech.backend.domain.entities.Multa;
 import com.ltech.backend.domain.entities.Pagamento;
 import com.ltech.backend.domain.entities.Reserva;
 import com.ltech.backend.domain.entities.Usuario;
@@ -27,7 +28,8 @@ public record ReservaDetalheDTO(
         Integer motoKmAtual,
         List<PagamentoDTO> pagamentos,
         List<VistoriaDTO> vistorias,
-        ContratoDTO contrato) {
+        ContratoDTO contrato,
+        List<MultaDTO> multas) {
 
     public record ClienteDetalheDTO(
             String id,
@@ -79,7 +81,8 @@ public record ReservaDetalheDTO(
             Cnh cnh,
             List<Pagamento> pagamentos,
             List<Vistoria> vistorias,
-            Contrato contrato) {
+            Contrato contrato,
+            List<Multa> multas) {
 
         return new ReservaDetalheDTO(
                 ReservaAdminDTO.from(reserva),
@@ -93,6 +96,7 @@ public record ReservaDetalheDTO(
                 reserva.getMoto().getKmAtual(),
                 pagamentos.stream().map(PagamentoDTO::from).toList(),
                 vistorias.stream().map(VistoriaDTO::from).toList(),
-                ContratoDTO.from(contrato));
+                ContratoDTO.from(contrato),
+                multas.stream().map(MultaDTO::from).toList());
     }
 }

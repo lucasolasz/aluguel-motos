@@ -125,6 +125,7 @@ export interface ReservaDetalhe {
   pagamentos: Pagamento[]
   vistorias: Vistoria[]
   contrato: Contrato | null
+  multas: Multa[]
 }
 
 // ─── Payloads ────────────────────────────────────────────────────────────────
@@ -154,4 +155,50 @@ export const NIVEL_COMBUSTIVEL_LABELS: Record<NivelCombustivel, string> = {
   METADE: '1/2',
   TRES_QUARTOS: '3/4',
   CHEIO: 'Cheio',
+}
+
+// ─── Multas ──────────────────────────────────────────────────────────────────
+
+export type TipoMulta = 'AVARIA' | 'ATRASO' | 'COMBUSTIVEL_FALTANTE' | 'LIMPEZA' | 'OUTROS'
+export type StatusMulta = 'PENDENTE' | 'COBRADA' | 'CANCELADA'
+
+export interface Multa {
+  id: string
+  reservaId: string
+  tipo: TipoMulta
+  status: StatusMulta
+  descricao: string
+  observacoes: string | null
+  valor: number
+  criadoPor: string | null
+  createdAt: string
+}
+
+export interface CriarMultaPayload {
+  tipo: TipoMulta
+  descricao: string
+  valor: number
+  observacoes?: string
+}
+
+export interface EditarMultaPayload {
+  tipo?: TipoMulta
+  descricao?: string
+  valor?: number
+  observacoes?: string
+  status?: StatusMulta
+}
+
+export const TIPO_MULTA_LABELS: Record<TipoMulta, string> = {
+  AVARIA: 'Avaria',
+  ATRASO: 'Atraso',
+  COMBUSTIVEL_FALTANTE: 'Combustível faltante',
+  LIMPEZA: 'Limpeza',
+  OUTROS: 'Outros',
+}
+
+export const STATUS_MULTA_LABELS: Record<StatusMulta, string> = {
+  PENDENTE: 'Pendente',
+  COBRADA: 'Cobrada',
+  CANCELADA: 'Cancelada',
 }

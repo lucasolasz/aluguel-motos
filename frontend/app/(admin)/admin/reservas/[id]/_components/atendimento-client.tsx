@@ -28,6 +28,7 @@ import {
   ClipboardCheck,
   FileSignature,
   KeyRound,
+  ReceiptText,
   Send,
   Loader2,
 } from 'lucide-react'
@@ -51,6 +52,7 @@ import {
 } from '@/lib/atendimento-types'
 import VistoriaForm, { type VistoriaFormHandle } from './vistoria-form'
 import ContratoSection, { type ContratoSectionHandle } from './contrato-section'
+import MultasSection from './multas-section'
 import { ImageDialog } from './image-dialog'
 
 function ToggleConfirmButton({
@@ -646,6 +648,10 @@ export default function AtendimentoClient({ id }: { id: string }) {
             </div>
           </StepCard>
 
+          <StepCard icon={ReceiptText} title="5. Multas" done={d.multas.length > 0 && d.multas.every((m) => m.status !== 'PENDENTE')}>
+            <MultasSection multas={d.multas} reservaId={id} onRefresh={carregar} />
+          </StepCard>
+
           <Card>
             <CardContent className="flex items-center justify-between pt-6">
               <p className="text-sm text-muted-foreground">
@@ -688,6 +694,17 @@ export default function AtendimentoClient({ id }: { id: string }) {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Multas — cobre CONCLUÍDA/CANCELADA (devolução já tem o StepCard "5. Multas" acima) */}
+      {!isRetirada && !isDevolucao && (
+        <StepCard
+          icon={ReceiptText}
+          title="Multas"
+          done={d.multas.length > 0 && d.multas.every((m) => m.status !== 'PENDENTE')}
+        >
+          <MultasSection multas={d.multas} reservaId={id} onRefresh={carregar} />
+        </StepCard>
       )}
 
       {/* Dialog de confirmação ao sair com dados pendentes */}

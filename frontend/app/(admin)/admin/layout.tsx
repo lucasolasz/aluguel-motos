@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   Package,
+  ReceiptText,
   ShieldCheck,
   SlidersHorizontal,
   Tags,
@@ -25,6 +26,7 @@ const mainNav = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Motos', href: '/admin/motos', icon: Bike },
   { name: 'Reservas', href: '/admin/reservas', icon: Calendar },
+  { name: 'Multas', href: '/admin/multas', icon: ReceiptText },
   { name: 'Clientes', href: '/admin/clientes', icon: Users },
   { name: 'Documentos', href: '/admin/documentos', icon: FileCheck },
 ]

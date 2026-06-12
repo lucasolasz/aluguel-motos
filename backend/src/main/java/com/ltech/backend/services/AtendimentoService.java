@@ -31,6 +31,7 @@ import com.ltech.backend.domain.entities.VistoriaFoto;
 import com.ltech.backend.domain.repositories.CnhRepository;
 import com.ltech.backend.domain.repositories.ContratoRepository;
 import com.ltech.backend.domain.repositories.MotoRepository;
+import com.ltech.backend.domain.repositories.MultaRepository;
 import com.ltech.backend.domain.repositories.PagamentoRepository;
 import com.ltech.backend.domain.repositories.ReservaRepository;
 import com.ltech.backend.domain.repositories.VistoriaRepository;
@@ -54,6 +55,7 @@ public class AtendimentoService {
     private final PagamentoRepository pagamentoRepository;
     private final VistoriaRepository vistoriaRepository;
     private final ContratoRepository contratoRepository;
+    private final MultaRepository multaRepository;
     private final MotoRepository motoRepository;
     private final PaymentService paymentService;
     private final StorageService storageService;
@@ -294,7 +296,9 @@ public class AtendimentoService {
         List<Vistoria> vistorias = vistoriaRepository.findByReservaIdOrderByCreatedAtAsc(reserva.getId());
         Contrato contrato = contratoRepository.findFirstByReservaIdOrderByCreatedAtDesc(reserva.getId())
                 .orElse(null);
-        return ReservaDetalheDTO.from(reserva, cnh, pagamentos, vistorias, contrato);
+        List<com.ltech.backend.domain.entities.Multa> multas =
+                multaRepository.findByReservaIdOrderByCreatedAtAsc(reserva.getId());
+        return ReservaDetalheDTO.from(reserva, cnh, pagamentos, vistorias, contrato, multas);
     }
 
     private boolean temPagamento(Reserva reserva, TipoPagamento tipo, StatusPagamento status) {

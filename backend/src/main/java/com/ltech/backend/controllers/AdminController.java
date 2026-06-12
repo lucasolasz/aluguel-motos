@@ -21,8 +21,10 @@ import com.ltech.backend.domain.dtos.ClienteDTO;
 import com.ltech.backend.domain.dtos.CobrarDTO;
 import com.ltech.backend.domain.dtos.ConcluirDevolucaoDTO;
 import com.ltech.backend.domain.dtos.CreateLocalDTO;
+import com.ltech.backend.domain.dtos.CriarMultaDTO;
 import com.ltech.backend.domain.dtos.CriarVistoriaDTO;
 import com.ltech.backend.domain.dtos.LocalDTO;
+import com.ltech.backend.domain.dtos.MultaDTO;
 import com.ltech.backend.domain.dtos.ReservaAdminDTO;
 import com.ltech.backend.domain.dtos.ReservaDetalheDTO;
 import com.ltech.backend.domain.dtos.SalvarContratoDTO;
@@ -32,6 +34,7 @@ import com.ltech.backend.security.UsuarioDetails;
 import com.ltech.backend.services.AdminService;
 import com.ltech.backend.services.AtendimentoService;
 import com.ltech.backend.services.LocalService;
+import com.ltech.backend.services.MultaService;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -44,6 +47,7 @@ public class AdminController {
     private AdminService adminService;
     private LocalService localService;
     private AtendimentoService atendimentoService;
+    private MultaService multaService;
 
     @GetMapping("/reservas")
     public ResponseEntity<List<ReservaAdminDTO>> listarTodasReservas(
@@ -123,6 +127,43 @@ public class AdminController {
             @RequestBody(required = false) @Valid ConcluirDevolucaoDTO dto,
             @AuthenticationPrincipal UsuarioDetails userDetails) {
         return ResponseEntity.ok(atendimentoService.concluirDevolucao(id, dto));
+    }
+
+    // ─── Multas ──────────────────────────────────────────────────────────────
+
+    @PostMapping("/reservas/{id}/multas")
+    public ResponseEntity<MultaDTO> criarMulta(
+            @PathVariable String id,
+            @Valid @RequestBody CriarMultaDTO dto,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        String adminNome = userDetails.getUsuario().getNomeCompleto() != null
+                ? userDetails.getUsuario().getNomeCompleto()
+                : userDetails.getUsuario().getUsername();
+        return ResponseEntity.ok(multaService.criarMulta(id, dto, adminNome));
+    }
+
+    @PutMapping("/reservas/{id}/multas/{multaId}")
+    public ResponseEntity<MultaDTO> editarMulta(
+            @PathVariable String id,
+            @PathVariable String multaId,
+            @Valid @RequestBody CriarMultaDTO dto,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(multaService.editarMulta(id, multaId, dto));
+    }
+
+    @DeleteMapping("/reservas/{id}/multas/{multaId}")
+    public ResponseEntity<Void> cancelarMulta(
+            @PathVariable String id,
+            @PathVariable String multaId,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        multaService.cancelarMulta(id, multaId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/multas")
+    public ResponseEntity<List<MultaDTO>> listarTodasMultas(
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(multaService.listarTodas());
     }
 
     @GetMapping("/clientes")

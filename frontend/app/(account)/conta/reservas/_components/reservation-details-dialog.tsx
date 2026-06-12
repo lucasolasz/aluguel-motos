@@ -1,10 +1,25 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import type { LocalResumo, Reservation } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/data'
+import {
+  type Multa,
+  type StatusMulta,
+  TIPO_MULTA_LABELS,
+  STATUS_MULTA_LABELS,
+} from '@/lib/atendimento-types'
+import { getMultasDaReserva } from '@/services/multas.service'
 import { Clock, MapPin } from 'lucide-react'
+
+const STATUS_BADGE: Record<StatusMulta, string> = {
+  PENDENTE: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  COBRADA: 'bg-green-100 text-green-800 border-green-300',
+  CANCELADA: 'bg-red-100 text-red-800 border-red-300',
+}
 
 interface ReservationDetailsDialogProps {
   reservation: Reservation | null
@@ -73,7 +88,18 @@ export function ReservationDetailsDialog({
   open,
   onOpenChange,
 }: ReservationDetailsDialogProps) {
+  const [multas, setMultas] = useState<Multa[] | null>(null)
+
+  useEffect(() => {
+    if (!open || !reservation) { setMultas(null); return }
+    getMultasDaReserva(reservation.id)
+      .then(setMultas)
+      .catch(() => setMultas([]))
+  }, [open, reservation?.id])
+
   if (!reservation) return null
+
+  const multasVisiveis = multas?.filter((m) => m.status !== 'CANCELADA') ?? []
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -204,6 +230,35 @@ export function ReservationDetailsDialog({
               {formatCurrency(reservation.total)}
             </span>
           </section>
+
+          {multasVisiveis.length > 0 && (
+            <>
+              <Separator />
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Multas
+                </h3>
+                <ul className="space-y-2">
+                  {multasVisiveis.map((m) => (
+                    <li key={m.id} className="flex items-start justify-between text-sm gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{TIPO_MULTA_LABELS[m.tipo]}</span>
+                          <Badge variant="outline" className={`text-xs ${STATUS_BADGE[m.status]}`}>
+                            {STATUS_MULTA_LABELS[m.status]}
+                          </Badge>
+                        </div>
+                        <p className="text-muted-foreground">{m.descricao}</p>
+                      </div>
+                      <span className="font-medium text-destructive shrink-0">
+                        {formatCurrency(m.valor)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

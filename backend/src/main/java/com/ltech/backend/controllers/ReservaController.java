@@ -1,6 +1,7 @@
 package com.ltech.backend.controllers;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ltech.backend.domain.dtos.CreateReservaDTO;
+import com.ltech.backend.domain.dtos.MultaDTO;
 import com.ltech.backend.domain.dtos.ReservaDTO;
 import com.ltech.backend.security.UsuarioDetails;
+import com.ltech.backend.services.MultaService;
 import com.ltech.backend.services.ReservaService;
 
 import jakarta.validation.Valid;
@@ -27,6 +30,7 @@ import lombok.AllArgsConstructor;
 public class ReservaController {
 
     private ReservaService reservaService;
+    private MultaService multaService;
 
     @GetMapping("/me")
     public ResponseEntity<List<ReservaDTO>> listarMinhasReservas(
@@ -41,6 +45,14 @@ public class ReservaController {
             @AuthenticationPrincipal UsuarioDetails userDetails) {
         ReservaDTO reserva = reservaService.criarReserva(dto, userDetails.getUsuario());
         return ResponseEntity.status(HttpStatus.CREATED).body(reserva);
+    }
+
+    @GetMapping("/{id}/multas")
+    public ResponseEntity<List<MultaDTO>> listarMultasDaReserva(
+            @PathVariable String id,
+            @AuthenticationPrincipal UsuarioDetails userDetails) {
+        return ResponseEntity.ok(
+                multaService.listarPorReservaParaCliente(id, UUID.fromString(userDetails.getUsuario().getId())));
     }
 
     @PatchMapping("/{id}/cancelar")
