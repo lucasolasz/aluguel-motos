@@ -92,6 +92,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/uploads/**").hasRole("ADMIN_FULL")
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register/complete").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/validar-cartao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-email", "/auth/check-cpf").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").hasAnyRole("ADMINS", "DESENVOLVEDORES")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN_FULL")

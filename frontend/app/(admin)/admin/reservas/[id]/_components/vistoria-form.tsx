@@ -1,127 +1,135 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Progress,
-} from '@/components/ui/progress'
-import { ImagePlus, Loader2, X } from 'lucide-react'
-import { uploadVistoriaFoto, deleteUploads } from '@/services/upload.service'
-import { adminRegistrarVistoria } from '@/services/reservas.service'
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   NIVEL_COMBUSTIVEL_LABELS,
   type NivelCombustivel,
   type ReservaDetalhe,
   type TipoVistoria,
-} from '@/lib/atendimento-types'
-import { ImageDialog } from './image-dialog'
+} from "@/lib/atendimento-types";
+import { adminRegistrarVistoria } from "@/services/reservas.service";
+import { deleteUploads, uploadVistoriaFoto } from "@/services/upload.service";
+import { ImagePlus, Loader2, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { ImageDialog } from "./image-dialog";
 
 interface VistoriaFormProps {
-  reservaId: string
-  tipo: TipoVistoria
-  onDone: (d: ReservaDetalhe) => void
-  onPendingChange?: (count: number) => void
+  reservaId: string;
+  tipo: TipoVistoria;
+  onDone: (d: ReservaDetalhe) => void;
+  onPendingChange?: (count: number) => void;
 }
 
-export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange }: VistoriaFormProps) {
-  const [km, setKm] = useState('')
-  const [nivel, setNivel] = useState<NivelCombustivel | ''>('')
-  const [observacoes, setObservacoes] = useState('')
-  const [fotos, setFotos] = useState<string[]>([])
-  const [pendingFiles, setPendingFiles] = useState<{ file: File; previewUrl: string }[]>([])
-  const [uploading, setUploading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [erro, setErro] = useState<string | null>(null)
-  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+export default function VistoriaForm({
+  reservaId,
+  tipo,
+  onDone,
+  onPendingChange,
+}: VistoriaFormProps) {
+  const [km, setKm] = useState("");
+  const [nivel, setNivel] = useState<NivelCombustivel | "">("");
+  const [observacoes, setObservacoes] = useState("");
+  const [fotos, setFotos] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<
+    { file: File; previewUrl: string }[]
+  >([]);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    onPendingChange?.(pendingFiles.length)
-  }, [pendingFiles.length, onPendingChange])
+    onPendingChange?.(pendingFiles.length);
+  }, [pendingFiles.length, onPendingChange]);
 
   const handleFiles = (files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setErro(null)
+    if (!files || files.length === 0) return;
+    setErro(null);
 
-    const newEntries: { file: File; previewUrl: string }[] = []
-    const newUrls: string[] = []
+    const newEntries: { file: File; previewUrl: string }[] = [];
+    const newUrls: string[] = [];
 
     Array.from(files).forEach((file) => {
-      const previewUrl = URL.createObjectURL(file)
-      newEntries.push({ file, previewUrl })
-      newUrls.push(previewUrl)
-    })
+      const previewUrl = URL.createObjectURL(file);
+      newEntries.push({ file, previewUrl });
+      newUrls.push(previewUrl);
+    });
 
-    setPendingFiles((prev) => [...prev, ...newEntries])
-    setFotos((prev) => [...prev, ...newUrls])
+    setPendingFiles((prev) => [...prev, ...newEntries]);
+    setFotos((prev) => [...prev, ...newUrls]);
 
-    if (inputRef.current) inputRef.current.value = ''
-  }
+    if (inputRef.current) inputRef.current.value = "";
+  };
 
   const removeFoto = (index: number) => {
-    const url = fotos[index]
-    const pendingIndex = pendingFiles.findIndex((pf) => pf.previewUrl === url)
+    const url = fotos[index];
+    const pendingIndex = pendingFiles.findIndex((pf) => pf.previewUrl === url);
     if (pendingIndex !== -1) {
-      URL.revokeObjectURL(pendingFiles[pendingIndex].previewUrl)
-      setPendingFiles((prev) => prev.filter((_, i) => i !== pendingIndex))
+      URL.revokeObjectURL(pendingFiles[pendingIndex].previewUrl);
+      setPendingFiles((prev) => prev.filter((_, i) => i !== pendingIndex));
     }
-    setFotos((prev) => prev.filter((_, i) => i !== index))
-  }
+    setFotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const submit = async () => {
-    setErro(null)
+    setErro(null);
 
-    let finalFotos = [...fotos]
-    const uploadedKeys: string[] = []
+    let finalFotos = [...fotos];
+    const uploadedKeys: string[] = [];
 
     if (pendingFiles.length > 0) {
-      setUploading(true)
-      setUploadProgress({ current: 0, total: pendingFiles.length })
+      setUploading(true);
+      setUploadProgress({ current: 0, total: pendingFiles.length });
 
       try {
-        const fotosNovas: string[] = []
+        const fotosNovas: string[] = [];
         for (let i = 0; i < pendingFiles.length; i++) {
-          const res = await uploadVistoriaFoto(pendingFiles[i].file, reservaId)
-          uploadedKeys.push(res.key)
-          fotosNovas.push(res.url)
-          setUploadProgress({ current: i + 1, total: pendingFiles.length })
+          const res = await uploadVistoriaFoto(pendingFiles[i].file, reservaId);
+          uploadedKeys.push(res.key);
+          fotosNovas.push(res.url);
+          setUploadProgress({ current: i + 1, total: pendingFiles.length });
         }
 
-        const existingUrls = fotos.filter((u) => !u.startsWith('blob:'))
-        finalFotos = [...existingUrls, ...fotosNovas]
-        setFotos(finalFotos)
+        const existingUrls = fotos.filter((u) => !u.startsWith("blob:"));
+        finalFotos = [...existingUrls, ...fotosNovas];
+        setFotos(finalFotos);
 
-        pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.previewUrl))
-        setPendingFiles([])
+        pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.previewUrl));
+        setPendingFiles([]);
       } catch (e) {
         // Rollback: remove do storage os uploads parciais (evita orfaos)
-        await deleteUploads(uploadedKeys)
-        setErro(e instanceof Error ? e.message : 'Falha no upload de fotos')
-        return
+        await deleteUploads(uploadedKeys);
+        setErro(e instanceof Error ? e.message : "Falha no upload de fotos");
+        return;
       } finally {
-        setUploading(false)
-        setUploadProgress(null)
+        setUploading(false);
+        setUploadProgress(null);
       }
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
       const d = await adminRegistrarVistoria(reservaId, {
         tipo,
@@ -129,16 +137,16 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
         nivelCombustivel: nivel || null,
         observacoes: observacoes || null,
         fotos: finalFotos,
-      })
-      onDone(d)
+      });
+      onDone(d);
     } catch (e) {
       // Rollback: upload ok mas persistencia falhou — remove os objetos enviados (evita orfaos)
-      await deleteUploads(uploadedKeys)
-      setErro(e instanceof Error ? e.message : 'Falha ao salvar vistoria')
+      await deleteUploads(uploadedKeys);
+      setErro(e instanceof Error ? e.message : "Falha ao salvar vistoria");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -147,26 +155,34 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
           <Label htmlFor={`km-${tipo}`}>Quilometragem (km)</Label>
           <Input
             id={`km-${tipo}`}
-            type="number"
+            type="text"
             inputMode="numeric"
-            max={999999}
+            maxLength={6}
             value={km}
-            onChange={(e) => setKm(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setKm(value);
+            }}
             placeholder="Ex: 12340"
           />
         </div>
         <div className="space-y-2">
           <Label>Nível de combustível</Label>
-          <Select value={nivel} onValueChange={(v: NivelCombustivel) => setNivel(v)}>
+          <Select
+            value={nivel}
+            onValueChange={(v: NivelCombustivel) => setNivel(v)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(NIVEL_COMBUSTIVEL_LABELS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
+              {Object.entries(NIVEL_COMBUSTIVEL_LABELS).map(
+                ([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -179,6 +195,7 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
           value={observacoes}
           onChange={(e) => setObservacoes(e.target.value)}
           placeholder="Avarias, riscos, estado geral..."
+          maxLength={2000}
           rows={3}
         />
       </div>
@@ -187,12 +204,25 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
         <Label>Fotos da vistoria</Label>
         <div className="flex flex-wrap gap-3">
           {fotos.map((url, i) => (
-            <div key={url} className="relative h-24 w-24 overflow-hidden rounded-md border">
+            <div
+              key={url}
+              className="relative h-24 w-24 overflow-hidden rounded-md border"
+            >
               <ImageDialog src={url} alt={`Foto ${i + 1}`}>
-                {url.startsWith('blob:') ? (
-                  <img src={url} alt={`Foto ${i + 1}`} className="h-24 w-24 object-cover" />
+                {url.startsWith("blob:") ? (
+                  <img
+                    src={url}
+                    alt={`Foto ${i + 1}`}
+                    className="h-24 w-24 object-cover"
+                  />
                 ) : (
-                  <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover" sizes="96px" />
+                  <Image
+                    src={url}
+                    alt={`Foto ${i + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
                 )}
               </ImageDialog>
               <button
@@ -233,22 +263,42 @@ export default function VistoriaForm({ reservaId, tipo, onDone, onPendingChange 
       {erro && <p className="text-sm text-destructive">{erro}</p>}
 
       <Button onClick={submit} disabled={saving || uploading}>
-        {saving ? 'Salvando...' : uploading ? 'Enviando fotos...' : 'Registrar vistoria'}
+        {saving
+          ? "Salvando..."
+          : uploading
+            ? "Enviando fotos..."
+            : "Registrar vistoria"}
       </Button>
 
-      <Dialog open={uploadProgress !== null} onOpenChange={(open) => { if (!open) setUploadProgress(null) }}>
-        <DialogContent showCloseButton={false} onPointerDownOutside={(e) => e.preventDefault()}>
+      <Dialog
+        open={uploadProgress !== null}
+        onOpenChange={(open) => {
+          if (!open) setUploadProgress(null);
+        }}
+      >
+        <DialogContent
+          showCloseButton={false}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Enviando fotos...</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Progress value={uploadProgress ? (uploadProgress.current / uploadProgress.total) * 100 : 0} />
+            <Progress
+              value={
+                uploadProgress
+                  ? (uploadProgress.current / uploadProgress.total) * 100
+                  : 0
+              }
+            />
             <p className="text-sm text-muted-foreground text-center">
-              {uploadProgress ? `${uploadProgress.current} de ${uploadProgress.total}` : ''}
+              {uploadProgress
+                ? `${uploadProgress.current} de ${uploadProgress.total}`
+                : ""}
             </p>
           </div>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

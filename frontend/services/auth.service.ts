@@ -104,3 +104,22 @@ export async function checkCpfAvailable(cpf: string): Promise<boolean> {
   const data = await res.json()
   return data.available
 }
+
+/** Valida o cartão via backend (fake agora; futuramente tokenização Asaas). */
+export async function validarCartaoPublico(data: {
+  nome: string
+  numero: string
+  validade: string
+  cvv: string
+  cpf: string
+}): Promise<void> {
+  const res = await fetch(`${API_URL}/auth/validar-cartao`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const message = await extractErrorMessage(res, 'Erro ao validar cartão.')
+    throw new Error(message)
+  }
+}

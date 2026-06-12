@@ -2,17 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin } from 'lucide-react'
+import { CheckCircle2, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card'
 import { CnhFields, validarCnh, type CnhValues } from '@/components/cnh-fields'
 import { MaskedInput } from './masked-input'
-import { registrarCompleto } from '@/services/auth.service'
+import { registrarCompleto, validarCartaoPublico } from '@/services/auth.service'
 import { validarCartaoCompleto, validarEnderecoCompleto } from '@/lib/validations'
 import { type DadosPessoais } from './dados-form'
 import { AddressFields, EMPTY_ADDRESS, type AddressData } from '@/components/address-fields'
+import { CardValidationDialog } from '@/components/card-validation-dialog'
 
 const EMPTY_CNH: CnhValues = {
   rg: '',
@@ -46,6 +47,11 @@ export function Step3Conclusao({ dados }: Step3Props) {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
 
+  const [cartaoValidado, setCartaoValidado] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogStatus, setDialogStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [dialogErro, setDialogErro] = useState<string | null>(null)
+
   function patchCnh(p: Partial<CnhValues>) {
     setCnh((prev) => ({ ...prev, ...p }))
   }
@@ -54,16 +60,40 @@ export function Step3Conclusao({ dados }: Step3Props) {
     setAddress((prev) => ({ ...prev, ...p }))
   }
 
+  function patchCard(p: Partial<CardData>) {
+    if (cartaoValidado) setCartaoValidado(false)
+    setCard((prev) => ({ ...prev, ...p }))
+  }
+
+  async function handleValidarCartao() {
+    const cardErr = validarCartaoCompleto(card)
+    if (cardErr) {
+      setError(cardErr)
+      return
+    }
+    setError('')
+    setDialogStatus('loading')
+    setDialogOpen(true)
+    try {
+      await validarCartaoPublico({
+        nome: card.nome,
+        numero: card.numero.replace(/\s/g, ''),
+        validade: card.validade,
+        cvv: card.cvv,
+        cpf: card.cpf.replace(/\D/g, ''),
+      })
+      setDialogStatus('success')
+    } catch (e) {
+      setDialogStatus('error')
+      setDialogErro(e instanceof Error ? e.message : 'Erro ao validar cartão.')
+    }
+  }
+
   async function handleConcluir() {
     setError('')
     const cnhResult = validarCnh(cnh)
     if (!cnhResult.ok) {
       setError(cnhResult.error)
-      return
-    }
-    const cardErr = validarCartaoCompleto(card)
-    if (cardErr) {
-      setError(cardErr)
       return
     }
     const addressErr = validarEnderecoCompleto(address)
@@ -137,6 +167,13 @@ export function Step3Conclusao({ dados }: Step3Props) {
     )
   }
 
+  const cardPreenchido =
+    card.nome.length >= 5 &&
+    card.numero.replace(/\s/g, '').length === 16 &&
+    card.validade.length === 5 &&
+    card.cvv.length >= 3 &&
+    card.cpf.replace(/\D/g, '').length === 11
+
   return (
     <div className="space-y-6">
       <div>
@@ -157,16 +194,24 @@ export function Step3Conclusao({ dados }: Step3Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Dados do Cartão</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            Dados do Cartão
+            {cartaoValidado && (
+              <span className="flex items-center gap-1 text-sm font-normal text-green-600">
+                <CheckCircle2 className="h-4 w-4" />
+                Validado
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="cardNome">Nome no Cartão</Label>
               <Input
                 id="cardNome"
                 value={card.nome}
-                onChange={(e) => setCard((p) => ({ ...p, nome: e.target.value.toUpperCase() }))}
+                onChange={(e) => patchCard({ nome: e.target.value.toUpperCase() })}
                 placeholder="COMO APARECE NO CARTÃO"
               />
             </div>
@@ -176,7 +221,7 @@ export function Step3Conclusao({ dados }: Step3Props) {
                 id="cardNumero"
                 mask="0000 0000 0000 0000"
                 value={card.numero}
-                onAccept={(v) => setCard((p) => ({ ...p, numero: v }))}
+                onAccept={(v) => patchCard({ numero: v })}
                 placeholder="0000 0000 0000 0000"
                 inputMode="numeric"
               />
@@ -187,7 +232,7 @@ export function Step3Conclusao({ dados }: Step3Props) {
                 id="cardValidade"
                 mask="00/00"
                 value={card.validade}
-                onAccept={(v) => setCard((p) => ({ ...p, validade: v }))}
+                onAccept={(v) => patchCard({ validade: v })}
                 placeholder="MM/AA"
                 inputMode="numeric"
               />
@@ -198,7 +243,7 @@ export function Step3Conclusao({ dados }: Step3Props) {
                 id="cardCvv"
                 mask="0000"
                 value={card.cvv}
-                onAccept={(v) => setCard((p) => ({ ...p, cvv: v }))}
+                onAccept={(v) => patchCard({ cvv: v })}
                 placeholder="000"
                 inputMode="numeric"
               />
@@ -209,34 +254,60 @@ export function Step3Conclusao({ dados }: Step3Props) {
                 id="cardCpf"
                 mask="000.000.000-00"
                 value={card.cpf}
-                onAccept={(v) => setCard((p) => ({ ...p, cpf: v }))}
+                onAccept={(v) => patchCard({ cpf: v })}
                 placeholder="000.000.000-00"
                 inputMode="numeric"
               />
             </div>
           </div>
+
+          {!cartaoValidado && (
+            <Button
+              type="button"
+              className="w-full"
+              disabled={!cardPreenchido}
+              onClick={handleValidarCartao}
+            >
+              Validar Cartão
+            </Button>
+          )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-muted-foreground" />
-            Endereço de Cobrança
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AddressFields value={address} onChange={patchAddress} />
-        </CardContent>
-      </Card>
+      {cartaoValidado && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              Endereço de Cobrança
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AddressFields value={address} onChange={patchAddress} />
+          </CardContent>
+        </Card>
+      )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex justify-end">
-        <Button onClick={handleConcluir} disabled={submitting}>
-          {submitting ? 'Concluindo...' : 'Concluir cadastro'}
-        </Button>
-      </div>
+      {cartaoValidado && (
+        <div className="flex justify-end">
+          <Button onClick={handleConcluir} disabled={submitting}>
+            {submitting ? 'Concluindo...' : 'Concluir cadastro'}
+          </Button>
+        </div>
+      )}
+
+      <CardValidationDialog
+        open={dialogOpen}
+        status={dialogStatus}
+        errorMessage={dialogErro}
+        onConfirm={() => {
+          setDialogOpen(false)
+          setCartaoValidado(true)
+        }}
+        onClose={() => setDialogOpen(false)}
+      />
     </div>
   )
 }
