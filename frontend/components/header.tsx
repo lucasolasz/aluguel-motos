@@ -1,79 +1,101 @@
-'use client'
-
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Menu, X, User, Calendar, Settings, LogOut, LayoutDashboard } from 'lucide-react'
-import { getToken, clearToken } from '@/lib/auth'
+} from "@/components/ui/dropdown-menu";
+import {
+  Menu,
+  X,
+  User,
+  Calendar,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
+import { getToken, clearToken } from "@/lib/auth";
 
-function decodeToken(token: string): { grupo?: string; permissoes?: string[]; nomeCompleto?: string } {
+function decodeToken(token: string): {
+  grupo?: string;
+  permissoes?: string[];
+  nomeCompleto?: string;
+} {
   try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
       atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(""),
+    );
+    return JSON.parse(jsonPayload);
   } catch {
-    return {}
+    return {};
   }
 }
 
 export function Header() {
-  const router = useRouter()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userGrupo, setUserGrupo] = useState<string | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userGrupo, setUserGrupo] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const [userName, setUserName] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = getToken()
-    setIsLoggedIn(!!token)
+    const token = getToken();
+    setIsLoggedIn(!!token);
     if (token) {
-      const decoded = decodeToken(token)
-      setUserGrupo(decoded.grupo || null)
-      setIsAdmin(decoded.permissoes?.includes('ADMIN_FULL') || false)
-      setUserName(decoded.nomeCompleto?.split(' ')[0] || null)
+      const decoded = decodeToken(token);
+      setUserGrupo(decoded.grupo || null);
+      setIsAdmin(decoded.permissoes?.includes("ADMIN_FULL") || false);
+      setUserName(decoded.nomeCompleto?.split(" ")[0] || null);
     } else {
-      setUserGrupo(null)
-      setIsAdmin(false)
-      setUserName(null)
+      setUserGrupo(null);
+      setIsAdmin(false);
+      setUserName(null);
     }
-  }, [])
+  }, []);
 
   const handleLogout = () => {
-    clearToken()
-    sessionStorage.removeItem('search-period')
-    sessionStorage.removeItem('booking-moto-id')
+    clearToken();
+    sessionStorage.removeItem("search-period");
+    sessionStorage.removeItem("booking-moto-id");
     Object.keys(sessionStorage)
-      .filter((k) => k.startsWith('booking-state-'))
-      .forEach((k) => sessionStorage.removeItem(k))
-    setIsLoggedIn(false)
-    router.push('/')
-  }
+      .filter((k) => k.startsWith("booking-state-"))
+      .forEach((k) => sessionStorage.removeItem(k));
+    setIsLoggedIn(false);
+    router.push("/");
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">M</span>
+          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary">
+            <Image
+              src="/images/logo_redond2.png"
+              alt="Rio Ride Rental"
+              width={36}
+              height={36}
+              className="object-contain"
+              priority
+            />
           </div>
-          <span className="text-xl font-bold tracking-tight">Rio Ride Rental</span>
+
+          <span className="text-xl font-bold tracking-tight">
+            Rio Ride Rental
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -111,26 +133,38 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
-                  <Link href="/conta/reservas" className="flex items-center gap-2 cursor-pointer">
+                  <Link
+                    href="/conta/reservas"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <Calendar className="h-4 w-4" />
                     <span>Minhas Reservas</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/conta/perfil" className="flex items-center gap-2 cursor-pointer">
+                  <Link
+                    href="/conta/perfil"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <User className="h-4 w-4" />
                     <span>Meu Perfil</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/conta/configuracoes" className="flex items-center gap-2 cursor-pointer">
+                  <Link
+                    href="/conta/configuracoes"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <Settings className="h-4 w-4" />
                     <span>Configurações</span>
                   </Link>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center gap-2 cursor-pointer">
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <LayoutDashboard className="h-4 w-4" />
                       <span>Painel Admin</span>
                     </Link>
@@ -259,5 +293,5 @@ export function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }
