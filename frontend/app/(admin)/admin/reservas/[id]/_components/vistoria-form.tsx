@@ -26,6 +26,7 @@ import {
 } from "@/lib/atendimento-types";
 import { adminRegistrarVistoria } from "@/services/reservas.service";
 import { deleteUploads, uploadVistoriaFoto } from "@/services/upload.service";
+import { cn } from "@/lib/utils";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -54,6 +55,9 @@ export default function VistoriaForm({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [kmErro, setKmErro] = useState(false);
+  const [nivelErro, setNivelErro] = useState(false);
+  const [fotosErro, setFotosErro] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{
     current: number;
     total: number;
@@ -79,6 +83,7 @@ export default function VistoriaForm({
 
     setPendingFiles((prev) => [...prev, ...newEntries]);
     setFotos((prev) => [...prev, ...newUrls]);
+    setFotosErro(false);
 
     if (inputRef.current) inputRef.current.value = "";
   };
@@ -95,6 +100,12 @@ export default function VistoriaForm({
 
   const submit = async () => {
     setErro(null);
+
+    let hasErrors = false;
+    if (!km)              { setKmErro(true);    hasErrors = true; }
+    if (!nivel)           { setNivelErro(true); hasErrors = true; }
+    if (fotos.length === 0) { setFotosErro(true); hasErrors = true; }
+    if (hasErrors) return;
 
     let finalFotos = [...fotos];
     const uploadedKeys: string[] = [];
@@ -152,7 +163,7 @@ export default function VistoriaForm({
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor={`km-${tipo}`}>Quilometragem (km)</Label>
+          <Label htmlFor={`km-${tipo}`}>Quilometragem (km) <span className="text-destructive">*</span></Label>
           <Input
             id={`km-${tipo}`}
             type="text"
@@ -162,17 +173,20 @@ export default function VistoriaForm({
             onChange={(e) => {
               const value = e.target.value.replace(/\D/g, "").slice(0, 6);
               setKm(value);
+              setKmErro(false);
             }}
             placeholder="Ex: 12340"
+            className={kmErro ? "border-destructive" : ""}
           />
+          {kmErro && <p className="text-xs text-destructive">Campo obrigatório</p>}
         </div>
         <div className="space-y-2">
-          <Label>Nível de combustível</Label>
+          <Label>Nível de combustível <span className="text-destructive">*</span></Label>
           <Select
             value={nivel}
-            onValueChange={(v: NivelCombustivel) => setNivel(v)}
+            onValueChange={(v: NivelCombustivel) => { setNivel(v); setNivelErro(false); }}
           >
-            <SelectTrigger>
+            <SelectTrigger className={nivelErro ? "border-destructive" : ""}>
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
@@ -185,6 +199,7 @@ export default function VistoriaForm({
               )}
             </SelectContent>
           </Select>
+          {nivelErro && <p className="text-xs text-destructive">Campo obrigatório</p>}
         </div>
       </div>
 
@@ -201,7 +216,7 @@ export default function VistoriaForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Fotos da vistoria</Label>
+        <Label>Fotos da vistoria <span className="text-destructive">*</span></Label>
         <div className="flex flex-wrap gap-3">
           {fotos.map((url, i) => (
             <div
@@ -238,7 +253,10 @@ export default function VistoriaForm({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading || saving}
-            className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed text-muted-foreground hover:bg-muted"
+            className={cn(
+              "flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border text-muted-foreground hover:bg-muted",
+              fotosErro ? "border-destructive" : "border-dashed"
+            )}
           >
             {uploading || saving ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -258,6 +276,7 @@ export default function VistoriaForm({
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
+        {fotosErro && <p className="text-xs text-destructive">Pelo menos 1 foto é obrigatória</p>}
       </div>
 
       {erro && <p className="text-sm text-destructive">{erro}</p>}

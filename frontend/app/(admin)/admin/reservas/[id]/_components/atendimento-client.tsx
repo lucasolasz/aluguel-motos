@@ -22,15 +22,16 @@ import {
   Check,
   CircleDashed,
   AlertTriangle,
+  AlertCircle,
   ShieldCheck,
   CreditCard,
   ClipboardCheck,
   FileSignature,
   KeyRound,
-  Lock,
   Send,
   Loader2,
 } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { IMaskInput } from 'react-imask'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
@@ -49,23 +50,60 @@ import VistoriaForm from './vistoria-form'
 import ContratoSection from './contrato-section'
 import { ImageDialog } from './image-dialog'
 
+function ToggleConfirmButton({
+  checked,
+  label,
+  disabled,
+  onClick,
+}: {
+  checked: boolean
+  label: string
+  disabled?: boolean
+  onClick: () => void
+}) {
+  return (
+    <Button variant={checked ? 'default' : 'outline'} disabled={disabled} onClick={onClick}>
+      {checked ? <Check className="mr-2 h-4 w-4" /> : <CircleDashed className="mr-2 h-4 w-4" />}
+      {label}
+    </Button>
+  )
+}
+
+function FotoGrid({
+  fotos,
+  size = 20,
+}: {
+  fotos: { id: string; url: string }[]
+  size?: 16 | 20
+}) {
+  const px = size === 16 ? '64px' : '80px'
+  const cls = size === 16 ? 'h-16 w-16' : 'h-20 w-20'
+  return (
+    <div className="flex flex-wrap gap-2">
+      {fotos.map((f) => (
+        <div key={f.id} className={`relative ${cls} overflow-hidden rounded border`}>
+          <ImageDialog src={f.url} alt="foto vistoria">
+            <Image src={f.url} alt="foto vistoria" fill className="object-cover" sizes={px} />
+          </ImageDialog>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function StepCard({
   icon: Icon,
   title,
   done,
-  disabled,
-  disabledMessage,
   children,
 }: {
   icon: React.ElementType
   title: string
   done: boolean
-  disabled?: boolean
-  disabledMessage?: string
   children: React.ReactNode
 }) {
   return (
-    <Card className={disabled && !done ? 'opacity-50 pointer-events-none' : ''}>
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2 text-base">
           <Icon className="h-5 w-5 text-muted-foreground" />
@@ -75,23 +113,13 @@ function StepCard({
           <Badge className="gap-1">
             <Check className="h-3 w-3" /> Concluído
           </Badge>
-        ) : disabled ? (
-          <Badge variant="outline" className="gap-1 text-muted-foreground">
-            <Lock className="h-3 w-3" /> Bloqueado
-          </Badge>
         ) : (
           <Badge variant="outline" className="gap-1">
             <CircleDashed className="h-3 w-3" /> Pendente
           </Badge>
         )}
       </CardHeader>
-      <CardContent>
-        {disabled && !done && disabledMessage ? (
-          <p className="text-sm text-muted-foreground">{disabledMessage}</p>
-        ) : (
-          children
-        )}
-      </CardContent>
+      <CardContent>{children}</CardContent>
     </Card>
   )
 }
@@ -111,6 +139,9 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const [vistoriaPendingCount, setVistoriaPendingCount] = useState(0)
   const [contratoPending, setContratoPending] = useState(false)
   const [voltarDialogOpen, setVoltarDialogOpen] = useState(false)
+  const [cnhLocalChecked, setCnhLocalChecked] = useState(false)
+  const [contratoApresentado, setContratoApresentado] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   const hasUnsavedChanges = vistoriaPendingCount > 0 || contratoPending
 
@@ -136,6 +167,10 @@ export default function AtendimentoClient({ id }: { id: string }) {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  useEffect(() => {
+    if (d?.cnhVerificada) setCnhLocalChecked(true)
+  }, [d?.cnhVerificada])
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -184,12 +219,11 @@ export default function AtendimentoClient({ id }: { id: string }) {
   const pagoOk = pagoAluguel && pagoCaucao
   const vistoriaSaida = d.vistorias.find((v) => v.tipo === 'SAIDA')
   const contratoOk = !!d.contrato?.assinadoEm
-  const retiradaOk = cnhOk && pagoOk && !!vistoriaSaida && contratoOk
+  const retiradaLocalOk = cnhLocalChecked && pagoOk && !!vistoriaSaida && contratoOk && contratoApresentado
 
   const vistoriaRetorno = d.vistorias.find((v) => v.tipo === 'RETORNO')
-  const caucaoAcertada = d.pagamentos.some(
-    (p) => p.tipo === 'CAUCAO' && (p.status === 'CAPTURADO' || p.status === 'LIBERADO'),
-  )
+  const pagamentoCaucao = d.pagamentos.find((p) => p.tipo === 'CAUCAO')
+  const caucaoAcertada = pagamentoCaucao?.status === 'CAPTURADO' || pagamentoCaucao?.status === 'LIBERADO'
 
   const isRetirada = status === 'PENDENTE' || status === 'CONFIRMADA'
   const isDevolucao = status === 'EM_ANDAMENTO'
@@ -198,6 +232,56 @@ export default function AtendimentoClient({ id }: { id: string }) {
     const raw = String(desconto).replace(/[^\d,]/g, '').replace(',', '.')
     const val = parseFloat(raw)
     return isNaN(val) ? 0 : val
+  }
+
+  const handleCnhToggle = async () => {
+    if (!cnhLocalChecked && !cnhOk) {
+      await run(() => adminVerificarCnh(id))
+      // useEffect on d.cnhVerificada sets cnhLocalChecked=true on success
+    } else {
+      setCnhLocalChecked((prev) => !prev)
+    }
+  }
+
+  const handleAbrirCobrar = () => {
+    const erros: string[] = []
+    if (!cnhLocalChecked)
+      erros.push('CNH não verificada — verifique a CNH antes de cobrar.')
+    if (!vistoriaSaida)
+      erros.push('Vistoria de saída não registrada — registre a vistoria antes de cobrar.')
+    if (!contratoApresentado)
+      erros.push('Contrato não apresentado — marque como apresentado antes de cobrar.')
+    if (!contratoOk)
+      erros.push('Contrato não assinado — assine o contrato antes de cobrar.')
+    if (erros.length > 0) {
+      setValidationErrors(erros)
+      return
+    }
+    setValidationErrors([])
+    setCobrarOpen(true)
+  }
+
+  const handleConcluirRetirada = async () => {
+    const erros: string[] = []
+    if (!cnhLocalChecked)
+      erros.push('CNH não verificada — marque como verificado antes de concluir.')
+    if (!vistoriaSaida)
+      erros.push('Vistoria de saída não registrada — preencha e salve a vistoria.')
+    if (!contratoApresentado)
+      erros.push("Contrato não apresentado — clique em 'Imprimir' e marque como apresentado.")
+    if (!contratoOk)
+      erros.push('Contrato não assinado — envie o contrato assinado ou capture a assinatura digital.')
+    if (!pagoAluguel)
+      erros.push('Pagamento do aluguel não realizado.')
+    if (!pagoCaucao)
+      erros.push('Caução não autorizada — realize o pagamento antes de concluir.')
+    if (erros.length > 0) {
+      setValidationErrors(erros)
+      return
+    }
+    setValidationErrors([])
+    await run(() => adminConcluirRetirada(id))
+    router.push('/admin/reservas')
   }
 
   return (
@@ -225,8 +309,6 @@ export default function AtendimentoClient({ id }: { id: string }) {
         </div>
         <Badge variant="secondary">{status}</Badge>
       </div>
-
-      {erro && <p className="text-sm text-destructive">{erro}</p>}
 
       <Card>
         <CardHeader>
@@ -272,16 +354,17 @@ export default function AtendimentoClient({ id }: { id: string }) {
                 Cliente não cadastrou CNH no sistema. Confira o documento físico no app VIO.
               </p>
             )}
-            <div className="mt-3">
-              {cnhOk ? (
-                <p className="text-sm text-muted-foreground">
-                  Verificada por {d.cnhVerificadaPor}{' '}
-                  {d.cnhVerificadaEm ? `em ${formatDate(d.cnhVerificadaEm)}` : ''}
+            <div className="mt-3 space-y-2">
+              <ToggleConfirmButton
+                checked={cnhLocalChecked}
+                label="CNH verificada presencialmente"
+                disabled={acao}
+                onClick={handleCnhToggle}
+              />
+              {cnhOk && d.cnhVerificadaPor && (
+                <p className="text-xs text-muted-foreground">
+                  Verificada por {d.cnhVerificadaPor}{d.cnhVerificadaEm ? ` em ${formatDate(d.cnhVerificadaEm)}` : ''}
                 </p>
-              ) : (
-                <Button disabled={acao} onClick={() => run(() => adminVerificarCnh(id))}>
-                  Confirmar CNH verificada (VIO)
-                </Button>
               )}
             </div>
           </StepCard>
@@ -290,8 +373,6 @@ export default function AtendimentoClient({ id }: { id: string }) {
             icon={ClipboardCheck}
             title="2. Vistoria de saída"
             done={!!vistoriaSaida}
-            disabled={!cnhOk}
-            disabledMessage="Complete a validação da CNH para liberar esta etapa."
           >
             {vistoriaSaida ? (
               <div className="text-sm text-muted-foreground">
@@ -301,14 +382,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
                     ? NIVEL_COMBUSTIVEL_LABELS[vistoriaSaida.nivelCombustivel]
                     : '—'}
                 </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {vistoriaSaida.fotos.map((f) => (
-                    <div key={f.id} className="relative h-16 w-16 overflow-hidden rounded border">
-                      <ImageDialog src={f.url} alt="foto saída">
-                        <Image src={f.url} alt="foto saída" fill className="object-cover" sizes="64px" />
-                      </ImageDialog>
-                    </div>
-                  ))}
+                <div className="mt-2">
+                  <FotoGrid fotos={vistoriaSaida.fotos} size={16} />
                 </div>
               </div>
             ) : (
@@ -319,9 +394,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
           <StepCard
             icon={FileSignature}
             title="3. Contrato"
-            done={contratoOk}
-            disabled={!cnhOk || !vistoriaSaida}
-            disabledMessage="Complete a CNH e a vistoria de saída para liberar esta etapa."
+            done={contratoOk && contratoApresentado}
           >
             {contratoOk ? (
               <p className="text-sm text-muted-foreground">
@@ -329,16 +402,26 @@ export default function AtendimentoClient({ id }: { id: string }) {
                 {d.contrato?.assinadoEm ? formatDate(d.contrato.assinadoEm) : ''}.
               </p>
             ) : (
-              <ContratoSection detalhe={d} onDone={setD} onPendingChange={onContratoPendingChange} />
+              <ContratoSection
+                detalhe={d}
+                onDone={setD}
+                onPendingChange={onContratoPendingChange}
+                onPrint={() => setContratoApresentado(true)}
+              />
             )}
+            <div className="mt-4 border-t pt-4">
+              <ToggleConfirmButton
+                checked={contratoApresentado}
+                label="Contrato apresentado ao cliente"
+                onClick={() => setContratoApresentado((prev) => !prev)}
+              />
+            </div>
           </StepCard>
 
           <StepCard
             icon={CreditCard}
             title="4. Pagamento"
             done={pagoOk}
-            disabled={!cnhOk || !vistoriaSaida || !contratoOk}
-            disabledMessage="Complete CNH, vistoria e contrato para liberar o pagamento."
           >
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
@@ -356,28 +439,36 @@ export default function AtendimentoClient({ id }: { id: string }) {
               {pagoOk ? (
                 <p className="text-sm text-muted-foreground">Pagamento concluído.</p>
               ) : (
-                <Button disabled={acao} onClick={() => setCobrarOpen(true)}>
+                <Button disabled={acao} onClick={handleAbrirCobrar}>
                   Cobrar
                 </Button>
               )}
             </div>
           </StepCard>
 
+          {(validationErrors.length > 0 || erro) && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Corrija os itens abaixo para concluir</AlertTitle>
+              <AlertDescription>
+                <ul className="mt-1 list-disc space-y-1 pl-4">
+                  {validationErrors.map((e, i) => (
+                    <li key={i}>{e}</li>
+                  ))}
+                  {erro && <li>{erro}</li>}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Card>
             <CardContent className="flex items-center justify-between pt-6">
               <p className="text-sm text-muted-foreground">
-                {retiradaOk
+                {retiradaLocalOk
                   ? 'Tudo pronto. Conclua a retirada e entregue a chave.'
                   : 'Complete as etapas acima para liberar a entrega.'}
               </p>
-              <Button
-                size="lg"
-                disabled={!retiradaOk || acao}
-                onClick={async () => {
-                  await run(() => adminConcluirRetirada(id))
-                  router.push('/admin/reservas')
-                }}
-              >
+              <Button size="lg" disabled={acao} onClick={handleConcluirRetirada}>
                 <KeyRound className="mr-2 h-4 w-4" /> Concluir retirada
               </Button>
             </CardContent>
@@ -403,15 +494,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
                     ? NIVEL_COMBUSTIVEL_LABELS[vistoriaSaida.nivelCombustivel]
                     : '—'}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {vistoriaSaida.fotos.map((f) => (
-                    <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
-                      <ImageDialog src={f.url} alt="foto saída referência">
-                        <Image src={f.url} alt="foto saída" fill className="object-cover" sizes="80px" />
-                      </ImageDialog>
-                    </div>
-                  ))}
-                </div>
+                <FotoGrid fotos={vistoriaSaida.fotos} />
               </CardContent>
             </Card>
           )}
@@ -426,14 +509,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
                     : '—'}
                 </p>
                 {vistoriaRetorno.fotos.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {vistoriaRetorno.fotos.map((f) => (
-                      <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
-                        <ImageDialog src={f.url} alt="foto retorno">
-                          <Image src={f.url} alt="foto retorno" fill className="object-cover" sizes="80px" />
-                        </ImageDialog>
-                      </div>
-                    ))}
+                  <div className="mt-2">
+                    <FotoGrid fotos={vistoriaRetorno.fotos} />
                   </div>
                 )}
               </div>
@@ -450,27 +527,11 @@ export default function AtendimentoClient({ id }: { id: string }) {
               <CardContent className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p className="mb-2 text-sm font-medium">Saída (KM {vistoriaSaida.kmRegistrado ?? '—'})</p>
-                  <div className="flex flex-wrap gap-2">
-                    {vistoriaSaida.fotos.map((f) => (
-                      <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
-                        <ImageDialog src={f.url} alt="saida">
-                          <Image src={f.url} alt="saida" fill className="object-cover" sizes="80px" />
-                        </ImageDialog>
-                      </div>
-                    ))}
-                  </div>
+                  <FotoGrid fotos={vistoriaSaida.fotos} />
                 </div>
                 <div>
                   <p className="mb-2 text-sm font-medium">Retorno (KM {vistoriaRetorno.kmRegistrado ?? '—'})</p>
-                  <div className="flex flex-wrap gap-2">
-                    {vistoriaRetorno.fotos.map((f) => (
-                      <div key={f.id} className="relative h-20 w-20 overflow-hidden rounded border">
-                        <ImageDialog src={f.url} alt="retorno">
-                          <Image src={f.url} alt="retorno" fill className="object-cover" sizes="80px" />
-                        </ImageDialog>
-                      </div>
-                    ))}
-                  </div>
+                  <FotoGrid fotos={vistoriaRetorno.fotos} />
                 </div>
               </CardContent>
             </Card>
@@ -486,8 +547,8 @@ export default function AtendimentoClient({ id }: { id: string }) {
               {caucaoAcertada ? (
                 <p className="text-sm text-muted-foreground">
                   Caução já acertada.{' '}
-                  {d.pagamentos.find((p) => p.tipo === 'CAUCAO')?.status === 'CAPTURADO'
-                    ? `Retido: ${formatCurrency(d.pagamentos.find((p) => p.tipo === 'CAUCAO')?.valor ?? 0)}`
+                  {pagamentoCaucao?.status === 'CAPTURADO'
+                    ? `Retido: ${formatCurrency(pagamentoCaucao.valor ?? 0)}`
                     : 'Caução liberada integralmente.'}
                 </p>
               ) : (

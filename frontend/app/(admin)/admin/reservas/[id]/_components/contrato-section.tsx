@@ -80,9 +80,10 @@ interface ContratoSectionProps {
   detalhe: ReservaDetalhe
   onDone: (d: ReservaDetalhe) => void
   onPendingChange?: (hasPending: boolean) => void
+  onPrint?: () => void
 }
 
-export default function ContratoSection({ detalhe, onDone, onPendingChange }: ContratoSectionProps) {
+export default function ContratoSection({ detalhe, onDone, onPendingChange, onPrint }: ContratoSectionProps) {
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -170,6 +171,7 @@ export default function ContratoSection({ detalhe, onDone, onPendingChange }: Co
         win.document.write(gerarHtmlContrato(detalhe))
         win.document.close()
         win.focus()
+        onPrint?.()
         setTimeout(() => win.print(), 300)
       }}>
         <Printer className="mr-2 h-4 w-4" />
