@@ -91,10 +91,10 @@ public class AtendimentoService {
         }
 
         if (!temPagamento(reserva, TipoPagamento.ALUGUEL, StatusPagamento.PAGO)) {
-            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotalAluguel(), cvv);
+            PagamentoResult r = paymentService.cobrarAluguel(reserva, reserva.getTotal(), cvv);
             registrarPagamento(reserva, TipoPagamento.ALUGUEL,
                     r.sucesso() ? StatusPagamento.PAGO : StatusPagamento.FALHOU,
-                    reserva.getTotalAluguel(), r);
+                    reserva.getTotal(), r);
         }
 
         if (!temPagamento(reserva, TipoPagamento.CAUCAO, StatusPagamento.AUTORIZADO)) {

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.ltech.backend.domain.dtos.CompleteRegisterRequestDTO;
@@ -21,6 +22,7 @@ import com.ltech.backend.domain.dtos.LoginRequestDTO;
 import com.ltech.backend.domain.dtos.LoginResponseDTO;
 import com.ltech.backend.domain.dtos.RegisterRequestDTO;
 import com.ltech.backend.domain.dtos.RegisterResponseDTO;
+import com.ltech.backend.domain.dtos.ValidarCartaoDTO;
 import com.ltech.backend.domain.entities.Grupo;
 import com.ltech.backend.domain.entities.Usuario;
 import com.ltech.backend.domain.repositories.GrupoRepository;
@@ -99,5 +101,31 @@ public class AuthenticationController {
     public ResponseEntity<Map<String, Boolean>> checkCpf(@RequestParam String cpf) {
         boolean available = !this.usuarioService.existsByCpf(cpf);
         return ResponseEntity.ok(Map.of("available", available));
+    }
+
+    // TODO: substituir pela tokenização Asaas quando disponível no plano contratado
+    @PostMapping("/validar-cartao")
+    public ResponseEntity<Map<String, Boolean>> validarCartao(@RequestBody ValidarCartaoDTO dto) {
+        String numero = dto.numero().replaceAll("\\D", "");
+        if (numero.isEmpty() || !isLuhnValid(numero)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Número do cartão inválido.");
+        }
+        return ResponseEntity.ok(Map.of("valido", true));
+    }
+
+    private boolean isLuhnValid(String numero) {
+        int sum = 0;
+        boolean alternate = false;
+        for (int i = numero.length() - 1; i >= 0; i--) {
+            int n = numero.charAt(i) - '0';
+            if (n < 0 || n > 9) return false;
+            if (alternate) {
+                n *= 2;
+                if (n > 9) n -= 9;
+            }
+            sum += n;
+            alternate = !alternate;
+        }
+        return sum % 10 == 0;
     }
 }

@@ -18,9 +18,11 @@ import type { Moto } from '@/lib/types'
 interface MotoCardProps {
   moto: Moto
   hideAction?: boolean
+  diariaEfetiva?: number
+  hidePrice?: boolean
 }
 
-export function MotoCard({ moto, hideAction = false }: MotoCardProps) {
+export function MotoCard({ moto, hideAction = false, diariaEfetiva, hidePrice = false }: MotoCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const router = useRouter()
 
@@ -85,12 +87,14 @@ export function MotoCard({ moto, hideAction = false }: MotoCardProps) {
             <span className="text-xs text-muted-foreground">{moto.potencia}</span>
           </div>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-bold text-foreground">
-                {formatCurrency(moto.precoPorDia)}
-              </p>
-              <p className="text-xs text-muted-foreground">por dia</p>
-            </div>
+            {!hidePrice && (
+              <div>
+                <p className="text-lg font-bold text-foreground">
+                  {formatCurrency(diariaEfetiva ?? moto.precoPorDia)}
+                </p>
+                <p className="text-xs text-muted-foreground">por dia</p>
+              </div>
+            )}
             {!hideAction && actionButton}
           </div>
           {!hideAction && (
@@ -160,12 +164,14 @@ export function MotoCard({ moto, hideAction = false }: MotoCardProps) {
             )}
 
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <div>
-                <p className="text-xl font-bold text-foreground">
-                  {formatCurrency(moto.precoPorDia)}
-                </p>
-                <p className="text-xs text-muted-foreground">por dia</p>
-              </div>
+              {!hidePrice && (
+                <div>
+                  <p className="text-xl font-bold text-foreground">
+                    {formatCurrency(diariaEfetiva ?? moto.precoPorDia)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">por dia</p>
+                </div>
+              )}
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Caução</p>
                 <p className="font-semibold text-foreground">{formatCurrency(moto.caucao)}</p>

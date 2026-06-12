@@ -20,10 +20,13 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -31,6 +34,7 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @EqualsAndHashCode.Include
     private String id;
     @Column(unique = true)
     private String username;
@@ -51,12 +55,15 @@ public class Usuario {
 
     @ManyToOne
     @JoinColumn(name = "grupo_id")
+    @ToString.Exclude
     private Grupo grupo;
 
     @OneToOne(mappedBy = "usuario")
+    @ToString.Exclude
     private Endereco endereco;
 
     @OneToOne(mappedBy = "usuario")
+    @ToString.Exclude
     private ClienteAsass clienteAsass;
 
     public Usuario(String username, String password, boolean enabled, Grupo grupo) {

@@ -18,6 +18,7 @@ public record CreateReservaDTO(
         String seguroId,
         String cartaoId,
         String lavagemServicoId,
+        String tipoQuilometragem,
         List<AcessorioItemDTO> acessorios) {
 
     public record AcessorioItemDTO(

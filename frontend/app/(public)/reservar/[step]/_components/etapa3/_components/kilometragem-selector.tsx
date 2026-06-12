@@ -6,20 +6,20 @@ import { formatCurrency } from '@/lib/data'
 export type QuilometragemPlano = 'economica' | 'ilimitada'
 
 interface KilometragemSelectorProps {
-  precoPorDia: number
+  precoEfetivo: number
   days: number
   selected: QuilometragemPlano
   onSelect: (plano: QuilometragemPlano) => void
 }
 
 export function KilometragemSelector({
-  precoPorDia,
+  precoEfetivo,
   days,
   selected,
   onSelect,
 }: KilometragemSelectorProps) {
-  const precoIlimitada = precoPorDia + 20
-  const savingsPct = Math.round((20 / precoIlimitada) * 100)
+  const precoIlimitada = precoEfetivo * 1.25
+  const savingsPct = Math.round((25 / 125) * 100)
   const kmDisponiveis = 100 * days
 
   const cards = [
@@ -27,7 +27,7 @@ export function KilometragemSelector({
       id: 'economica' as QuilometragemPlano,
       title: 'Quilometragem econômica',
       subtitle: `${kmDisponiveis} km disponíveis para você distribuir como quiser durante sua locação.`,
-      price: precoPorDia,
+      price: precoEfetivo,
       extra: '+ R$0,50 por quilômetro excedente',
       badge: `${savingsPct}% de economia`,
     },

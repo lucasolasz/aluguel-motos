@@ -10,7 +10,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { getToken } from '@/lib/auth'
 import type { Acessorio, LavagemServico, Local, Moto, Seguro } from '@/lib/types'
+import type { PrecificacaoConfig } from '@/lib/pricing'
+import { calcularDiariaEfetiva } from '@/lib/pricing'
 import { criarReserva } from '@/services/reservas.service'
+import { getPrecificacao } from '@/services/precificacao.service'
 import { BookingStepper } from './booking-stepper'
 import { CompletionScreen } from './completion-screen'
 import { PriceSummary } from './price-summary'
@@ -65,6 +68,7 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
   >([])
   const [selectedQuilometragem, setSelectedQuilometragem] = useState<QuilometragemPlano>('economica')
   const [lavagemSelected, setLavagemSelected] = useState(true)
+  const [precificacaoConfig, setPrecificacaoConfig] = useState<PrecificacaoConfig | null>(null)
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
@@ -94,6 +98,10 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [currentStep])
+
+  useEffect(() => {
+    getPrecificacao().then(setPrecificacaoConfig).catch(() => {})
+  }, [])
 
   useEffect(() => {
     let restoredPickup: Date | undefined
@@ -191,6 +199,10 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
     }))
     .filter((item) => item.acessorio && item.quantity > 0)
 
+  const precoEfetivo = precificacaoConfig && days > 0 && pickupDate
+    ? calcularDiariaEfetiva(moto.precoPorDia, days, pickupDate, 'economica', precificacaoConfig)
+    : moto.precoPorDia
+
   const handleAcessorioUpdate = (acessorioId: string, quantity: number) => {
     setSelectedAcessorios((prev) => {
       const existing = prev.find((item) => item.acessorioId === acessorioId)
@@ -281,6 +293,7 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
         localDevolucaoId,
         cartaoId: step5.selectedCardId ?? undefined,
         lavagemServicoId: lavagemContratada ? lavagem!.id : undefined,
+        tipoQuilometragem: selectedQuilometragem.toUpperCase(),
         acessorios: selectedAcessorios.map((a) => ({
           acessorioId: a.acessorioId,
           quantidade: a.quantity,
@@ -367,7 +380,7 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
                       acessorios={acessorios}
                       selected={selectedAcessorios}
                       onUpdate={handleAcessorioUpdate}
-                      precoPorDia={moto.precoPorDia}
+                      precoEfetivo={precoEfetivo}
                       days={days}
                       selectedQuilometragem={selectedQuilometragem}
                       onQuilometragemChange={setSelectedQuilometragem}
@@ -449,6 +462,8 @@ export function BookingPageClient({ moto, seguros, acessorios, lavagens, locais,
                   horaDevolucao={horaDevolucao || undefined}
                   localRetirada={locais.find((l) => l.id === localRetiradaId) ?? null}
                   localDevolucao={locais.find((l) => l.id === localDevolucaoId) ?? null}
+                  precificacaoConfig={precificacaoConfig}
+                  currentStep={currentStep}
                 />
               </div>
             </div>

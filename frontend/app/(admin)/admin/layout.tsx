@@ -14,6 +14,7 @@ import {
   Menu,
   Package,
   ShieldCheck,
+  SlidersHorizontal,
   Tags,
   Users,
   X,
@@ -33,6 +34,7 @@ const configNav = [
   { name: 'Seguros', href: '/admin/seguros', icon: ShieldCheck },
   { name: 'Lavagem', href: '/admin/lavagens', icon: Droplets },
   { name: 'Acessórios', href: '/admin/acessorios', icon: Package },
+  { name: 'Precificação', href: '/admin/precificacao', icon: SlidersHorizontal },
 ]
 
 export default function AdminLayout({

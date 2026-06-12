@@ -21,6 +21,13 @@ cd frontend && npm install && npm run dev
 
 DB recria do zero a cada restart (`create-drop` + `data.sql`).
 
+## Fase de Desenvolvimento
+Projeto em **fase de desenvolvimento ativo**. Decisões priorizam:
+- **Single source of truth**: valores de negócio vêm do banco (`data.sql` em dev, migrations em prod) — não duplicar em entidades Java
+- **Fail-fast**: se config obrigatória não existe no banco, lançar erro ao invés de criar defaults Java silenciosos
+- **Pronto para produção**: manter profiles dev/prod funcionais, sem hardcode que exija redeploy para mudar regra de negócio
+- **Migrations**: quando Flyway entrar, criar migrations em `db/migration/`. Até lá, `data.sql` é a fonte única de seed.
+
 ### Profiles (Spring) — VALORES via `.env`, COMPORTAMENTO via profile
 - `application.properties` — base: placeholders `${VAR:default}` (valores) + `spring.config.import=optional:file:.env[.properties]` + `spring.profiles.active=${SPRING_PROFILES_ACTIVE:dev}`. Segredos sem default: `DB_PASSWORD`, `JWT_SECRET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `ASAAS_API_KEY`, `ENCRYPTION_KEY`, `CARD_ENCRYPTION_KEY`.
 - `application-dev.properties` — só comportamento: `ddl-auto=create-drop`, `show-sql=true`, `sql.init.mode=always`.

@@ -186,6 +186,9 @@ export interface Reservation {
   totalAcessorios: number
   totalLavagem: number
   total: number
+  tipoQuilometragem: 'ECONOMICA' | 'ILIMITADA' | null
+  fatorDesconto: number | null
+  fatorSazonal: number | null
   cartaoNumeroMascarado: string | null
   createdAt: string
 }

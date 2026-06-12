@@ -2,12 +2,14 @@ package com.ltech.backend.domain.entities;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,18 +24,25 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "clientes_asass")
-public class ClienteAsass {
+@Table(name = "desconto_tiers")
+public class DescontoTier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
     private UUID id;
 
-    private String customerId;
+    private int min;
 
-    @OneToOne
-    @JoinColumn(name = "usuario_id", unique = true)
+    private int max;
+
+    private int desconto;
+
+    private int ordem;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "configuracao_id")
     @ToString.Exclude
-    private Usuario usuario;
+    private ConfiguracaoPrecificacao configuracao;
 }

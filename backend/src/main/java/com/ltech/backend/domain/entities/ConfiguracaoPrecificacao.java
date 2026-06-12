@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,44 +27,51 @@ import lombok.ToString;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "seguros")
-public class Seguro {
+@Table(name = "configuracao_precificacao")
+public class ConfiguracaoPrecificacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
     private UUID id;
 
-    private String nome;
+    private BigDecimal janeiro;
 
-    @Column(unique = true)
-    private String slug;
+    private BigDecimal fevereiro;
 
-    private String descricao;
+    private BigDecimal marco;
 
-    private BigDecimal precoPorDia;
+    private BigDecimal abril;
 
-    private Boolean basico;
+    private BigDecimal maio;
 
-    private BigDecimal valorOriginal;
+    private BigDecimal junho;
 
-    private BigDecimal valorComDesconto;
+    private BigDecimal julho;
 
-    private Integer percentualDesconto;
+    private BigDecimal agosto;
 
-    private BigDecimal valorTotalPacote;
+    private BigDecimal setembro;
 
-    private Integer maxParcelasSemJuros;
+    private BigDecimal outubro;
 
-    @Builder.Default
-    private Boolean recomendado = false;
+    private BigDecimal novembro;
 
-    @Builder.Default
-    private Boolean ativo = true;
+    private BigDecimal dezembro;
+
+    private int carnavalInicioMes;
+
+    private int carnavalInicioDia;
+
+    private int carnavalFimMes;
+
+    private int carnavalFimDia;
+
+    private BigDecimal carnavalFator;
 
     @Default
-    @OneToMany(mappedBy = "seguro", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "configuracao", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
     @ToString.Exclude
-    private List<SeguroCobertura> coberturas = new ArrayList<>();
+    private List<DescontoTier> descontoTiers = new ArrayList<>();
 }

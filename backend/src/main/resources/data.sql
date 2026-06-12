@@ -382,3 +382,19 @@ SELECT g.id, p.id FROM grupo g JOIN permissao p ON p.nome IN ('RESERVAS_LEITURA'
 WHERE g.nome = 'GERAL';
 
 -- Usuarios seed movidos para DevDataInitializer (JPA aplica AesEncryptor no CPF)
+
+
+-- CONFIGURAÇÃO DE PRECIFICAÇÃO
+INSERT INTO configuracao_precificacao (id, janeiro, fevereiro, marco, abril, maio, junho,
+  julho, agosto, setembro, outubro, novembro, dezembro,
+  carnaval_inicio_mes, carnaval_inicio_dia, carnaval_fim_mes, carnaval_fim_dia, carnaval_fator)
+VALUES ('40000000-0000-0000-0000-000000000001'::uuid,
+  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.25,
+  2, 10, 2, 17, 1.40);
+
+-- DESCONTO TIERS
+INSERT INTO desconto_tiers (id, configuracao_id, min, max, desconto, ordem) VALUES
+(gen_random_uuid(), '40000000-0000-0000-0000-000000000001'::uuid, 1, 2, 0, 0),
+(gen_random_uuid(), '40000000-0000-0000-0000-000000000001'::uuid, 3, 4, 10, 1),
+(gen_random_uuid(), '40000000-0000-0000-0000-000000000001'::uuid, 5, 7, 20, 2),
+(gen_random_uuid(), '40000000-0000-0000-0000-000000000001'::uuid, 8, 999, 30, 3);
