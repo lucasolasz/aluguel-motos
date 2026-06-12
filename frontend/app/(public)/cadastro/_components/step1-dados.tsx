@@ -274,7 +274,7 @@ export function Step1Dados({
       </section>
 
       <section>
-        <p className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-300 rounded-xl p-2">
+        <p className="flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-xl p-2">
           <IoMdInformationCircle size={100} />
           Todos os dados coletados no cadastro do cliente serão utilizadas para
           identificação das reservas e execução de contrato entre o titular e a

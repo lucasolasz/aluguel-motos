@@ -165,7 +165,7 @@ export default function ProfilePage() {
             </div>
           </div>
           {message && (
-            <p className={`mt-4 text-sm ${message.includes('Erro') ? 'text-destructive' : 'text-green-600'}`}>
+            <p className={`mt-4 text-sm ${message.includes('Erro') ? 'text-destructive' : 'text-primary'}`}>
               {message}
             </p>
           )}

@@ -46,9 +46,9 @@ export function InsuranceSelector({
             onClick={() => onSelect(seguro.id)}
             className={cn(
               'relative w-full rounded-xl border-2 bg-white p-5 text-left transition-all duration-150',
-              'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E7D32] focus-visible:ring-offset-2',
+              'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               isSelected
-                ? 'border-[#2E7D32] shadow-sm'
+                ? 'border-primary shadow-sm'
                 : 'border-gray-200 hover:border-gray-300'
             )}
             role="radio"
@@ -59,7 +59,7 @@ export function InsuranceSelector({
               className={cn(
                 'absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors',
                 isSelected
-                  ? 'border-[#2E7D32] bg-[#2E7D32]'
+                  ? 'border-primary bg-primary'
                   : 'border-gray-300 bg-white'
               )}
             >
@@ -70,12 +70,12 @@ export function InsuranceSelector({
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-base font-semibold text-gray-900">{seguro.nome}</span>
                 {seguro.basico && (
-                  <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                     Incluso
                   </span>
                 )}
                 {getSortKey(seguro.nome) === 1 && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -83,7 +83,7 @@ export function InsuranceSelector({
                   </span>
                 )}
                 {seguro.percentualDesconto > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -125,7 +125,7 @@ export function InsuranceSelector({
                         {naoIncluso ? (
                           <X className="h-3 w-3 shrink-0 text-gray-300" />
                         ) : (
-                          <Check className="h-3 w-3 shrink-0 text-[#2E7D32]" />
+                          <Check className="h-3 w-3 shrink-0 text-primary" />
                         )}
                         <span>{item.nome}</span>
                       </div>

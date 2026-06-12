@@ -197,7 +197,7 @@ export function Step3Conclusao({ dados }: Step3Props) {
           <CardTitle className="flex items-center justify-between">
             Dados do Cartão
             {cartaoValidado && (
-              <span className="flex items-center gap-1 text-sm font-normal text-green-600">
+              <span className="flex items-center gap-1 text-sm font-normal text-primary">
                 <CheckCircle2 className="h-4 w-4" />
                 Validado
               </span>

@@ -30,7 +30,7 @@ export function PasswordChecklist({ senha }: { senha: string }) {
             key={rule.label}
             className={cn(
               'flex items-center gap-2 text-sm',
-              ok ? 'text-green-600' : 'text-muted-foreground'
+              ok ? 'text-primary' : 'text-muted-foreground'
             )}
           >
             {ok ? <Check className="h-4 w-4 shrink-0" /> : <X className="h-4 w-4 shrink-0" />}

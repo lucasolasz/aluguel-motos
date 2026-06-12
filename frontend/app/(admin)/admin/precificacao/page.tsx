@@ -148,7 +148,7 @@ export default function PrecificacaoPage() {
         </div>
       )}
       {saveSuccess && (
-        <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-700">
+        <div className="rounded-md bg-primary/10 p-3 text-sm text-primary">
           Configuração salva com sucesso!
         </div>
       )}
@@ -235,7 +235,7 @@ export default function PrecificacaoPage() {
                     onChange={(e) => updateMes(key, Number(e.target.value))}
                     className={
                       value < 1
-                        ? 'border-green-500 text-green-700'
+                        ? 'border-primary text-primary'
                         : value > 1
                           ? 'border-orange-500 text-orange-700'
                           : ''

@@ -175,7 +175,7 @@ export default function EnderecosPage() {
           <CardContent className="space-y-4">
             <AddressFields value={form} onChange={handlePatch} />
             {message && (
-              <p className={`text-sm ${message.includes('Erro') ? 'text-destructive' : 'text-green-600'}`}>
+              <p className={`text-sm ${message.includes('Erro') ? 'text-destructive' : 'text-primary'}`}>
                 {message}
               </p>
             )}

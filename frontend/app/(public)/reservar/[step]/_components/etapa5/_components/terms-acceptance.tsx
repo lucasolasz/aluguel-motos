@@ -68,7 +68,7 @@ export function TermsAcceptance({ accepted, onChange }: TermsAcceptanceProps) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="text-blue-500 underline"
+            className="text-primary underline"
           >
             Exibir termos e condições completos
           </button>

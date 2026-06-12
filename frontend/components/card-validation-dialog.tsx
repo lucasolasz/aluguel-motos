@@ -32,7 +32,7 @@ export function CardValidationDialog({ open, status, errorMessage, onConfirm, on
 
           {status === 'success' && (
             <>
-              <CheckCircle2 className="h-12 w-12 text-green-500" />
+              <CheckCircle2 className="h-12 w-12 text-primary" />
               <p className="text-sm font-medium">Cartão validado com sucesso</p>
               <Button onClick={onConfirm} className="w-full">
                 Continuar

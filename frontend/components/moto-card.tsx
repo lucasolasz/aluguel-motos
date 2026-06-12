@@ -155,7 +155,7 @@ export function MotoCard({ moto, hideAction = false, diariaEfetiva, hidePrice = 
                 <div className="grid grid-cols-2 gap-2">
                   {moto.itens.map((item) => (
                     <div key={item} className="flex items-center gap-2">
-                      <Check className="h-4 w-4 shrink-0 text-green-500" />
+                      <Check className="h-4 w-4 shrink-0 text-primary" />
                       <span className="text-sm text-foreground">{item}</span>
                     </div>
                   ))}

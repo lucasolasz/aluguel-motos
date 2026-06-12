@@ -107,7 +107,7 @@ export default function CnhPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <CnhFields values={values} onChange={patch} />
 
-            <p className="flex items-center gap-2 text-sm text-muted-foreground bg-gray-300 rounded-xl p-4">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-xl p-4">
               <IoMdInformationCircle size={30} />
               Todos os dados coletados no cadastro do cliente serão utilizados para identificação
               das reservas e execução de contrato entre o titular e a Rio Ride Rental.
@@ -115,7 +115,7 @@ export default function CnhPage() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
             {success && (
-              <p className="text-sm text-green-600">Dados salvos com sucesso.</p>
+              <p className="text-sm text-primary">Dados salvos com sucesso.</p>
             )}
 
             <Button type="submit" disabled={saving || !values.estado}>

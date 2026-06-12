@@ -115,7 +115,7 @@ function StepCard({
           {title}
         </CardTitle>
         {done ? (
-          <Badge className="gap-1 bg-green-800 text-white hover:bg-green-800">
+          <Badge className="gap-1 bg-primary text-primary-foreground hover:bg-primary">
             <Check className="h-3 w-3" /> Concluído
           </Badge>
         ) : (
@@ -740,7 +740,7 @@ export default function AtendimentoClient({ id }: { id: string }) {
             )}
             {caucaoSimStatus === 'success' && (
               <>
-                <Check className="h-12 w-12 text-green-500" />
+                <Check className="h-12 w-12 text-primary" />
                 <p className="text-sm font-medium">Caução acertado com sucesso</p>
                 <Button onClick={() => setCaucaoSimOpen(false)} className="w-full">
                   OK

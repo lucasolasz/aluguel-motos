@@ -19,15 +19,15 @@ export function LavagemSelector({ lavagem, selected, onToggle }: LavagemSelector
       aria-pressed={selected}
       className={cn(
         'w-full overflow-hidden rounded-xl border-2 bg-white text-left transition-all duration-150',
-        'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1B5E20] focus-visible:ring-offset-2',
-        selected ? 'border-[#1B5E20] shadow-sm' : 'border-gray-200 hover:border-gray-300'
+        'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        selected ? 'border-primary shadow-sm' : 'border-gray-200 hover:border-gray-300'
       )}
     >
       {/* Cabeçalho */}
       <div
         className={cn(
           'flex items-start gap-3 p-4 transition-colors',
-          selected ? 'bg-[#1B5E20] text-white' : 'bg-gray-50 text-gray-900'
+          selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
         )}
       >
         <span
@@ -36,7 +36,7 @@ export function LavagemSelector({ lavagem, selected, onToggle }: LavagemSelector
             selected ? 'border-white bg-white' : 'border-gray-300 bg-white'
           )}
         >
-          {selected && <Check className="h-3.5 w-3.5 text-[#1B5E20]" strokeWidth={3} />}
+          {selected && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={3} />}
         </span>
 
         <div className="flex-1">
