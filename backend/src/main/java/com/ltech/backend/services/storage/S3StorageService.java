@@ -176,7 +176,7 @@ public class S3StorageService implements StorageService {
     /** Chave de retirada agrupada por timestamp: {@code reservas/{reservaId}{ts}/{subfolder}/{uuid}{ts}.ext}. */
     private String buildRetiradaKey(UUID reservaId, String subfolder, String timestamp, String extension) {
         String ts = sanitizeTimestamp(timestamp);
-        return "reservas/%s%s/%s/%s%s.%s".formatted(
+        return "reservas/%s%s/%s/%s_%s.%s".formatted(
                 reservaId, ts, sanitizePrefix(subfolder), UUID.randomUUID(), ts, extension);
     }
 
